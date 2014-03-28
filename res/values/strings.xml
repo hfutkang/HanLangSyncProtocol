@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_label">Sync</string>
+	<string name="bond">bind</string>
+	<string name="bond_message">bind the device %1$s ?</string>
+	<string name="open_bt">open bluetooth</string>
+	<string name="bluetooth_preference_bonded_devices_connect">bound devices (click to connect)</string>
+	<string name="bluetooth_preference_bonded_devices_disconnect">bound devices (click to disconnect)</string>
+	<string name="bluetooth_preference_paired_devices">paired  device</string>
+	<string name="bluetooth_preference_paired_devices_bond">paired devices(click to bind)</string>
+	<string name="bluetooth_preference_devices">available devices(click to pair)</string>
+    <string name="bluetooth_turning_on">"Turning Bluetooth on\u2026"</string>
+    <string name="bluetooth_turning_off">"Turning Bluetooth off\u2026"</string>
+    <string name="multiple_new_message_notification_item"><b><xliff:g id="sender">%1$s</xliff:g></b>\u0020\u0020\u0020<xliff:g id="subject">%2$s</xliff:g></string>    <string name="bluetooth_pairing">"pairing..."</string>
+
+    <string name="bluetooth_bonded">"bound ,but no connect"</string>
+    <string name="bluetooth_connecting">"connecting..."</string>
+    <string name="bluetooth_disconnecting">"disconnecting..."</string>
+    <string name="bluetooth_connected">"connected"</string>
+    <string name="bluetooth_empty_list_bluetooth_off">To use sync service, turn Bluetooth on.</string>
+    <string name="notification_multiple_new_messages_fmt">
+        <xliff:g example="2">%1$d</xliff:g> new messages</string>
+
+    <string name="single_new_message_notification_big_text"><xliff:g id="subject">%1$s</xliff:g>\n<xliff:g id="snippet">%2$s</xliff:g></string>
+    <string name="menu_scan_title">scan devices</string>
+    <string name="menu_settings">setting</string>
+    <string name="endCall">end call</string>
+    <string name="answerCall">answer</string>
+
+    
+    <!--state of call, -->
+    <string name="idle">idle</string>
+    <string name="accepting">accepting</string>
+    <string name="ring">ring</string>
+    <string name="offhook">offhook</string>
+    <string name="disconnecting">disconnecting</string>
+    
+	<!-- for ota update -->
+    <string name="app_name">test</string>
+    <string name="current_version">current version:</string>
+    <string name="latest_version">latest version:</string>
+    <string name="firstly"> 1 .</string>
+    <string name="check_update">check update</string>
+    <string name="secondly">2 .</string>
+    <string name="download">download update</string>
+    <string name="thirdly">3 .</string>
+    <string name="run_update">update now</string>
+    <string name="not_need_update">your version is latest, need no update</string>
+    <string name="checking_update">checking update . . .</string>
+    <string name="download_title">OTA update</string>
+    <string name="download_description">Download file for OTA update</string>
+    <string name="read_me">------------------------------------\n
+        Notices: \n
+        1. need a SD card;\n
+        2. need a network conntection;(WLAN preferred)\n
+        3. maybe you need to reboot after download successly.\n
+        ------------------------------------\n</string> <!--  -->
+	
+	<string name="check_now">Check now</string>
+	<string name="scheduled_check">Scheduled check</string>
+	<string name="software_updates">Software updates</string>
+	<string name="later">Later</string>
+	<string name="ok">OK</string>
+        <string name="cancel">Cancel</string>
+	<string name="install">Install</string>
+	<string name="abandon">Abandon</string>
+	<string name="sync_failed">Sync failed!</string>
+	<string name="already_latest_version">This is already the latest version!</string>
+	<string name="no_rollback_version">no version to back!</string>
+	<string name="checking">Checking...</string>
+	<string name="version_back">version back</string>
+	<string name="product">product : </string>
+	<string name="android_version">Android version: </string>
+	<string name="system_version">system version：</string>
+	<string name="update_to_version">update to version: %s</string>
+	<string name="rollback_to_version">back to version: %s</string>
+	<string name="current_version_ps">current version</string>
+	<string name="please_choose_version">choose a version</string>
+
+	<!-- update download -->
+	<string name="download_any_data">Download via any available data connection</string>
+	<string name="download_only_wifi">Download via Wi-Fi only</string>
+	<string name="version">Version:</string>
+	<string name="size">Size:%s bytes</string>
+	<string name="description">Description:</string>
+	<string name="network_not_avaliable">Network not avaliable!</string>
+	
+    <!-- update install -->
+    <string name="sdcard_not_avaliable">SD card not avaliable!</string>
+    <string name="get_watch_info">getting watch infomation</string>
+    <string name="install_alerting">you must keep power on,when updating </string>
+    <string name="install_notices">please backup your datas, such as contacts,sms,call log,etc</string>	
+    <string name ="update_later_msg">click to update</string>
+    <string name ="exit_title">update later</string>
+    <string name ="update_message">click OK to reboot and update </string>
+    <string name ="check_file_failed">file check failed, please Re-Download </string>
+    
+    <!-- settings -->
+    <string name="settings">settings</string>
+    <string name="sync_settings">sync settings</string>
+    <string name="sync_settings_sum">set the content between the device and watch</string>
+    <string name="mode_settings">mode setting</string>
+    <string name="mode_settings_sum">set the mode between the device and watch</string>
+    <string name="mms_settings">quick sms</string>
+    <string name="mms_settings_sum">set quick sms rejected calls</string>
+    <string name="clear_settings">cancel bonded</string>
+    <string name="clear_settings_sum">cancel the bonded status of the current sync device</string>
+    <string name="clear_message">sure to cancel %1$s \'s bonded status?</string>
+    <string name="ota_update">system update</string>
+    <string name="ota_update_sum">update version of watch</string>
+    
+    <!-- sync settings  --> 
+    <string name="sync_mms">sms</string>
+    <string name="sync_contact">contacts</string>
+    <string name="sync_calllog">call log</string>
+    <string name="sync_email">email</string>
+    <string name="sync_calendar">calendar</string>
+    <string name="sync_weather">weather</string>
+    <string name="sync_time">time</string>
+    <string name="sync_clock">clock</string>
+    <string name="sync_music">music</string>
+    <string name="sync_battery">battery</string>
+    
+    <!-- mode settings -->
+    <string-array name="mode_entries">
+        <item>save power mode</item>
+        <item>realtime mode</item>
+    </string-array>
+    <string-array name="mode_entry_values" translatable="false">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+    <!-- for camera -->
+    <string name="watch_camera_title">Remote Camera</string>
+    <string name="remote_success">Success</string>
+    <string name="remote_fail">Fail</string>
+    <string name="open_camera">Open Camera</string>
+    <string name="open_camera_success">Open camera success</string>
+	<string name="open_camera_fail">Open camera fail</string>
+    <string name="open_camera_fail_power">Open camera fail, please make sure the phone is powered</string>
+	<string name="open_camera_fail_sensor">Open camera fail, please make sure the camera in phone has not been opened</string>
+	<string name="open_camera_fail_channel">Open camera fail because of preview channel</string>
+    <string name="open_camera_fail_bt">it\'s failed to open camera because of bluetooth</string>
+    <string name="open_camera_fail_timeout">it\'s failed to open camera with timeout</string>
+    <string name="take_picture">Take Picture</string>
+    <string name="take_picture_success">Take picture success</string>
+    <string name="take_picture_fail">Take picture fail</string>
+    <string name="take_picture_fail_bt">it\'s failed to capture because of bluetooth</string>
+    <string name="take_picture_fail_timeout">it\'s failed to capture with timeout</string>
+    <string name="retake_picture">ReTake Picture</string>
+    <string name="wait_open_camera_message">opening camera ...</string>
+    <string name="reopen_camera">Retry Open Camera</string>
+    <string name="disconnect_message">Disconnect</string>
+    <string name="image_file_name_format" translatable="false">"'IMG'_yyyyMMdd_HHmmss_SSS"</string>
+    <string name="picture_path_message">Picture path : %1$s</string>
+    <string name="close_camera_message">Remote camera has been closed</string>
+    <string name="menu_open_camera">Open Remote Camera</string>
+    <string name="switch_camera">Switch Camera</string>
+    <string name="no_storage">No storage</string>
+    <string name="browse_picture">Do you look through the picture?</string>
+    <string name="camera_alert_ok">OK</string>
+    <string name="camera_alert_cancel">Cancel</string>
+    <string name="camera_return_preview">Return to preview</string>
+    <string name="rotate_preview">Rotate Preview</string>
+    
+    <!-- quick sms -->
+    <string name="respond_via_sms_custom_message">"custom message"</string>
+    <string name="respond_via_sms_confirmation_format">"sms was send."</string>
+    <string name="respond_via_sms_canned_response_1">"Cann't talk now. What's up?"</string>
+    <string name="respond_via_sms_canned_response_2">"I'll Call you right back"</string>
+    <string name="respond_via_sms_canned_response_3">"I'll Call you later"</string>
+    <string name="respond_via_sms_canned_response_4">"Can't talk now. Call me later?"</string>
+    <string name="respond_via_sms_setting_title_2">"Edit quick responses"</string>
+    <string name="respond_via_sms_edittext_dialog_title">"Quick responses"</string>
+    <string name="sync_via_sms">"sync to watch"</string>
+    <string name="sync_via_sms_content">sync the quick sms to watch"</string>
+    <string name="no_connection">No Blue tooth Connection</string>
+
+	<!-- SMS -->
+    <string name="no_subject_view">(No subject)</string>
+
+    <!-- Call Log -->
+    <string name="missed_call">missed call</string>
+    <string name="call_log_sync_fail">Sync call log failed.</string>
+    <string name="call_log_sync_success">Sync call log success.</string>
+    <string name="unknown">unkonwn</string>
+    <string name="notification_missedCallTitle"> Missed call</string>
+    <string name="notification_missedCallsTitle"> missed calls</string>
+    <string name="notification_missedCallsMsg"><xliff:g id="num_missed_calls">%s</xliff:g> missed calls</string>
+    <string name="notification_missedCallTicker">Missed call from <xliff:g id="missed_call_from">%s</xliff:g></string>
+
+	<!-- Email -->
+	<string name="email_update_notification">Email has Update.</string>
+	
+	<!-- System -->
+	<string name="bond_request">Bond Request</string>
+	<string name="bond_request_message">Bond with <xliff:g id="device_name">%1$s</xliff:g>?</string>
+	<string name="timout_noti_title">IndroidSync Timeout</string>
+	<string name="timout_noti_content">IndroidSync running without Bluetooth connectivity ability for a long time</string>
+	<string name="time_noti_ticker">IndroidSync disable auto connect</string>
+	<string name="retry_connect">reconnect...</string>
+	<string name="retry_connect_success">reconnect success</string>
+	<string name="retry_connect_failed">reconnect failed</string>
+	<string name="retry_connect_failed_with_no_address">Lost remote device</string>
+</resources>
+

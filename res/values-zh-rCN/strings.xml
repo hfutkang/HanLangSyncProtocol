@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="app_label">同步</string>
+	<string name="bond">绑定</string>
+	<string name="bond_message">确定要绑定设备%1$s吗？</string>
+	<string name="open_bt">打开蓝牙</string>
+	<string name="bluetooth_preference_bonded_devices_connect">已绑定设备（点击以连接）</string>
+	<string name="bluetooth_preference_bonded_devices_disconnect">已绑定设备（点击以断开）</string>
+	<string name="bluetooth_preference_paired_devices">已配对设备</string>
+	<string name="bluetooth_preference_paired_devices_bond">已配对设备（点击以绑定）</string>
+	<string name="bluetooth_preference_devices">可用设备（点击以配对）</string>
+    <string name="bluetooth_turning_on">正在打开蓝牙\u2026</string>
+    <string name="bluetooth_turning_off">正在关闭蓝牙\u2026</string>
+    <string name="bluetooth_pairing">"正在配对..."</string>
+    <string name="bluetooth_bonded">"已绑定，未连接"</string>
+    <string name="bluetooth_connecting">"正在连接..."</string>
+    <string name="bluetooth_disconnecting">"正在断开..."</string>
+    <string name="bluetooth_connected">"已连接"</string>
+    <string name="bluetooth_empty_list_bluetooth_off">要使用同步服务，请打开蓝牙功能。</string>
+    <string name="menu_scan_title">搜索设备</string>
+    <string name="menu_settings">设置</string>
+    <string name="endCall">挂断</string>
+    <string name="answerCall">接听</string>
+
+    <!--state of call, -->
+    <string name="idle">空闲</string>
+    <string name="accepting">正在接听</string>
+    <string name="ring">来电</string>
+    <string name="offhook">通话中</string>
+    <string name="disconnecting">正在挂断</string>
+
+	<!-- for ota update -->
+    <string name="app_name">系统更新</string>
+    <string name="current_version">当前版本:</string>
+    <string name="latest_version">最新版本:</string>
+    <string name="firstly"> 一 .</string>
+    <string name="check_update">检查更新</string>
+    <string name="secondly"> 二 .</string>
+    <string name="download">下载更新</string>
+    <string name="thirdly"> 三 .</string>
+    <string name="run_update">执行更新</string>
+    <string name="not_need_update">你的版本已是最新,不需要更新</string>
+    <string name="checking_update">正在检查更新 . . .</string>
+    <string name="download_title">下载升级文件</string>
+    <string name="download_description">下载升级所需要的更新文件</string>
+    <string name="read_me">------------------------------------\n
+                     注意事项: \n
+        1. 确保已安装SD卡,且有足够的可用空间;\n
+        2. 确保网络连接;(推荐WLAN)\n
+        3. 成功下载升级文件后,重启.\n
+        ------------------------------------\n</string> <!--  -->
+
+    <!-- check update -->
+	<string name="check_now">立即检查</string>
+	<string name="scheduled_check">定时检查</string>
+	<string name="software_updates">软件更新</string>
+	<string name="later">稍后安装</string>
+        <string name="ok">确定</string>
+        <string name="cancel">取消</string>
+	<string name="install">立即安装</string>
+	<string name="abandon">放弃</string>
+	<string name="sync_failed">同步失败！</string>
+	<string name="already_latest_version">已经是最新版本！</string>
+	<string name="no_rollback_version">没有可回退的版本！</string>
+	<string name="checking">正在检查</string>
+	<string name="version_back">版本回退</string>
+	<string name="product">型号：</string>
+	<string name="android_version">Android 版本：</string>
+	<string name="system_version">系统版本：</string>
+	<string name="update_to_version">更新到版本：%s</string>
+	<string name="rollback_to_version">回退到版本：%s</string>
+	<string name="current_version_ps">（当前版本）</string>
+	<string name="please_choose_version">请选择版本</string>
+
+	<!-- update download -->
+	<string name="download_any_data">通过任何可用的数据连接进行下载</string>
+	<string name="download_only_wifi">仅通过WLAN下载</string>
+	<string name="version">版本:</string>
+	<string name="size">大小:%s bytes</string>
+	<string name="description">说明:</string>
+	<string name="network_not_avaliable">网络不可用！</string>
+	
+    <!-- update install -->
+    <string name="sdcard_not_avaliable">存储卡不可用！</string>
+    <string name="get_watch_info">正在获取手表版本信息</string>
+	<string name="install_alerting">升级过程中您无法使用电话，也不能拨打紧急电话。在升级过程中请勿关闭电话，或者取出电池或存储卡。</string>
+    <string name="install_notices">更新前请备份数据(如，联系人，信息，通话记录等),并保证有足够的电量</string>	
+    <string name ="update_later_msg">点击进入系统更新</string>
+    <string name ="exit_title">稍后更新</string>
+    <string name ="update_message">点击确定来重启进行升级</string>
+    <string name ="check_file_failed">文件校验失败，请重新下载</string>
+
+    <!-- 设置 -->
+    <string name="settings">设置</string>
+    <string name="sync_settings">同步设置</string>
+    <string name="sync_settings_sum">设置此设备与手表之间可以同步的内容</string>
+    <string name="mode_settings">模式设置</string>
+    <string name="mode_settings_sum">设置此设备与手表之间同步的模式策略</string>
+    <string name="mms_settings">快速回复短信</string>
+    <string name="mms_settings_sum">设置拒接来电时的快速回复短信</string>
+    <string name="clear_settings">解除绑定</string>
+    <string name="clear_settings_sum">解除当前同步设备绑定状态</string>
+    <string name="clear_message">确定要解除设备%1$s的绑定吗？</string>
+    <string name="ota_update">系统升级</string>
+    <string name="ota_update_sum">更新手表的系统版本</string>
+
+    <!-- 同步设置 --> 
+    <string name="sync_mms">短信</string>
+    <string name="sync_contact">联系人</string>
+    <string name="sync_calllog">通话记录</string>
+    <string name="sync_email">电子邮件</string>
+    <string name="sync_calendar">日程</string>
+    <string name="sync_weather">天气</string>
+    <string name="sync_time">时间</string>
+    <string name="sync_clock">闹钟</string>
+    <string name="sync_music">音乐</string>
+    <string name="sync_battery">电池信息</string>
+    
+    <!-- 模式设置 -->
+    <string-array name="mode_entries">
+        <item>省电模式</item>
+        <item>实时模式</item>
+    </string-array>
+
+    <!-- for camera -->
+    <string name="watch_camera_title">远程相机</string>
+    <string name="open_camera">打开远程相机</string>
+    <string name="open_camera_success">已经打开手机端相机</string>
+    <string name="open_camera_fail">打开手机端相机失败</string>
+	<string name="open_camera_fail_power">打开远程相机失败,请确保手机未进入休眠状态</string>
+	<string name="open_camera_fail_sensor">打开远程相机失败,请确保手机端相机应用未被打开</string>
+	<string name="open_camera_fail_channel">预览通道建立失败</string>
+	<string name="open_camera_fail_bt">蓝牙连接问题导致打开手机端相机失败</string>
+    <string name="open_camera_fail_timeout">超时导致打开手机端相机失败</string>
+    <string name="take_picture">远程拍照</string>
+    <string name="take_picture_success">拍照成功</string>
+    <string name="take_picture_fail">拍照失败</string>
+    <string name="take_picture_fail_bt">蓝牙连接问题导致拍照失败</string>
+    <string name="take_picture_fail_timeout">超时导致拍照失败</string>
+    <string name="retake_picture">重试拍照</string>
+    <string name="wait_open_camera_message">正在打开...</string>
+    <string name="reopen_camera">重试打开</string>
+    <string name="disconnect_message">断开连接</string>
+    <string name="picture_path_message">照片存储于: %1$s</string>
+    <string name="close_camera_message">相机已关闭,连接中断</string>
+    <string name="menu_open_camera">打开远程相机</string>
+    <string name="switch_camera">切换相机</string>
+    <string name="no_storage">没有存储设备</string>
+    <string name="browse_picture">要查看照片吗?</string>
+    <string name="camera_alert_ok">是</string>
+    <string name="camera_alert_cancel">否</string>
+    <string name="camera_return_preview">退出查看</string>
+    <string name="rotate_preview">旋转图像</string>
+    <string name="no_camera_connection">相机连接中断,请在手表端重新打开</string>
+    <string name="no_connection">蓝牙连接已中断</string>
+    
+    <!--快速回复(短信) -->
+    <string name="respond_via_sms_custom_message">"自定义短信"</string>
+    <string name="respond_via_sms_confirmation_format">"讯息已发送"</string>
+    <string name="respond_via_sms_canned_response_1">"现在无法接听。有什么事吗？"</string>
+    <string name="respond_via_sms_canned_response_2">"我马上会打给你。"</string>
+    <string name="respond_via_sms_canned_response_3">"我稍后会再打给你。"</string>
+    <string name="respond_via_sms_canned_response_4">"现在无法接听。能稍后再打给我吗？"</string>
+    <string name="respond_via_sms_setting_title_2">"修改快速回复"</string>
+    <string name="respond_via_sms_edittext_dialog_title">"快速回复"</string>
+    <string name="sync_via_sms">同步到手表"</string>
+    <string name="sync_via_sms_content">同步以上快速回复短信到手表上"</string>
+    <string name="response_sms_sync_new">"新信息"</string>
+    <string name="response_sms_sync_close">"关闭"</string>
+
+	<!-- SMS -->
+    <string name="no_subject_view">"（无主题）"</string>
+
+    <!-- Call Log -->
+    <string name="missed_call">未接来电</string>
+    <string name="call_log_sync_fail">通话记录同步失败</string>
+    <string name="call_log_sync_success">通话记录同步成功</string>
+    <string name="unknown">未知</string>
+    <string name="notification_missedCallTitle"> 未接电话</string>
+    <string name="notification_missedCallsTitle">未接电话</string>
+    <string name="notification_missedCallsMsg"><xliff:g id="num_missed_calls">%s</xliff:g>个未接电话</string>
+    <string name="notification_missedCallTicker">来自 <xliff:g id="missed_call_from">%s</xliff:g>的未接电话</string>
+	<!-- Email -->
+	<string name="email_update_notification">邮件有更新，请及时查收。</string>
+	
+	<!-- System -->
+	<string name="bond_request">绑定请求</string>
+	<string name="bond_request_message">"要与<xliff:g id="DEVICE_NAME">%1$s</xliff:g>设备绑定吗？"</string>
+	<string name="timout_noti_title">同步超时</string>
+	<string name="timout_noti_content">已长时间失去蓝牙连接能力</string>
+	<string name="time_noti_ticker">禁用同步自动连接</string>
+	<string name="retry_connect">连接中...</string>
+	<string name="retry_connect_success">连接成功</string>
+	<string name="retry_connect_failed">连接失败</string>
+	<string name="retry_connect_failed_with_no_address">失去远程设备</string>
+</resources>

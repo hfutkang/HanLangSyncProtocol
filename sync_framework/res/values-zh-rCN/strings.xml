@@ -1,0 +1,12 @@
+<resources>
+
+    <string name="app_name">测试</string>
+	<string name="fail_addr_mismatch">对端设备已解除与本设备的绑定关系</string>
+	<string name="fail_ver_mismatch">同步协议版本不匹配</string>
+	<string name="fail_unknow">未知错误</string>
+	
+	<string name="unbond_st">未绑定状态</string>
+    <string name="unbond_st_content">手表未与任意设备关联绑定</string>
+    <string name="lost_bond_st">失去绑定状态</string>
+    <string name="lost_bond_st_content">对端设备已经解除了与本设备的绑定关系</string>
+</resources>

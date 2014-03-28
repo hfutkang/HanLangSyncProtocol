@@ -1,0 +1,12 @@
+<resources>
+
+    <string name="app_name">test</string>
+	<string name="fail_addr_mismatch">Remote device already clear bond state with me</string>
+	<string name="fail_ver_mismatch">Sync Protocol version mismatch</string>
+	<string name="fail_unknow">Unknow error</string>
+	
+	<string name="unbond_st">Unbond status</string>
+    <string name="unbond_st_content">Watch have not any Bond device</string>
+    <string name="lost_bond_st">Lost Bond Status</string>
+    <string name="lost_bond_st_content">This device had lost bond status with remote watch</string>
+</resources>

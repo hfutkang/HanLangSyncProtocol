@@ -1,0 +1,112 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+ 
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:prvandroid="http://schemas.android.com/apk/prv/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
+
+    <LinearLayout
+        android:id="@+id/call_banner_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:orientation="vertical" >
+        <RelativeLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+           	android:layout_marginLeft="5dp"
+            android:textSize="18sp"
+            android:singleLine="true" />
+        <TextView
+            android:id="@+id/phoneNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@id/name"
+    	    android:layout_alignParentRight="true"
+            android:layout_marginRight="5dp"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:singleLine="true"/>
+        <TextView
+            android:id="@+id/elapsedTime"
+	        android:layout_width="wrap_content"
+    	    android:layout_height="wrap_content"
+    	    android:layout_below="@id/phoneNumber"
+    	    android:layout_alignParentRight="true"
+            android:layout_marginRight="5dp"
+    	    android:textSize="15sp"
+    	    android:textColor="#FFFFFF"
+        	android:singleLine="true"  />
+        </RelativeLayout>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/callStateLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/call_banner_1"
+        android:gravity="right"
+        android:text="@string/idle"
+        android:textSize="15sp"
+        android:textColor="#FFFFFF"
+        android:background="#000044"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#0000FF"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal" >
+        <Button
+            android:id="@+id/endButton"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="#FF0000"
+            android:textSize="20sp"
+            android:text="@string/endCall" />
+        <!--Button
+            android:id="@+id/answerButton"
+            android:layout_width="0dip"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="#00FF00"
+            android:text="@string/answerCall"
+            android:visibility="gone" /-->
+    </LinearLayout>
+
+	    <com.android.internal.widget.multiwaveview.GlowPadView
+        android:id="@+id/incomingCallWidget"
+        android:layout_width="match_parent"
+        android:layout_height="245dp"
+        android:layout_alignParentBottom="true"
+        android:background="@android:color/black"
+        android:visibility="gone"
+
+        prvandroid:targetDrawables="@array/incoming_call_widget_2way_targets"
+        prvandroid:targetDescriptions="@array/incoming_call_widget_2way_target_descriptions"
+        prvandroid:directionDescriptions="@array/incoming_call_widget_2way_direction_descriptions"
+        prvandroid:handleDrawable="@drawable/ic_in_call_touch_handle"
+        prvandroid:innerRadius="@*android:dimen/glowpadview_inner_radius"
+        prvandroid:outerRadius="@*android:dimen/glowpadview_target_placement_radius"
+        prvandroid:outerRingDrawable="@*android:drawable/ic_lockscreen_outerring"
+        prvandroid:snapMargin="@*android:dimen/glowpadview_snap_margin"
+        prvandroid:vibrationDuration="20"
+        prvandroid:feedbackCount="1"
+        prvandroid:glowRadius="@*android:dimen/glowpadview_glow_radius"
+        prvandroid:pointDrawable="@*android:drawable/ic_lockscreen_glowdot"
+        />
+
+</RelativeLayout>
+
+</FrameLayout>
+

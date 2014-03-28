@@ -1,0 +1,13 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/switch_camera"
+        android:orderInCategory="100"
+        android:showAsAction="never"
+        android:title="@string/switch_camera"/>
+    <item
+        android:id="@+id/rotate_preview"
+        android:orderInCategory="10"
+        android:showAsAction="never"
+        android:title="@string/rotate_preview"/>
+</menu>
