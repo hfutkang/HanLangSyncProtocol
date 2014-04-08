@@ -10,6 +10,7 @@ import cn.ingenic.glasssync.calendar.CalendarModule;
 import cn.ingenic.glasssync.camera.CameraModule;
 import cn.ingenic.glasssync.services.SyncService;
 import cn.ingenic.glasssync.updater.UpdaterModule;
+import cn.ingenic.glasssync.notify.GlassSyncNotifyModule;
 
 
 public class SyncApp extends Application implements
@@ -29,6 +30,8 @@ public class SyncApp extends Application implements
 		if (manager.registModule(systemModule)) {
             Log.i(LogTag.APP, "SystemModule is registed.");
         }
+
+	    GlassSyncNotifyModule mGsnm = new GlassSyncNotifyModule(this);
 
         UpdaterModule um = new UpdaterModule();
         if (manager.registModule(um)) {
