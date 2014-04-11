@@ -11,6 +11,7 @@ import cn.ingenic.glasssync.services.SyncException;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiConfiguration;
 import android.content.BroadcastReceiver;
+import java.util.List;
 
 public class GlassSyncWifiModule extends SyncModule {
     private static final String TAG = "GlassSyncWifiModule";
@@ -25,6 +26,7 @@ public class GlassSyncWifiModule extends SyncModule {
 
     private static final String GSWFMD_CMD = "gswfmd_cmd";
     private static final String GSWFMD_RQWF = "gswfmd_rqwf";
+    private static final String GSWFMD_SDWF = "gswfmd_sdwf";
 
     private Context mContext;
     private static GlassSyncWifiModule sInstance;
@@ -64,9 +66,8 @@ public class GlassSyncWifiModule extends SyncModule {
     // 	}
     // }
 
-    @Override
-    protected void onRetrive(SyncData data) {
-	Log.e(TAG, "onRetrive");
+    private void process_wifi(SyncData data){
+	Log.e(TAG, "process_wifi");
 
 	String ssid = data.getString(GSWFMD_SSID);
 	String pswd = data.getString(GSWFMD_PSD);
@@ -79,6 +80,11 @@ public class GlassSyncWifiModule extends SyncModule {
 
 	WifiManager wifi_service = (WifiManager)mContext.getSystemService(mContext.WIFI_SERVICE); 
 	WifiConfiguration newwfcfg = new WifiConfiguration();
+
+	if (wifi_service.isWifiEnabled() == false){
+	    Log.e(TAG, "enable the wifi");
+	    wifi_service.setWifiEnabled(true);
+	}
 
 	newwfcfg.SSID = "\"" + ssid + "\"";
 
@@ -107,9 +113,26 @@ public class GlassSyncWifiModule extends SyncModule {
 		newwfcfg.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
 	}
 
-	if (mgmt.contains("NONE"))
-
 	wifi_service.addNetwork(newwfcfg);
+
+	List<WifiConfiguration> wfcfg = wifi_service.getConfiguredNetworks();
+	for (WifiConfiguration w : wfcfg){
+	    //Log.e(TAG, "ssid:" + w.SSID + " id:" + w.networkId);
+	    if (w.SSID.equals(newwfcfg.SSID)){
+		Log.e(TAG, "enable network " + newwfcfg.SSID);
+		wifi_service.enableNetwork(w.networkId, true);
+	    }
+	}
+    }
+
+    @Override
+    protected void onRetrive(SyncData data) {
+	Log.e(TAG, "onRetrive");
+
+	String cmd = data.getString(GSWFMD_CMD);
+	if (cmd.equals(GSWFMD_SDWF)){
+	    process_wifi(data);
+	}
     }
 
     private void request_Wifi(){
