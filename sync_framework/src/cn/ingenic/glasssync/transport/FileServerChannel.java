@@ -74,6 +74,7 @@ class FileServerChannel implements FileChannel, Runnable {
 
 	@Override
 	public void retrive(Retrive retrive) {
+	    Log.e(TAG, "retrive##@");
 		try {
 			InputStream in = mClient.getInputStream();
 //			String dir = Environment.getDataDirectory() + "/" + retrive.module

@@ -224,6 +224,8 @@ public class FileChannelManager {
 	}
 
 	static File getUniqueDestination(String packageName, String name, String extension) throws IOException {
+	    Log.e(TAG, " @@@" + Environment
+				.getExternalStorageDirectory() + "/" + packageName);
 		File f = new File(Environment
 				.getExternalStorageDirectory() + "/" + packageName);
 		if (!f.exists()) {
@@ -235,6 +237,7 @@ public class FileChannelManager {
 		String base = f + "/" + name;
 		boolean noExt = TextUtils.isEmpty(extension);
 		String fileName = noExt ? base : base + "." + extension;
+		Log.e(TAG, "fineName:" + fileName);
 		File file = new File(fileName);
 
 		for (int i = 2; file.exists(); i++) {

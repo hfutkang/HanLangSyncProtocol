@@ -12,6 +12,7 @@ import cn.ingenic.glasssync.services.SyncService;
 import cn.ingenic.glasssync.updater.UpdaterModule;
 import cn.ingenic.glasssync.notify.GlassSyncNotifyModule;
 import cn.ingenic.glasssync.wifi.GlassSyncWifiModule;
+import cn.ingenic.glasssync.multimedia.MultiMediaManager;
 
 
 public class SyncApp extends Application implements
@@ -34,6 +35,7 @@ public class SyncApp extends Application implements
 
 	    GlassSyncNotifyModule mGsnm = new GlassSyncNotifyModule(this);
 	    GlassSyncWifiModule mGswm = GlassSyncWifiModule.getInstance(this);
+	    MultiMediaManager mMMM = MultiMediaManager.getInstance(this);
 
         UpdaterModule um = new UpdaterModule();
         if (manager.registModule(um)) {
