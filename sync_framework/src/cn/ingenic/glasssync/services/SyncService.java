@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -23,14 +24,11 @@ import android.util.Log;
 import cn.ingenic.glasssync.DefaultSyncManager;
 import cn.ingenic.glasssync.DefaultSyncManager.OnChannelCallBack;
 import cn.ingenic.glasssync.DefaultSyncManager.OnFileChannelCallBack;
-import cn.ingenic.glasssync.FileOutputSyncSerializable;
 import cn.ingenic.glasssync.Module;
+import cn.ingenic.glasssync.R;
 import cn.ingenic.glasssync.SyncSerializable;
 import cn.ingenic.glasssync.Transaction;
 import cn.ingenic.glasssync.data.Projo;
-import cn.ingenic.glasssync.services.IModuleCallback;
-import cn.ingenic.glasssync.services.ISyncService;
-import cn.ingenic.glasssync.services.SyncData;
 import cn.ingenic.glasssync.transport.ext.TransportManagerExt.OnRetriveCallback;
 
 public class SyncService extends Service {
@@ -49,6 +47,14 @@ public class SyncService extends Service {
 			intent.putExtra(SyncModule.KEY_BUNDLE_EXTRA_FROM_INTENT, b);
 		}
 		sendStickyBroadcast(intent);
+		// set service to foreground
+		if(cn.ingenic.glasssync.Enviroment.getDefault().isWatch())
+			return;
+		Notification notification = new Notification(R.drawable.ic_launcher, getText(R.string.app_name),
+		        System.currentTimeMillis());
+		notification.setLatestEventInfo(this, getText(R.string.app_name),
+		        getText(R.string.service_msg), null);
+		startForeground(1099, notification);
 	}
 
 	@Override
@@ -61,15 +67,20 @@ public class SyncService extends Service {
 	public void onDestroy() {
 		logv("onDestroy be called.");
 	}
+	
+	private void restartProcess(){
+		sendBroadcast(new Intent(SyncModule.ACTION_MODULE_DIED));
+	}
 
-	private static class SyncServiceImpl extends ISyncService.Stub {
+	private  class SyncServiceImpl extends ISyncService.Stub {
 		
 		private DefaultSyncManager mmManager;
 		private Handler mmHandler;
 		
 		private static final int MSG_CALLBACK = 0;
+		private static final int MSG_RESTART_MODULE=1;
 		
-		private static class Arg {
+		private  class Arg {
 			final String module;
 			final long sort;
 			
@@ -100,6 +111,9 @@ public class SyncService extends Service {
 							loge("RemoteException:" + e.getMessage());
 						}
 						return;
+					case MSG_RESTART_MODULE:
+						restartProcess();
+						break;
 					default:
 						throw new RuntimeException("SyncServiceImpl::mmHandler unknow msg:" + msg.what);
 					}
@@ -111,12 +125,15 @@ public class SyncService extends Service {
 		@Override
 		public boolean registModule(final String name, IModuleCallback callback)
 				throws RemoteException {
-			callback.asBinder().linkToDeath(new DeathRecipient() {
+			final IBinder binder = callback.asBinder();
+			binder.linkToDeath(new DeathRecipient() {
 				
 				@Override
 				public void binderDied() {
 					logw("Process where module:" + name + " lives died.");
 					mmTooLargeTranMap.remove(name);
+					binder.unlinkToDeath(this, 0);
+					mmHandler.sendEmptyMessageDelayed(MSG_RESTART_MODULE, 1000);
 				}
 				
 			}, 0);
@@ -331,33 +348,40 @@ public class SyncService extends Service {
 					}
 					mCallback.onRetrive(data);
 				} catch (Exception e) {
-					if (e instanceof TransactionTooLargeException) {
-						logw("TransactionTooLargeException occurs.");
-						byte[] serialDatas = data.getSerialDatas();
-						if (serialDatas == null) {
-							loge("Can not get serialDatas when parceling TooLargeSyncData.");
+					loge("Module:" + getName() + " exception occurs in onRetrive", e);
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
+						if (e instanceof TransactionTooLargeException) {
+							logw("TransactionTooLargeException occurs.");
+							byte[] serialDatas = data.getSerialDatas();
+							if (serialDatas == null) {
+								loge("Can not get serialDatas when parceling TooLargeSyncData.");
+								return;
+							}
+							
+							int sended = 0;
+							SyncData sd = new SyncData();
+							sd.setConfig(data.getConfig());
+							sd.putInt(SyncData.KEY_TOTAL_LEN, serialDatas.length);
+							try {
+								do {
+									int temp = serialDatas.length - sended;
+									int prepare = (temp >= SyncData.MAX_LEN_PER_DATA) ? SyncData.MAX_LEN_PER_DATA
+											: temp;
+									byte[] datas = new byte[prepare];
+									System.arraycopy(serialDatas, sended, datas, 0,
+											prepare);
+									sd.setSerialDatas(datas);
+									mCallback.onRetrive(sd);
+								} while (sended < serialDatas.length);
+							} catch (Exception e1) {
+								Log.e(TAG, "", e1);
+							}
 							return;
 						}
-
-						int sended = 0;
-						SyncData sd = new SyncData();
-						sd.setConfig(data.getConfig());
-						sd.putInt(SyncData.KEY_TOTAL_LEN, serialDatas.length);
-						try {
-							do {
-								int temp = serialDatas.length - sended;
-								int prepare = (temp >= SyncData.MAX_LEN_PER_DATA) ? SyncData.MAX_LEN_PER_DATA
-										: temp;
-								byte[] datas = new byte[prepare];
-								System.arraycopy(serialDatas, sended, datas, 0,
-										prepare);
-								sd.setSerialDatas(datas);
-								mCallback.onRetrive(sd);
-							} while (sended < serialDatas.length);
-						} catch (Exception e1) {
-							Log.e(TAG, "", e1);
-						}
-						return;
+					} else {
+						// FIXME: checkout whether the reason of this exception
+						// same from TransactionTooLargeException and do some operation like above.
+						logw("Does this TransactionTooLargeException result in below API 15?");
 					}
 					loge("Exception occurs in ThirdPartyException onRetrive:", e);
 				}

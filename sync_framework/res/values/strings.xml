@@ -1,6 +1,7 @@
 <resources>
 
-    <string name="app_name">test</string>
+    <string name="app_name">SyncApp</string>
+    <string name="service_msg">Sync service is running</string>
 	<string name="fail_addr_mismatch">Remote device already clear bond state with me</string>
 	<string name="fail_ver_mismatch">Sync Protocol version mismatch</string>
 	<string name="fail_unknow">Unknow error</string>
@@ -9,4 +10,6 @@
     <string name="unbond_st_content">Watch have not any Bond device</string>
     <string name="lost_bond_st">Lost Bond Status</string>
     <string name="lost_bond_st_content">This device had lost bond status with remote watch</string>
+    
+    <string name="other_device_dialog_content">Third Party Device:%1$s requesting to bond with this watch, accept it?</string>
 </resources>

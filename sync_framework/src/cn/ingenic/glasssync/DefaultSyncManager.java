@@ -8,34 +8,39 @@ import java.util.Map;
 import java.util.UUID;
 
 import android.app.AlarmManager;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Message;
 import android.os.SystemClock;
+import android.os.Vibrator;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.WindowManager;
 import android.widget.Toast;
 import cn.ingenic.glasssync.LogTag.Mgr;
+import cn.ingenic.glasssync.data.AddressSendCmd;
 import cn.ingenic.glasssync.data.DefaultProjo;
+import cn.ingenic.glasssync.data.FeatureConfigCmd;
 import cn.ingenic.glasssync.data.FileSendCmd;
 import cn.ingenic.glasssync.data.FileSendCmd.FileSendCmdColumn;
-import cn.ingenic.glasssync.data.AddressSendCmd;
-import cn.ingenic.glasssync.data.FeatureConfigCmd;
 import cn.ingenic.glasssync.data.ModeSendCmd;
 import cn.ingenic.glasssync.data.Projo;
 import cn.ingenic.glasssync.data.ProjoList;
 import cn.ingenic.glasssync.data.ProjoList.ProjoListColumn;
-import cn.ingenic.glasssync.RemoteChannelManagerImpl;
-import cn.ingenic.glasssync.RemoteChannelManagerService;
 import cn.ingenic.glasssync.services.SyncData;
 import cn.ingenic.glasssync.services.SyncProjo;
 import cn.ingenic.glasssync.transport.TransportManager;
@@ -84,6 +89,8 @@ public class DefaultSyncManager extends Handler {
 	private final ReConnectScheduler mReConnectScheduler;
 	private final TransportManager mTransportManager;
 	
+	private AlertDialog mOtherDeviceReqDialog;
+	
 	public int getState() {
 		return mState;
 	}
@@ -123,6 +130,8 @@ public class DefaultSyncManager extends Handler {
 	public static final int MSG_SET_LOCKED_ADDRESS = MSG_BASE + 5;
 	//SyncManagerExt
 	public static final int MSG_RUNNABLE_WITH_ARGS = MSG_BASE + 6;
+	public static final int MSG_RECEIVED_OTHER_DEVICE = MSG_BASE + 7;
+	private static final int MSG_CANCEL_OTHER_DEVICE_DIALOG = MSG_BASE + 8;
 	
 	interface DelayedTask {
 		void execute(boolean connected);
@@ -198,6 +207,7 @@ public class DefaultSyncManager extends Handler {
 		case MSG_STATE_CHANGE:
 			Mgr.d("state change to " + convertMsg(msg.arg1));
 			if (msg.arg1 != mState) {
+				int oldSt = mState;
 				mState = msg.arg1;
 				notifyStateChange(mState);
 				
@@ -221,9 +231,12 @@ public class DefaultSyncManager extends Handler {
 						}
 					}
 					
-					if (CONNECT_FAILED == msg.arg2) {
+					if (oldSt == CONNECTING) {
 						mReConnectScheduler.schedule();
 					}
+//					if (CONNECT_FAILED == msg.arg2) {
+//						mReConnectScheduler.schedule();
+//					}
 					break;
 				case CONNECTED:
 					if (!mConnected) {
@@ -332,6 +345,54 @@ public class DefaultSyncManager extends Handler {
 			run.arg1 = msg.arg1;
 			run.run();
 			break;
+			
+		case MSG_RECEIVED_OTHER_DEVICE:
+			final String mac = (String) msg.obj;
+			String name = mac;
+			if (BluetoothAdapter.checkBluetoothAddress(mac)) {
+				BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(mac);
+				name = device.getName();
+				if (TextUtils.isEmpty(name)) {
+					name = mac;
+				}
+			}
+			
+			String res = mContext.getString(R.string.other_device_dialog_content, name);
+			Vibrator v = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
+			v.vibrate(500);
+			if (mOtherDeviceReqDialog != null && mOtherDeviceReqDialog.isShowing()) {
+				mOtherDeviceReqDialog.setMessage(res);
+			} else {
+				AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+				final OnClickListener listener = new OnClickListener() {
+					
+					@Override
+					public void onClick(DialogInterface dialog,
+							int which) {
+						if (which == DialogInterface.BUTTON_POSITIVE) {
+							setLockedAddress("");
+							connect(mac);
+						} 
+					}
+				};
+				builder.setMessage(res)
+						.setTitle(android.R.string.dialog_alert_title)
+						.setPositiveButton(android.R.string.ok, listener);
+				mOtherDeviceReqDialog = builder.create();
+				mOtherDeviceReqDialog.getWindow().setType(
+						WindowManager.LayoutParams.TYPE_SYSTEM_ERROR);
+				mOtherDeviceReqDialog.show();
+			}
+			
+			removeMessages(MSG_CANCEL_OTHER_DEVICE_DIALOG);
+			sendEmptyMessageDelayed(MSG_CANCEL_OTHER_DEVICE_DIALOG, 20 * 1000);
+			break;
+			
+		case MSG_CANCEL_OTHER_DEVICE_DIALOG:
+			if (mOtherDeviceReqDialog != null && mOtherDeviceReqDialog.isShowing()) {
+				mOtherDeviceReqDialog.dismiss();
+			}
+			break;
 		}
 	}
 	
@@ -345,7 +406,7 @@ public class DefaultSyncManager extends Handler {
 		private static final String ACTION = "cn.ingenic.glasssync.RE_CONNECT";
 		private static final String ACTION_CONNECT = "cn.ingenic.glasssync.DO_CONNECT";
 		
-		private final long[] TIMES = new long[] { 5 * 1000, 15 * 1000};
+		private final long[] TIMES = new long[] { 10 * 1000};
 //				30 * 1000, 60 * 1000, 60 * 10 * 1000, 60 * 30 * 1000,
 //				60 * 60 * 1000};
 		private final int MAX = TIMES.length;

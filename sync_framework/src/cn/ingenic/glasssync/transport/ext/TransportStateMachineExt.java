@@ -125,6 +125,7 @@ class TransportStateMachineExt extends StateMachine {
 	}
 
 	private BluetoothChannelExt getAvaliableChannel() {
+	    Log.e("SDF", "mIsClient:" + mIsClient);
 		return mIsClient ? mClient : mServer;
 	}
 
@@ -188,6 +189,7 @@ class TransportStateMachineExt extends StateMachine {
 			exitLog(this);
 			mTransportManager.notifyMgrState(false, mmIdleReason);
 			mIsClient = false;
+			mClient.close();
 			mmIdleReason = DefaultSyncManager.NON_REASON;
 		}
 
@@ -196,9 +198,7 @@ class TransportStateMachineExt extends StateMachine {
 			dumpMsg(msg, this);
 			switch (msg.what) {
 			case MSG_CONNECT:
-				String address = (String) msg.obj;
-				mClientIdleState.setConnectingAddress(address);
-				transitionTo(mClientIdleState);
+				d("Ingore connect req at Client role.");
 				return HANDLED;
 
 			case MSG_STATE_CHANGE:
@@ -211,6 +211,8 @@ class TransportStateMachineExt extends StateMachine {
 				case S_CONNECTED:
 					if (DefaultSyncManager.isWatch()) {
 						mClient.close();
+						mServerState.ingoreIdleTransition();
+						transitionTo(mServerRespState);
 					} else {
 						mServer.close();
 					}
@@ -232,10 +234,20 @@ class TransportStateMachineExt extends StateMachine {
 
 	private class ServerState extends State {
 
+		private boolean mmIngoreIdleTransition = false;
+		
+		void ingoreIdleTransition() {
+			mmIngoreIdleTransition = true;
+		}
+		
 		@Override
 		public void enter() {
 			enterLog(this);
 			BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+			if (mmIngoreIdleTransition) {
+				mmIngoreIdleTransition = false;
+				return;
+			}
 			if (BluetoothAdapter.STATE_ON == adapter.getState()) {
 				transitionTo(mServerIdleState);
 			}
@@ -497,8 +509,9 @@ class TransportStateMachineExt extends StateMachine {
 			dumpMsg(msg, this);
 			switch (msg.what) {
 			case MSG_CONNECT:
-				transitionTo(mClientState);
-				deferMessage(msg);
+				String address = (String) msg.obj;
+				mClientIdleState.setConnectingAddress(address);
+				transitionTo(mClientIdleState);
 				return HANDLED;
 
 			case MSG_BT_OFF:

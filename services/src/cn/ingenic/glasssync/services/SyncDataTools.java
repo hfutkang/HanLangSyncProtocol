@@ -140,6 +140,7 @@ public final class SyncDataTools {
 				writeFloatArray((float[]) val);
 			} else if (val instanceof double[]) {
 				writeByte(DOUBLE_ARY);
+				writeInt(((double[]) val).length);
 				writeDoubleArray((double[]) val);
 			}
 //			else if (val instanceof Character) {
@@ -178,21 +179,9 @@ public final class SyncDataTools {
 
 		private void writeStringArray(String[] sArray)
 				throws SyncDataEncoderException, UnsupportedEncodingException {
-			int length = sArray.length;
-			byte[] tArray = null;
-			for (int i = 0; i < length; i++) {
-				String s = sArray[i];
-				byte[] sbArray = s.getBytes(CHINESE_CODE);
-				writeInt(sbArray.length);
-				System.arraycopy(sbArray, 0, mBytes, mPos, sbArray.length);
-				mPos += sbArray.length;
-
+			for (String s : sArray) {
+				writeString(s);
 			}
-			if (tArray == null) {
-				loge("writeStringArray totle byte array is null !!!!!");
-				return;
-			}
-
 		}
 
 //		private void writeCharArray(char[] cArray)
@@ -208,42 +197,23 @@ public final class SyncDataTools {
 
 		private void writeDoubleArray(double[] dArray)
 				throws SyncDataEncoderException {
-			int length = dArray.length;
-			writeInt(length);
-			long[] newLArray = new long[length];
-			for (int i = 0; i < length; i++) {
-				newLArray[i] = Double.doubleToLongBits(dArray[i]);
+			for (double d : dArray) {
+				writeDouble(d);
 			}
-			writeLongArray(newLArray);
 		}
 
 		private void writeFloatArray(float[] fArray)
 				throws SyncDataEncoderException {
-			int[] newIArray = new int[fArray.length];
-			for (int i = 0; i < fArray.length; i++) {
-				newIArray[i] = Float.floatToIntBits(fArray[i]);
+			for (float f : fArray) {
+				writeFloat(f);
 			}
-			writeIntArray(newIArray);
 		}
 
 		private void writeLongArray(long[] lArray)
 				throws SyncDataEncoderException {
-			byte[] newLArray = new byte[8 * lArray.length];
-			for (int i = 0; i < lArray.length; i++) {
-				long l = lArray[i];
-				newLArray[8 * i] = (byte) (l >> 56);
-				newLArray[8 * i + 1] = (byte) (l >> 48);
-				newLArray[8 * i + 2] = (byte) (l >> 40);
-				newLArray[8 * i + 3] = (byte) (l >> 32);
-				newLArray[8 * i + 4] = (byte) (l >> 24);
-				newLArray[8 * i + 5] = (byte) (l >> 16);
-				newLArray[8 * i + 6] = (byte) (l >> 8);
-				newLArray[8 * i + 7] = (byte) l;
+			for (long l : lArray) {
+				writeLong(l);
 			}
-			growDataPossiblly(newLArray.length);
-
-			System.arraycopy(newLArray, 0, mBytes, mPos, newLArray.length);
-			mPos += newLArray.length;
 		}
 
 		private void writeIntArray(int[] iArray)
@@ -263,32 +233,16 @@ public final class SyncDataTools {
 
 		private void writeShortArray(short[] sArray)
 				throws SyncDataEncoderException {
-			int length = sArray.length;
-			byte[] newSArray = new byte[2 * length];
-			for (int i = 0; i < length; i++) {
-				short s = sArray[i];
-				newSArray[i * 2] = (byte) (s >> 8);
-				newSArray[i * 2 + 1] = (byte) s;
+			for (short s : sArray) {
+				writeShort(s);
 			}
-			growDataPossiblly(newSArray.length);
-			System.arraycopy(newSArray, 0, mBytes, mPos, newSArray.length);
-			mPos = mPos + newSArray.length;
 		}
 
 		private void writeBooleanArray(boolean[] bArray)
 				throws SyncDataEncoderException {
-			int length = bArray.length;
-			byte[] newBArray = new byte[length];
-			for (int i = 0; i < length; i++) {
-				if (bArray[i]) {
-					newBArray[i] = 1;
-				} else {
-					newBArray[i] = 0;
-				}
+			for (boolean b : bArray) {
+				writeBoolean(b);
 			}
-			growDataPossiblly(length);
-			System.arraycopy(newBArray, 0, mBytes, mPos, length);
-			mPos = mPos + length;
 		}
 
 		private void writeByteArray(byte[] bArray)

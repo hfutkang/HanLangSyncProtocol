@@ -92,6 +92,11 @@ public class MultiMediaManager {
 	    return;
 	}
 
+	if (mReqState != REQ_ASK){
+	    Log.e(TAG, "Re ask");
+	    return;
+	}
+
 	if (type == MultiMediaModule.GSMMD_PIC){
 	    Log.e(TAG, "replyAsk PIC");
 	    if (act == MultiMediaModule.GSMMD_EXIST){

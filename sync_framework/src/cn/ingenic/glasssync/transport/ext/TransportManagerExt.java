@@ -144,6 +144,13 @@ public class TransportManagerExt extends TransportManager {
 									} else {
 										w("Address mismatch with Initilization.");
 										reason = Neg.FAIL_ADDRESS_MISMATCH;
+										if (DefaultSyncManager.isWatch()) {
+											Message m = mMgrHandler
+													.obtainMessage(
+															DefaultSyncManager.MSG_RECEIVED_OTHER_DEVICE,
+															remoteAddr);
+											m.sendToTarget();
+										}
 									}
 								}
 							} else {

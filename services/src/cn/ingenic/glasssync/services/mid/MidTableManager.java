@@ -9,7 +9,6 @@ import java.util.Set;
 import android.content.Context;
 import android.database.ContentObserver;
 import android.net.Uri;
-import android.os.HandlerThread;
 import android.util.Log;
 import cn.ingenic.glasssync.services.SyncData;
 import cn.ingenic.glasssync.services.SyncException;
@@ -71,8 +70,6 @@ public abstract class MidTableManager {
 
 		mContext = ctx;
 		mModule = module;
-		HandlerThread ht = new HandlerThread("MidDiff");
-		ht.start();
 	}
 
 	public final void onModuleInit() {

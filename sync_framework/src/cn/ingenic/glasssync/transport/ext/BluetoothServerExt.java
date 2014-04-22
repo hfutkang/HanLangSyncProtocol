@@ -17,7 +17,8 @@ import cn.ingenic.glasssync.transport.BluetoothChannel;
 class BluetoothServerExt implements BluetoothChannelExt {
 	private BluetoothSocket mClient;
 	private Object mClientLock = new Object();
-	protected boolean mClosed = true;
+	private Object mClientCloseLock=new Object();
+	private volatile boolean mClosed = true;
 	private BluetoothServerSocket mServerSocket;
 	private OutputStream mOutput;
 	private final TransportStateMachineExt mStateMachine;
@@ -31,14 +32,16 @@ class BluetoothServerExt implements BluetoothChannelExt {
 
 	void start() {
 		if (!mClosed) {
-			Server.e("Start BluetoothServerExt with not closing st.");
-			close();
+			Server.d("Server already running.");
+//			close();
+			return;
 		}
 		
 		Thread thread = new Thread() {
 			@Override
 			public void run() {
 				Server.i("server started.");
+				mClosed = false;
 				BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
 				Enviroment env = Enviroment.getDefault();
 				try {
@@ -56,7 +59,6 @@ class BluetoothServerExt implements BluetoothChannelExt {
 						InputStream input = mClient.getInputStream();
 						mOutput = mClient.getOutputStream();
 						Server.d("accept one");
-						mClosed = false;
 						
 						BluetoothClientExt
 						.notifyStateChange(
@@ -116,7 +118,12 @@ class BluetoothServerExt implements BluetoothChannelExt {
 		Server.d("shutdown the server");
 		mClosed = true;
 
-		synchronized (mClientLock) {
+		/*
+		 * if use mClientLock, then this happens:
+		 *    mServerSocket.accept(); is block always, then mClientLock is hold always.
+		 *    then close() is never return.  Many error will occur.
+		 * */
+		synchronized (mClientCloseLock) {
 			if (mClient != null) {
 				try {
 					mClient.close();
@@ -129,12 +136,14 @@ class BluetoothServerExt implements BluetoothChannelExt {
 			}
 		}
 
-		try {
-			mServerSocket.close();
-			mServerSocket = null;
-		} catch (IOException e) {
-			Server.d("server close error:" + e.getMessage());
-			LogTag.printExp(LogTag.CLIENT, e);
+		if (mServerSocket != null) {
+			try {
+				mServerSocket.close();
+				mServerSocket = null;
+			} catch (IOException e) {
+				Server.d("server close error:" + e.getMessage());
+				LogTag.printExp(LogTag.CLIENT, e);
+			}
 		}
 
 	}

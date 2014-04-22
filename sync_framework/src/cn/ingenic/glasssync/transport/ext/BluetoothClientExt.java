@@ -17,7 +17,7 @@ import cn.ingenic.glasssync.transport.BluetoothChannel;
 class BluetoothClientExt implements BluetoothChannelExt {
 	private BluetoothSocket mSocket;
 	private final TransportStateMachineExt mStateMachine;
-	protected boolean mClosed = true;
+	private volatile boolean mClosed = true;
 
 	private OutputStream mOutput;
 	private final Handler mRetrive;
@@ -46,35 +46,50 @@ class BluetoothClientExt implements BluetoothChannelExt {
 
 	void start(final String address) {
 		if (!mClosed) {
-			Client.e("Start BluetoothClientExt with not closing st.");
-			close();
+			Client.e("Client already running.");
+			//close();
+			return;
 		}
 		
 		Thread thread = new Thread() {
 
 			@Override
 			public void run() {
+				mClosed = false;
 				BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
 				BluetoothDevice device = adapter.getRemoteDevice(address);
 				Client.d("client thread running, connect the device:" + device);
 				Enviroment env = Enviroment.getDefault();
 				
 				InputStream input = null;
-				try {
-					mSocket = device.createRfcommSocketToServiceRecord(env
-							.getUUID(BluetoothChannel.CUSTOM, true));
-					mSocket.connect();
-					mClosed = false;
-					mOutput = mSocket.getOutputStream();
-					input = mSocket.getInputStream();
-					notifyStateChange(
-									TransportStateMachineExt.C_CONNECTED,
-									mStateMachine);
-				} catch (IOException e) {
-					Client.e("Client connect failed:" + e.getMessage());
-					mSocket = null;
-					notifyStateChange(
-							TransportStateMachineExt.C_IDLE, mStateMachine);
+				int i = 0;
+				while (true) {
+					try {
+						mSocket = device.createRfcommSocketToServiceRecord(env
+								.getUUID(BluetoothChannel.CUSTOM, true));
+						mSocket.connect();
+						mOutput = mSocket.getOutputStream();
+						input = mSocket.getInputStream();
+						notifyStateChange(
+										TransportStateMachineExt.C_CONNECTED,
+										mStateMachine);
+						break;
+					} catch (IOException e) {
+						if (i >= 3) {
+							Client.e("Client connect failed finally:" + e.getMessage());
+							close();
+							notifyStateChange(
+									TransportStateMachineExt.C_IDLE, mStateMachine);
+							return;
+						}
+						Client.e("Client connect failed " + (i + 1) + " times:" + e.getMessage());
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException e1) {
+							Client.e("Sleep 1s error:" + e1.getMessage());
+						}
+					}
+					i++;
 				}
 				try {
 					while (!mClosed) {
@@ -111,7 +126,9 @@ class BluetoothClientExt implements BluetoothChannelExt {
 		if (!mClosed) {
 			try {
 				mClosed = true;
-				mSocket.close();
+				if (mSocket != null) {
+					mSocket.close();
+				}
 				mSocket = null;
 				mOutput = null;
 			} catch (IOException e) {

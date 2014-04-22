@@ -29,6 +29,8 @@ public abstract class SyncModule {
 
 	private static final String SERVICE = "cn.ingenic.glasssync.SYNC_SERVICE";
 	public static final String ACTION_SYNC_SERVICE_READY_RECEIVER = "action.sync_service_ready.RECEIVER";
+	/** send this action when any module's process died,*/
+	public static final String ACTION_MODULE_DIED="action.sync_service_ready.restart_module";
 	public static final String KEY_BUNDLE_EXTRA_FROM_INTENT = "key_bundle_from_intent";
 	public static final String KEY_BINDER_EXTRA_FROM_BUNDLE = "key_binder_from_bundle";
 	
@@ -255,7 +257,7 @@ public abstract class SyncModule {
 	
 	public SyncModule(String name, Context context, boolean autoBind) {
 		mName = name;
-		mContext = context;
+		mContext = context.getApplicationContext();
 		if (autoBind) {
 			bind();
 		}
