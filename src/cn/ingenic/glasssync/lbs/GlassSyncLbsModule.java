@@ -17,9 +17,13 @@ public class GlassSyncLbsModule extends SyncModule {
     private Context mContext;
     private static GlassSyncLbsModule sInstance;
 
+	MockLocation mMockLocation;
+
     private GlassSyncLbsModule(Context context){
 	super(LETAG, context);
 	mContext = context;
+	mMockLocation = new MockLocation(MockLocation.ProviderType.GPS, context);
+	mMockLocation.init();
     }
 
     public static GlassSyncLbsModule getInstance(Context c) {
@@ -40,6 +44,14 @@ public class GlassSyncLbsModule extends SyncModule {
 	float f2 = data.getFloat(FLT2);
 	float f3 = data.getFloat(FLT3);
 
+	MockLocationInfo info = new MockLocationInfo();
+	info.setLatitude((double)f1);
+	info.setLongitude((double)f2);
+	info.setBearing((float)f3);
+	info.setTime(java.lang.System.currentTimeMillis());
+	
+	mMockLocation.sendLocation(info);
+	
 	Log.e(TAG, "f1:" + f1 + " f2:" + f2 + " f3:" + f3);
     }
 }
