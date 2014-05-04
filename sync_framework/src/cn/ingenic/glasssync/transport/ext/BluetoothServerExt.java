@@ -23,11 +23,23 @@ class BluetoothServerExt implements BluetoothChannelExt {
 	private OutputStream mOutput;
 	private final TransportStateMachineExt mStateMachine;
 	private final Handler mRetrive;
+        private long mLastRetriveSec;
+	private Object mSendLock = new Object();
 
 	public BluetoothServerExt(TransportStateMachineExt stateMachine,
 			final Handler retrive) {
 		mStateMachine = stateMachine;
 		mRetrive = retrive;
+	}
+
+        private final boolean is_ping(byte[] b){
+	    if (b[0] == 'p' && b[1] == 'i' && b[2] == 'n' && b[3] == 'g'
+		&& b[4] == 'g' && b[5] == 'n' && b[6] == 'i' && b[7] == 'p'){
+		Server.i("is_ping");
+		return true;
+	    }
+
+	    return false;
 	}
 
 	void start() {
@@ -58,7 +70,7 @@ class BluetoothServerExt implements BluetoothChannelExt {
 						}
 						InputStream input = mClient.getInputStream();
 						mOutput = mClient.getOutputStream();
-						Server.d("accept one");
+						Server.i("accept one");
 						
 						BluetoothClientExt
 						.notifyStateChange(
@@ -66,12 +78,22 @@ class BluetoothServerExt implements BluetoothChannelExt {
 								mStateMachine);
 						
 						mServerSocket.close();
-						
+
 						while (!mClosed) {
 							Pkg pkg = BluetoothChannelExtTools.retrivePkg(input);
+						    
+							if (pkg.getType() == Pkg.PKG){
+							    byte[] b = pkg.getData();
+							    if (is_ping(b)){
+								Server.i("retrive length:" + b.length);
+								continue;
+							    }else
+								mLastRetriveSec = System.currentTimeMillis() / 1000l;
+							}
+					
 							if (pkg instanceof Neg) {
-								Neg neg = (Neg) pkg;
-								neg.setAddr(mClient.getRemoteDevice().getAddress());
+							    Neg neg = (Neg) pkg;
+							    neg.setAddr(mClient.getRemoteDevice().getAddress());
 							}
 							
 							Message msg = mRetrive.obtainMessage();
@@ -91,11 +113,44 @@ class BluetoothServerExt implements BluetoothChannelExt {
 			}
 		};
 		thread.start();
+
+		Thread thread1 = new Thread() {
+			@Override
+			public void run() {
+			    try {
+				Thread.sleep(2000);
+			    } catch (InterruptedException e) {
+			    }
+
+			    while (!mClosed){
+				if (System.currentTimeMillis() / 1000l - 10 < mLastRetriveSec){
+				    byte[] p = new byte[8];
+				    p[0]='p';p[1]='i';p[2]='n';p[3]='g';
+				    p[4]='g';p[5]='n';p[6]='i';p[7]='p';
+				    Pkg pkg = new Pkg(p);
+				    try{
+					Server.d("send ping");
+					send(pkg);
+				    }catch (ProtocolException e){
+				    }
+				}
+				
+				try {
+				    Thread.sleep(500);
+				} catch (InterruptedException e) {
+				}
+			    }
+			    Server.d("ping thread1 quit.");
+			}
+		};
+		thread1.start();
 	}
 
 	public void send(Pkg pkg) throws ProtocolException {
 		try {
+		    synchronized (mSendLock){
 			BluetoothChannelExtTools.send(pkg, mOutput);
+		    }
 		} catch (IOException e) {
 			Server.e("send error:" + e.getMessage());
 			sendClientCloseMsg();

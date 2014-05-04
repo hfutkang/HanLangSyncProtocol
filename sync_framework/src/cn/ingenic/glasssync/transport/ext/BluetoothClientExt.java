@@ -22,6 +22,9 @@ class BluetoothClientExt implements BluetoothChannelExt {
 	private OutputStream mOutput;
 	private final Handler mRetrive;
 
+        private long mLastRetriveSec;
+	private Object mSendLock = new Object();
+
 	BluetoothClientExt(TransportStateMachineExt stateMachine,
 			final Handler retrive) {
 		mStateMachine = stateMachine;
@@ -44,6 +47,16 @@ class BluetoothClientExt implements BluetoothChannelExt {
 		}
 	}
 
+        private final boolean is_ping(byte[] b){
+	    if (b[0] == 'p' && b[1] == 'i' && b[2] == 'n' && b[3] == 'g'
+		&& b[4] == 'g' && b[5] == 'n' && b[6] == 'i' && b[7] == 'p'){
+		Client.e("is_ping");
+		return true;
+	    }
+
+	    return false;
+	}
+
 	void start(final String address) {
 		if (!mClosed) {
 			Client.e("Client already running.");
@@ -55,6 +68,7 @@ class BluetoothClientExt implements BluetoothChannelExt {
 
 			@Override
 			public void run() {
+			    Client.e("client run in");
 				mClosed = false;
 				BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
 				BluetoothDevice device = adapter.getRemoteDevice(address);
@@ -67,7 +81,9 @@ class BluetoothClientExt implements BluetoothChannelExt {
 					try {
 						mSocket = device.createRfcommSocketToServiceRecord(env
 								.getUUID(BluetoothChannel.CUSTOM, true));
+						Client.e("connect start");
 						mSocket.connect();
+						Client.e("connect end");
 						mOutput = mSocket.getOutputStream();
 						input = mSocket.getInputStream();
 						notifyStateChange(
@@ -94,7 +110,14 @@ class BluetoothClientExt implements BluetoothChannelExt {
 				try {
 					while (!mClosed) {
 						Pkg pkg = BluetoothChannelExtTools.retrivePkg(input);
-
+						if (pkg.getType() == Pkg.PKG){
+						    byte[] b = pkg.getData();
+						    Client.e("retrive length:" + b.length);
+						    if (is_ping(b))
+							continue;
+						    else
+							mLastRetriveSec = System.currentTimeMillis() / 1000l;
+						}
 						Message msg = mRetrive.obtainMessage();
 						msg.obj = pkg;
 						msg.sendToTarget();
@@ -108,13 +131,46 @@ class BluetoothClientExt implements BluetoothChannelExt {
 
 		};
 		thread.start();
+
+		Thread thread1 = new Thread() {
+			@Override
+			public void run() {
+			    try {
+				Thread.sleep(2000);
+			    } catch (InterruptedException e) {
+			    }
+
+			    while (!mClosed){
+				if (System.currentTimeMillis() / 1000l - 10 < mLastRetriveSec){
+				    byte[] p = new byte[8];
+				    p[0]='p';p[1]='i';p[2]='n';p[3]='g';
+				    p[4]='g';p[5]='n';p[6]='i';p[7]='p';
+				    Pkg pkg = new Pkg(p);
+				    try{
+					Client.d("send ping");
+					send(pkg);
+				    }catch (ProtocolException e){
+				    }
+				}
+				
+				try {
+				    Thread.sleep(500);
+				} catch (InterruptedException e) {
+				}
+			    }
+			    Client.d("ping thread1 quit.");
+			}
+		};
+		thread1.start();
 	}
 
 	@Override
 	public void send(Pkg pkg) throws ProtocolException {
 		//BluetoothChannelExtTools.send(pkg, mOutput);
 		try {
+		    synchronized (mSendLock){
 			BluetoothChannelExtTools.send(pkg, mOutput);
+		    }
 		} catch (IOException e) {
 			Client.e("send error:" + e.getMessage());
 			sendClientCloseMsg();
@@ -123,6 +179,7 @@ class BluetoothClientExt implements BluetoothChannelExt {
 	}
 
 	public void close() {
+	    Client.e("Client close in");
 		if (!mClosed) {
 			try {
 				mClosed = true;
