@@ -14,6 +14,7 @@ import java.util.Date;
 
 public class MultiMediaModule extends SyncModule {
     private static final String TAG = "MultiMediaModule";
+    private static final Boolean DEBUG = true;
     private static final String LETAG = "GSMMM";
 
     private static final String GSMMD_CMD = "gsmmd_cmd";
@@ -30,6 +31,7 @@ public class MultiMediaModule extends SyncModule {
     private static final String GSMMD_TYPE = "gsmmd_type";
     public static int GSMMD_PIC = 0x1;
     public static int GSMMD_VIDEO = 0x2;
+    public static int GSMMD_SINGLE_FILE = 0x3;
     public static int GSMMD_ALL = 0x10;
 
     private static final String GSMMD_ACT = "gsmmd_act";
@@ -40,6 +42,11 @@ public class MultiMediaModule extends SyncModule {
     private int ASK_TSP = 0;
 
     private static final String GSMMD_SRST = "gsmmd_srst";
+
+    private static final String GSMMD_SINGLE_FILE_NAME = "gsmmd_single_file_name";
+    private static final String GSMMD_SINGLE_FILE_TYPE = "gsmmd_single_file_type";
+    public static int SINGLE_FILE_TYPE_PIC = 0x1;
+    public static int SINGLE_FILE_TYPE_VIDEO = 0x2;
 
     private Context mContext;
     private static MultiMediaModule sInstance;
@@ -138,10 +145,16 @@ public class MultiMediaModule extends SyncModule {
 
 	if (cmd.equals(GSMMD_rqst)){
 	    int type = data.getInt(GSMMD_TYPE);
-	    if (type == GSMMD_ALL){
+	    if (type == GSMMD_SINGLE_FILE){
+		if(DEBUG) Log.e(TAG, "--GSMMD_SINGLE_FILE");
+		int file_type = data.getInt(GSMMD_SINGLE_FILE_TYPE);
+		String file_name = data.getString(GSMMD_SINGLE_FILE_NAME);
+		MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
+		m.sync_single_file(file_name,file_type);
+	    }else if (type == GSMMD_ALL){
 		Log.e(TAG, "GSMMD_ALL");
 		MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
-		m.sync_pic();
+		  //m.sync_pic();
 	    }else if (type == GSMMD_PIC || type == GSMMD_VIDEO){
 		Log.e(TAG, "req " + type);
 		int tsp = data.getInt(GSMMD_TSP);

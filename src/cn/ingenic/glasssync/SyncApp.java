@@ -37,7 +37,7 @@ public class SyncApp extends Application implements
 	    GlassSyncNotifyModule mGsnm = new GlassSyncNotifyModule(this);
 	    GlassSyncWifiModule mGswm = GlassSyncWifiModule.getInstance(this);
 	    MultiMediaManager mMMM = MultiMediaManager.getInstance(this);
-	    GlassSyncLbsManager mGslbs = GlassSyncLbsManager.getInstance(this);
+	      //GlassSyncLbsManager mGslbs = GlassSyncLbsManager.getInstance(this);
 
         UpdaterModule um = new UpdaterModule();
         if (manager.registModule(um)) {
