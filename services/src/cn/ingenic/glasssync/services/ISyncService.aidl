@@ -17,6 +17,8 @@ interface ISyncService {
 	void sendOnChannel(String module, in SyncData data, in ParcelUuid uuid);
 	
 	boolean sendFile(String module, in ParcelFileDescriptor des, String name, int length);
+
+	boolean sendFileByPath(String module, in ParcelFileDescriptor des, String name, int length, String path);
 	
 	void createChannel(String module, in ParcelUuid uuid);
 	

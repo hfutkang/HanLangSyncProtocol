@@ -356,6 +356,17 @@ public abstract class SyncModule {
 			throw new SyncException("RemoteException occurs");
 		}
 	}
+
+    public boolean sendFileByPath(File file, String name, int length, String path)throws SyncException, FileNotFoundException {
+	try {
+	    int modeBits = modeToMode(null, "r");
+	    ParcelFileDescriptor pfd = ParcelFileDescriptor.open(file, modeBits);
+	    return getISyncService().sendFileByPath(mName, pfd, name, length, path);
+	} catch (RemoteException e) {
+	    Log.e(TAG, "SyncException:", e);
+	    throw new SyncException("RemoteException occurs");
+	}
+    }
 	
 	//just simulate ContentResolver.modeToMode
 	private static int modeToMode(Uri uri, String mode) throws FileNotFoundException {

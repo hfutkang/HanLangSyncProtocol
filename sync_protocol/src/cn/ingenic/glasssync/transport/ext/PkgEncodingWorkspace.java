@@ -199,11 +199,13 @@ class PkgEncodingWorkspace {
 		private final InputStream mmIn;
 		private byte[] mmPre;
 		private final String mmName;
+	        private final String mmPath;
 
 		FileSyncSerialIterator(FileInputSyncSerializable serial) {
 			super(serial);
 			mmIn = serial.getInputStream();
 			mmName = serial.getName();
+			mmPath = serial.getPath();
 		}
 
 		Pkg next() throws Exception {
@@ -214,13 +216,31 @@ class PkgEncodingWorkspace {
 			if (mmCurPos == CONFIG_POS) {
 				byte[] name = mmName.getBytes(Pkg.UTF_8);
 				int nameLen = name.length;
-				mmPre = new byte[4 + nameLen];
+				int pathlen = 0;
+				if (mmPath != null){
+				    pathlen = mmPath.length();
+				    loge("pathlen:" + pathlen);
+				}else{
+				    loge("pathlen is zero");
+				}
+				mmPre = new byte[4 + nameLen + 4 + pathlen];
 				mmPre[0] = (byte) ((nameLen >> 24) & 0xff);
 				mmPre[1] = (byte) ((nameLen >> 16) & 0xff);
 				mmPre[2] = (byte) ((nameLen >> 8) & 0xff);
 				mmPre[3] = (byte) nameLen;
 				System.arraycopy(name, 0, mmPre, 4, nameLen);
-				int toatalLen = (4 + nameLen + mmTotalLen);
+
+				mmPre[0+4+nameLen] = (byte) ((pathlen >> 24) & 0xff);
+				mmPre[1+4+nameLen] = (byte) ((pathlen >> 16) & 0xff);
+				mmPre[2+4+nameLen] = (byte) ((pathlen >> 8) & 0xff);
+				mmPre[3+4+nameLen] = (byte) ((pathlen) & 0xff);
+				if (pathlen > 0){
+				    byte[] path = mmPath.getBytes(Pkg.UTF_8);
+				    System.arraycopy(path, 0, mmPre, 8+nameLen, pathlen);
+				}
+
+				int toatalLen = (4 + nameLen + mmTotalLen + 4 + pathlen);
+				loge("totalLen:" + toatalLen);
 //				int pkgCount = ((toatalLen % Pkg.MAX_LEN) == 0) ? (toatalLen / Pkg.MAX_LEN)
 //						: ((mmSerial.getLength() / Pkg.MAX_LEN) + 1);
 				CfgBuilder builder = CfgBuilder.newBuilder()

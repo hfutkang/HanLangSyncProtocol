@@ -873,6 +873,10 @@ public class DefaultSyncManager extends Handler {
 		
 		return false;
 	}
+
+        public boolean sendFileByPath(String module, String name, int length, InputStream in, String path) {
+	    return false;
+	}
 	
 	void retriveFile(String module, String name, int length, String address) {
 		if (isConnect()) {

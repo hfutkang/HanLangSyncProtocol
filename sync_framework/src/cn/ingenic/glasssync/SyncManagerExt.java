@@ -284,6 +284,33 @@ public class SyncManagerExt extends DefaultSyncManager implements
 	}
 
 	@Override
+	public boolean sendFileByPath(final String module, final String name, int length,InputStream in, String path) {
+	    SyncDescriptor des = new SyncDescriptor(module);
+	    des.mModule = module;
+	    des.mCallback = Message.obtain(this, MSG_RUNNABLE_WITH_ARGS, new RunnableWithArgs() {
+		    @Override
+		    public void run() {
+			Module m = getModule(module);
+			if (m != null) {
+			    OnFileChannelCallBack cb = m.getFileChannelCallBack();
+			    if (cb != null) {
+				cb.onSendComplete(name, arg1 == DefaultSyncManager.SUCCESS);
+			    } else {
+				loge("Can not find OnFileChannelCallBack from module:"
+				     + module + " in callback of sending file");
+			    }
+			} else {
+			    loge("Can not find Moudle:" + module
+				 + " in callback of sending file.");
+			}
+		    }
+		});
+	    SyncSerializable serial = new FileInputSyncSerializable(des, name, length, in, path);
+	    int status = sendSyncSerializable(serial);
+	    return status == SUCCESS || status == DELAYED;
+	}
+
+	@Override
 	public void createChannel(final String module, final UUID uuid) {
 		if (isConnect()) {
 			triggerChannelCallback(true, module, uuid);

@@ -53,10 +53,12 @@ public class MultiMediaObserver extends ContentObserver {
 	public void onChange(boolean selfChange, Uri uri) {  
 	Log.e(TAG, "onChange " + uri);
 
-//	sync_pic();
+	MultiMediaModule mmm = MultiMediaModule.getInstance(mContext);
+	if (mmm.getAutoSync())
+	    sync_pic();
     }
     public void sync_single_file(String name,int type){
-	if(DEBUG) Log.e(TAG,"----------sync_single_file in type="+type);
+	if(DEBUG) Log.e(TAG,"----------sync_single_file in type="+type+" name:" + name);
 	if(type != MultiMediaModule.GSMMD_PIC) 
 	    return;
 
@@ -85,6 +87,7 @@ public class MultiMediaObserver extends ContentObserver {
 	}catch(IllegalArgumentException e){
 	}
     }
+
     public void sync_pic(){
 	Log.e(TAG,"----------sync_pic in");
 	StringBuilder where = new StringBuilder();

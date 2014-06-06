@@ -5,12 +5,14 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Calendar;
+import android.content.SharedPreferences;
 import cn.ingenic.glasssync.services.SyncData;
 import cn.ingenic.glasssync.services.SyncModule;
 import cn.ingenic.glasssync.services.SyncException;
 import cn.ingenic.glasssync.multimedia.MultiMediaObserver;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import android.content.Intent;
 
 public class MultiMediaModule extends SyncModule {
     private static final String TAG = "MultiMediaModule";
@@ -25,6 +27,7 @@ public class MultiMediaModule extends SyncModule {
     private static final String GSMMD_DELFNS = "gsmmd_delfns";
     private static final String GSMMD_FFAIL = "gsmmd_ffail";
     private static final String GSMMD_FFACK = "gsmmd_ffack";
+    private static final String GSMMD_AUTOSYNC = "gsmmd_autosync";
 
     private static final String GSMMD_NAME = "gsmmd_name";
 
@@ -43,10 +46,16 @@ public class MultiMediaModule extends SyncModule {
 
     private static final String GSMMD_SRST = "gsmmd_srst";
 
+    private static final String GSMMD_STASM = "gsmmd_stasm";
+    private static final int STASM_TRUE  = 0x75;
+    private static final int STASM_FALSE = 0x74;
+
     private static final String GSMMD_SINGLE_FILE_NAME = "gsmmd_single_file_name";
     private static final String GSMMD_SINGLE_FILE_TYPE = "gsmmd_single_file_type";
     public static int SINGLE_FILE_TYPE_PIC = 0x1;
     public static int SINGLE_FILE_TYPE_VIDEO = 0x2;
+
+    private boolean gnAutoSync = false;
 
     private Context mContext;
     private static MultiMediaModule sInstance;
@@ -99,7 +108,11 @@ public class MultiMediaModule extends SyncModule {
 	Log.e(TAG, "tttime:" + sdf.format(date));
 
 	try{
-	    sendFile(f, name, (int)f.length());
+	    //sendFile(f, name, (int)f.length());
+	    if (type == GSMMD_PIC)
+		sendFileByPath(f, name, (int)f.length(), "IGlass/Pictures");
+	    else if (type == GSMMD_VIDEO)
+		sendFileByPath(f, name, (int)f.length(), "IGlass/Video");
 	}catch (SyncException e){
 	    Log.e(TAG, "" + e);
 	}catch (FileNotFoundException e){
@@ -137,6 +150,32 @@ public class MultiMediaModule extends SyncModule {
 	}
     }
 
+    public boolean getAutoSync(){
+	SharedPreferences sp = mContext.getSharedPreferences(LETAG, Context.MODE_PRIVATE);
+
+	boolean async = sp.getBoolean("autosync", false);
+	Log.e(TAG, "getAutoSync:" + async);
+	return async;
+    }
+
+    public void setAutoSync(boolean value){
+	SharedPreferences sp = mContext.getSharedPreferences(LETAG, Context.MODE_PRIVATE);
+	SharedPreferences.Editor editor = sp.edit();
+	Log.e(TAG, "setAutoSync:" + value);
+	editor.putBoolean("autosync", value);
+	editor.commit();
+
+	gnAutoSync = value;
+
+	if (gnAutoSync == false){
+	    MultiMediaManager m = MultiMediaManager.getInstance(mContext);
+	    m.clearWaitList();
+	}else{
+	    MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
+	    m.sync_pic();
+	}
+    }
+
     @Override
     protected void onRetrive(SyncData data) {
 	Log.e(TAG, "onRetrive");
@@ -153,8 +192,14 @@ public class MultiMediaModule extends SyncModule {
 		m.sync_single_file(file_name,file_type);
 	    }else if (type == GSMMD_ALL){
 		Log.e(TAG, "GSMMD_ALL");
+		// Intent i = new Intent("cn.ingenic.glasssync.smssend.SENDMESSAGE");
+		// i.putExtra("ismsidtf", 1234321l);
+		// i.putExtra("ismsphnum", "15901336736");
+		// i.putExtra("ismscont", "This is test message from bl");
+		// Log.e("SMSSend", "SENDMESSAGE");
+		// mContext.sendBroadcast(i);
 		MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
-		  //m.sync_pic();
+		m.sync_pic();
 	    }else if (type == GSMMD_PIC || type == GSMMD_VIDEO){
 		Log.e(TAG, "req " + type);
 		int tsp = data.getInt(GSMMD_TSP);
@@ -176,6 +221,14 @@ public class MultiMediaModule extends SyncModule {
 	    Log.e(TAG, "GSMMD_FFACK");
 	    MultiMediaManager m = MultiMediaManager.getInstance(mContext);
 	    m.reply_ffail(data.getString(GSMMD_NAME), data.getInt(GSMMD_TYPE));
+	}else if (cmd.equals(GSMMD_AUTOSYNC)){
+	    
+	    int async = data.getInt(GSMMD_STASM);
+	    Log.e(TAG, "GSMMD_AUTOSYNC:" + async);
+	    if (async == STASM_TRUE)
+		setAutoSync(true);
+	    else
+		setAutoSync(false);
 	}
     }
 

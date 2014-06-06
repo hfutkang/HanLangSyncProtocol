@@ -1,11 +1,11 @@
 #adt/sdk/tools/proguard/lib$ java -jar proguard.jar  @../../../../../myFile/sync_protocol/proguard_sync_protocol
-#java -jar proguard.jar  @../../../../../glass/sync_protocol/proguard_sync_protocol
+#java -jar proguard.jar  @../../../../../glass/android/dev/packages/apps/GlassSync/sync_protocol/proguard_sync_protocol
 
--injars /home/hpwang/glass/sync_protocol/bin/sync_protocol.jar
--outjars /home/hpwang/glass/sync_protocol/bin/sync_protocol_out.jar
+-injars /home/hpwang/glass/android/dev/packages/apps/GlassSync/sync_protocol/bin/sync_protocol.jar
+-outjars /home/hpwang/glass/android/dev/packages/apps/GlassSync/sync_protocol/bin/sync_protocol_out.jar
 
 -libraryjars /home/hpwang/adt-bundle-linux-x86_64-20140321/sdk/platforms/android-19/android.jar
--libraryjars /home/hpwang/glass/sync_protocol/libs/services.jar
+-libraryjars /home/hpwang/glass/android/dev/packages/apps/GlassSync/sync_framework/libs/services.jar
 
 
 

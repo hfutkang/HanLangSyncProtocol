@@ -13,6 +13,7 @@ public class FileInputSyncSerializable implements SyncSerializable {
 	private final String mName;
 	private final int mLen;
 	private final InputStream mIn;
+        private final String mPath;
 
 	public FileInputSyncSerializable(SyncDescriptor des, String name, int len,
 			InputStream in) {
@@ -24,6 +25,20 @@ public class FileInputSyncSerializable implements SyncSerializable {
 		mName = name;
 		mLen = len;
 		mIn = in;
+		mPath = null;
+	}
+
+	public FileInputSyncSerializable(SyncDescriptor des, String name, int len,
+			InputStream in, String path) {
+		if (des == null || name == null || in == null || len < 0 || path == null) {
+			throw new IllegalArgumentException("Invalid args.");
+		}
+		des.mPri = TransportManagerExtConstants.FILE;
+		mDes = des;
+		mName = name;
+		mLen = len;
+		mIn = in;
+		mPath = path;
 	}
 
 	@Override
@@ -51,4 +66,7 @@ public class FileInputSyncSerializable implements SyncSerializable {
 		return mName;
 	}
 
+    public String getPath() {
+	return mPath;
+    }
 }

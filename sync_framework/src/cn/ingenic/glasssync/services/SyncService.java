@@ -203,6 +203,14 @@ public class SyncService extends Service {
 		}
 
 		@Override
+		public boolean sendFileByPath(String module, ParcelFileDescriptor des, String name,
+					      int length, String path) throws RemoteException {
+		    InputStream in = new ParcelFileDescriptor.AutoCloseInputStream(des);
+		    mmManager.sendFileByPath(module, name, length, in, path);
+		    return true;
+		}
+
+		@Override
 		public void createChannel(String moudle, ParcelUuid uuid) throws RemoteException {
 			mmManager.createChannel(moudle, uuid.getUuid());
 		}

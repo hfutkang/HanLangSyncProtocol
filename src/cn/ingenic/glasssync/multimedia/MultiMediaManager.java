@@ -198,6 +198,16 @@ public class MultiMediaManager {
 	}
     }
 
+    public void clearWaitList(){
+	if (!mPicWaitList.isEmpty()){
+	    mPicWaitList.clear();
+	}
+
+	if (!mVideoWaitList.isEmpty()){
+	    mVideoWaitList.clear();
+	}
+    }
+
     private void RequestHandler(Context c){
 	mReqHandle = new Handler();
 	mReqRunnable = new Runnable(){

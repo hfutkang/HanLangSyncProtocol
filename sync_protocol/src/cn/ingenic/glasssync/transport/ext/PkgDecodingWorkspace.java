@@ -97,10 +97,17 @@ public class PkgDecodingWorkspace {
 
 	    return "data";
 	}
-	private static File getUniqueDestination(String packageName, String name, String extension) throws IOException {
+    private static File getUniqueDestination(String packageName, String name, String extension, String path) throws IOException {
 	        String dds = getDestDirString(extension);
-		File f = new File(Environment
-				.getExternalStorageDirectory() + "/" + "IGlass/" + dds);
+
+		File f = null;
+		if (path != null){
+		    f = new File(Environment
+				 .getExternalStorageDirectory() + "/" + path);
+		}else{
+		    f = new File(Environment
+				 .getExternalStorageDirectory() + "/" + "IGlass/" + dds);
+		}
 		if (!f.exists()) {
 			logd("File:" + f + " does not exist, call mkdirs");
 			if (!f.mkdirs()) {
@@ -143,10 +150,19 @@ public class PkgDecodingWorkspace {
 				nameLen |= ((datas[1] & 0xff) << 16);
 				nameLen |= ((datas[2] & 0xff) << 8);
 				nameLen |= (datas[3] & 0xff);
-				if (datas.length >= (4 + nameLen)) {
+				int pathLen = ((datas[0 + 4 + nameLen] & 0xff) << 24);
+				pathLen |= ((datas[1 + 4 + nameLen] & 0xff) << 16);
+				pathLen |= ((datas[2 + 4 + nameLen] & 0xff) << 8);
+				pathLen |= (datas[3 + 4 + nameLen] & 0xff);
+				//loge("nameLen:" + nameLen + " pathLen:" + pathLen);
+				//loge("datas.length:" + datas.length);
+				//loge("datas is " + datas);
+				if (datas.length >= (4 + nameLen + 4 + pathLen)) {
 					byte[] nameBytes = new byte[nameLen];
+					//loge("nameBytes:" + nameBytes);
 					System.arraycopy(datas, 4, nameBytes, 0, nameLen);
 					mmOriName = new String(nameBytes, Pkg.UTF_8);
+					loge("mmOriName:" + mmOriName);
 					String extension = "";
 					String fileName = mmOriName;
 					int index;
@@ -155,11 +171,20 @@ public class PkgDecodingWorkspace {
 								mmOriName.length());
 						fileName = mmOriName.substring(0, index);
 					}
+
+					String OriPath = null;
+					if (pathLen > 0){
+					    byte[] pathBytes = new byte[pathLen];
+					    System.arraycopy(datas, 8+nameLen, pathBytes, 0, pathLen);
+					    OriPath = new String(pathBytes, Pkg.UTF_8);
+					    loge("OriPath:" + OriPath);
+					}
+
 					File dest = getUniqueDestination(
-							mContext.getPackageName(), fileName, extension);
+									 mContext.getPackageName(), fileName, extension, OriPath);
 					mmDestName = dest.getAbsolutePath();
 					mmFos = new FileOutputStream(mmDestName);
-					offset = (4 + nameLen);
+					offset = (4 + nameLen + 4 + pathLen);
 					byteCount = datas.length - offset;
 				} else {
 					//TODO: resolve the larger File name bytes
