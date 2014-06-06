@@ -241,6 +241,7 @@ public class DefaultSyncManager extends Handler {
 				case CONNECTED:
 					if (!mConnected) {
 						String lockedAddr = getLockedAddress();
+						Mgr.i("getLockedAddress"+lockedAddr);
 						if (!BluetoothAdapter.checkBluetoothAddress(lockedAddr)) {
 							if (!TextUtils.isEmpty(mConnectingAddress)) {
 								Mgr.d("setLockedAddress with connecting address:" + mConnectingAddress);
@@ -285,17 +286,17 @@ public class DefaultSyncManager extends Handler {
 		case MSG_CLEAR_ADDRESS:
 			if (hasLockedAddress()) {
 				Enviroment env = Enviroment.getDefault();
-				if (!env.isWatch()) {
-					NotificationManager mgr = (NotificationManager) mContext
-							.getSystemService(Context.NOTIFICATION_SERVICE);
-					Notification noti = new Notification();
-					noti.icon = R.drawable.no_bond_device;
-					noti.vibrate = new long[]{0, 500, 500, 500};
-					noti.setLatestEventInfo(mContext,
-							mContext.getString(R.string.lost_bond_st),
-							mContext.getString(R.string.lost_bond_st_content), null);
-					mgr.notify(NOTI_LOST_BOND_ST, noti);
-				}
+//				if (!env.isWatch()) {
+//					NotificationManager mgr = (NotificationManager) mContext
+//							.getSystemService(Context.NOTIFICATION_SERVICE);
+//					Notification noti = new Notification();
+//					noti.icon = R.drawable.no_bond_device;
+//					noti.vibrate = new long[]{0, 500, 500, 500};
+//					noti.setLatestEventInfo(mContext,
+//							mContext.getString(R.string.lost_bond_st),
+//							mContext.getString(R.string.lost_bond_st_content), null);
+//					mgr.notify(NOTI_LOST_BOND_ST, noti);
+//				}
 				setLockedAddress("");
 			}
 			break;
@@ -601,28 +602,36 @@ public class DefaultSyncManager extends Handler {
 	
 	public boolean hasLockedAddress() {
 		return BluetoothAdapter.checkBluetoothAddress(getLockedAddress());
+		
 	}
 	
-	void setLockedAddress(String address) {
+	public void setLockedAddress(String address) {
+		
 		setLockedAddress(address, false);
+		Mgr.d("setLockedAddress");
 	}
 	
-	void setLockedAddress(String address, boolean notify) {
+	public void setLockedAddress(String address, boolean notify) {
 		Mgr.d("setLockedAddress:" + address);
 		SharedPreferences sp = mContext.getSharedPreferences(FILE_NAME,
 				Context.MODE_PRIVATE);
 		String oldAddress = sp.getString(UNIQUE_ADDRESS, "");
+		Mgr.d("oldAddress:" + oldAddress);
+		Mgr.d("address:" + address);
 		if (oldAddress.equals(address)) {
 			Mgr.w("setLockedAddress duplicate with address:" + address);
 			return;
 		}
 		SharedPreferences.Editor editor = sp.edit();
 		boolean validOldAddr = BluetoothAdapter.checkBluetoothAddress(oldAddress);
+		Mgr.d("validOldAddr:" + validOldAddr);
 		boolean validAddr = BluetoothAdapter.checkBluetoothAddress(address);
+		Mgr.d("validAddr:" + validAddr);
 		if (validOldAddr) {
 			notifyCleared(oldAddress);
 			if (!validAddr) {
 				address = "";
+				Mgr.d("notify+isConnect():" + notify+"------------"+isConnect());
 				if (notify && isConnect()) {
 					Mgr.i("sendClearMsg with address:" + oldAddress + " to watch point");
 					sendClearMsg();
@@ -654,9 +663,7 @@ public class DefaultSyncManager extends Handler {
 				noti.flags |= Notification.FLAG_ONGOING_EVENT;
 				noti.icon = R.drawable.no_bond_device;
 				noti.vibrate = new long[]{0, 500, 500, 500};
-				noti.setLatestEventInfo(mContext,
-						mContext.getString(R.string.unbond_st),
-						mContext.getString(R.string.unbond_st_content), null);
+				noti.setLatestEventInfo(mContext,mContext.getString(R.string.unbond_st),null,null);
 				mgr.notify(NOTI_UNBOND_ST, noti);
 			} else {
 				mgr.cancel(NOTI_UNBOND_ST);
@@ -692,6 +699,7 @@ public class DefaultSyncManager extends Handler {
 	
 	private void sendClearMsg() {
 		Module m = getModule(SystemModule.SYSTEM);
+		Mgr.i("Default----Module:"+m);
 		RemoteChannelManagerService service = RemoteChannelManagerImpl
 				.asRemoteInterface(m
 						.getRemoteService(RemoteChannelManagerService.DESPRITOR));
@@ -718,8 +726,9 @@ public class DefaultSyncManager extends Handler {
 		
 		if (address == null) {
 			address = getLockedAddress();
+			Mgr.d("getLockedAddress:" + address);
 		} else {
-			Mgr.d("connecting address:" + address);
+			Mgr.d("connecting address-----------connect:" + address);
 			mConnectingAddress = address;
 		}
 		
@@ -730,6 +739,34 @@ public class DefaultSyncManager extends Handler {
 		mTransportManager.prepare(address);
 	}
 	
+        public void glass_accept(){
+	    Mgr.d("glass_accept");
+	    //mTransportManager.glass_accpet();
+        }
+
+        public void glass_connect(String address){
+	    Mgr.d("glass_connect");
+	    if (isConnect()) {
+		Mgr.w("already connected.");
+		return;
+	    }
+		
+	    if (address == null) {
+		address = getLockedAddress();
+		Mgr.d("getLockedAddress-----------glass_connect" + address);
+	    } else {
+		Mgr.d("glass connecting address:" + address);
+		mConnectingAddress = address;
+	    }
+		
+	    if (!BluetoothAdapter.checkBluetoothAddress(address)) {
+		throw new IllegalStateException("Invalid address.");
+	    }
+	    mState = CONNECTING;
+
+	    mTransportManager.prepare(address);
+        }
+
 	public void disconnect() {
 		if (!isConnect()) {
 			Mgr.w("already disConnected.");
@@ -741,11 +778,16 @@ public class DefaultSyncManager extends Handler {
 	}
 	
 	public static boolean isConnect() {
+		Mgr.d("getState()"+DefaultSyncManager.getDefault().getState());
 		return DefaultSyncManager.getDefault().getState() == CONNECTED;
+		 
 	}
 	
 	public String getLockedAddress() {
+		
 		SharedPreferences sp = mContext.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE);
+		Mgr.d("getLockedAddress()" + sp);
+		
 		return sp.getString(UNIQUE_ADDRESS, "");
 	}
 	
@@ -753,6 +795,7 @@ public class DefaultSyncManager extends Handler {
 		return BluetoothAdapter.checkBluetoothAddress(mConnectingAddress) ? mConnectingAddress
 				: BluetoothAdapter.checkBluetoothAddress(getLockedAddress()) ? getLockedAddress()
 						: ""; 
+			
 	}
 	
 	protected DefaultSyncManager(Context context) {
@@ -934,7 +977,7 @@ public class DefaultSyncManager extends Handler {
 			sendCallbackMsg(config.mCallback, NO_LOCKED_ADDRESS);
 			return NO_CONNECTIVITY;
 		}
-		
+		Mgr.w("request without locked address;"+BluetoothAdapter.checkBluetoothAddress(getLockedAddress()));
 		if (!BluetoothAdapter.checkBluetoothAddress(getLockedAddress())) {
 			Mgr.w("can not request without locked address;");
 			sendCallbackMsg(config.mCallback, NO_LOCKED_ADDRESS);

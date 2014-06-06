@@ -15,7 +15,8 @@ LOCAL_SRC_FILES := $(call all-java-files-under, src)
 LOCAL_RESOURCE_DIR := $(addprefix $(LOCAL_PATH)/, $(res_dirs))
 LOCAL_PACKAGE_NAME := GlassSync
 LOCAL_STATIC_JAVA_LIBRARIES := sync_framework \
-	com.android.vcard
+	com.android.vcard \
+	zxing
 LOCAL_AAPT_FLAGS := --auto-add-overlay
 #LOCAL_PROGUARD_ENABLED := disabled
 # Builds against the public SDK
@@ -24,4 +25,13 @@ LOCAL_AAPT_FLAGS := --auto-add-overlay
 include $(BUILD_PACKAGE)
 
 # This finds and builds the test apk as well, so a single make does both.
+
+include $(call all-makefiles-under,$(LOCAL_PATH))
+include $(CLEAR_VARS)
+
+LOCAL_PREBUILT_STATIC_JAVA_LIBRARIES := zxing:libs/zxing.jar
+
+include $(BUILD_MULTI_PREBUILT)
+
+# Use the folloing include to make our test apk.
 include $(call all-makefiles-under,$(LOCAL_PATH))

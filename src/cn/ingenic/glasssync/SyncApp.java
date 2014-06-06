@@ -44,10 +44,10 @@ public class SyncApp extends Application implements
             Log.i(LogTag.APP, "UpdaterModule is registed.");
         }
 
-        PhoneModule pm = new PhoneModule();
-        if(manager.registModule(pm)){
-            Log.i(LogTag.APP, "PhoneModule  registed");
-        }
+//        PhoneModule pm = new PhoneModule();
+//        if(manager.registModule(pm)){
+//            Log.i(LogTag.APP, "PhoneModule  registed");
+//        }
 
         CameraModule cm = new CameraModule();
         if(manager.registModule(cm)){

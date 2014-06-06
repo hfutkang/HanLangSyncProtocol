@@ -54,22 +54,29 @@ class BluetoothServerExt implements BluetoothChannelExt {
 			public void run() {
 				Server.i("server started.");
 				mClosed = false;
+				mLastRetriveSec = 0;
 				BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
 				Enviroment env = Enviroment.getDefault();
 				try {
 					mServerSocket = adapter.listenUsingRfcommWithServiceRecord(
 							"BluetoothServerExt",
 							env.getUUID(BluetoothChannel.CUSTOM, false));
-					Server.i("listen over, accepting...");
+					Server.i("listen over, accepting..."+env.getUUID(BluetoothChannel.CUSTOM, false)+System.currentTimeMillis());
 					synchronized (mClientLock) {
+						Server.i("listen over, accepting..."+mServerSocket);
 						if (mServerSocket != null) {
 							mClient = mServerSocket.accept();
+							Server.i("listen over--mServerSocket.accept()");
+							Server.i("listen over, ...mClient"+mClient);
 						} else {
 							Server.d("Server is closed.");
 							return;
 						}
+						
 						InputStream input = mClient.getInputStream();
+						Server.i("listen over-------input"+input);
 						mOutput = mClient.getOutputStream();
+						Server.i("listen over----mOutput"+mOutput);
 						Server.i("accept one");
 						
 						BluetoothClientExt
@@ -149,7 +156,9 @@ class BluetoothServerExt implements BluetoothChannelExt {
 	public void send(Pkg pkg) throws ProtocolException {
 		try {
 		    synchronized (mSendLock){
-			BluetoothChannelExtTools.send(pkg, mOutput);
+		    	if(!mClosed){
+		    		BluetoothChannelExtTools.send(pkg, mOutput);
+		    	}		
 		    }
 		} catch (IOException e) {
 			Server.e("send error:" + e.getMessage());

@@ -194,4 +194,16 @@
 	<string name="retry_connect_success">连接成功</string>
 	<string name="retry_connect_failed">连接失败</string>
 	<string name="retry_connect_failed_with_no_address">失去远程设备</string>
+	<!-- Bluetooth -->
+	<string name="welcome">欢迎使用Glass同步应用</string>
+    <string name="welcome_content"> \u0020 \u0020 \u0020首先您需要在手机上下载同步应用的手机客户端，然后通过点击屏幕添加绑定设备。</string>
+    <string name="into">点击屏幕进行绑定设备>>></string>
+    <string name="load_cn">正在玩命加载中，请您耐心等待</string>
+    <string name="load_en"> \u0020 \u0020 \u0020 \u0020Loading。。。。。。</string>
+    <string name="unbind">绑定失败了（T﹏T）</string>
+    <string name="rebind"> 点击屏幕重新绑定>>></string>
+    <string name="bind">已绑定的设备</string>
+    <string name="long_click">（长按解除绑定）</string>
+    <string name="mobile">Lenovo \u0020 \u0020A790E</string>
+    <string name="toast_message">点击屏幕重新绑定或者通过下滑退出应用</string>
 </resources>

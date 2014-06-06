@@ -203,5 +203,17 @@
 	<string name="retry_connect_success">reconnect success</string>
 	<string name="retry_connect_failed">reconnect failed</string>
 	<string name="retry_connect_failed_with_no_address">Lost remote device</string>
+	<!-- Bluetooth -->
+	<string name="welcome">Welcome to use Glass synchronization application</string>
+    <string name="welcome_content"> \u0020 \u0020 \u0020First, you need to download the synchronization application on the mobile phone mobile phone client, then click on the screen to add binding equipment.</string>
+    <string name="into">Binding equipment to click on the screen>>></string>
+    <string name="load_cn">Is your life is loading, please wait patiently</string>
+    <string name="load_en"> \u0020 \u0020 \u0020 \u0020Loading......</string>
+    <string name="unbind">Bind failed (T ﹏ T)</string>
+    <string name="rebind"> Again click on the screen>>></string>
+    <string name="bind">Bonded devices</string>
+    <string name="long_click">(long press to unbind)</string>
+    <string name="mobile">Lenovo \u0020 \u0020A790E</string>
+    <string name="toast_message">Click on the screen to bind or slipped through the exit application</string>
 </resources>
 

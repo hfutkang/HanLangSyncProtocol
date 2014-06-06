@@ -1599,7 +1599,6 @@ public class StateMachine {
     public void start() {
         // mSmHandler can be null if the state machine has quit.
         if (mSmHandler == null) return;
-
         /** Send the complete construction message */
         mSmHandler.completeConstruction();
     }

@@ -18,7 +18,7 @@ class BluetoothClientExt implements BluetoothChannelExt {
 	private BluetoothSocket mSocket;
 	private final TransportStateMachineExt mStateMachine;
 	private volatile boolean mClosed = true;
-
+	private BluetoothSocket mTmp = null;
 	private OutputStream mOutput;
 	private final Handler mRetrive;
 
@@ -70,7 +70,9 @@ class BluetoothClientExt implements BluetoothChannelExt {
 			public void run() {
 			    Client.e("client run in");
 				mClosed = false;
+				Client.e("client----mClosed"+mClosed);
 				BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+				Client.d("client thread running, connect the address:" + address);
 				BluetoothDevice device = adapter.getRemoteDevice(address);
 				Client.d("client thread running, connect the device:" + device);
 				Enviroment env = Enviroment.getDefault();
@@ -79,13 +81,17 @@ class BluetoothClientExt implements BluetoothChannelExt {
 				int i = 0;
 				while (true) {
 					try {
-						mSocket = device.createRfcommSocketToServiceRecord(env
+						mTmp = device.createRfcommSocketToServiceRecord(env
 								.getUUID(BluetoothChannel.CUSTOM, true));
+						Client.e("getUUID:" + env
+								.getUUID(BluetoothChannel.CUSTOM, true)+System.currentTimeMillis());
+						mSocket=mTmp;
 						Client.e("connect start");
 						mSocket.connect();
 						Client.e("connect end");
 						mOutput = mSocket.getOutputStream();
 						input = mSocket.getInputStream();
+						Client.e("connect input");
 						notifyStateChange(
 										TransportStateMachineExt.C_CONNECTED,
 										mStateMachine);
@@ -108,10 +114,14 @@ class BluetoothClientExt implements BluetoothChannelExt {
 					i++;
 				}
 				try {
+					Client.e("while " + mClosed);
 					while (!mClosed) {
+						Client.e("pkg");
 						Pkg pkg = BluetoothChannelExtTools.retrivePkg(input);
+						Client.e("while " + pkg.getType());
 						if (pkg.getType() == Pkg.PKG){
 						    byte[] b = pkg.getData();
+						    Client.e("pkg.getData() " + pkg.getData());
 						    Client.e("retrive length:" + b.length);
 						    if (is_ping(b))
 							continue;
@@ -169,7 +179,9 @@ class BluetoothClientExt implements BluetoothChannelExt {
 		//BluetoothChannelExtTools.send(pkg, mOutput);
 		try {
 		    synchronized (mSendLock){
-			BluetoothChannelExtTools.send(pkg, mOutput);
+		    	if(!mClosed){
+		    		BluetoothChannelExtTools.send(pkg, mOutput);
+		    	}
 		    }
 		} catch (IOException e) {
 			Client.e("send error:" + e.getMessage());

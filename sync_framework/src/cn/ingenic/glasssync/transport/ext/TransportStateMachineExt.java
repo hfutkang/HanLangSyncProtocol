@@ -282,9 +282,10 @@ class TransportStateMachineExt extends StateMachine {
 
 		@Override
 		public void enter() {
-			enterLog(this);
+			enterLog(this);		
 			try {
 				DefaultSyncManager mgr = DefaultSyncManager.getDefault();
+				d("Client"+mgr.hasLockedAddress());
 				mClient.send(Neg.fromRequest(TransportManagerExt.PRO_VER,
 						!mgr.hasLockedAddress()));
 			} catch (ProtocolException e) {
@@ -367,9 +368,9 @@ class TransportStateMachineExt extends StateMachine {
 			case MSG_STATE_CHANGE:
 				int state = msg.arg1;
 				switch (state) {
-				// case C_IDLE:
-				// transitionTo(mServerState);
-				// return HANDLED;
+				 case C_IDLE:
+				 transitionTo(mServerState);
+				 return HANDLED;
 				case C_CONNECTED:
 					transitionTo(mClientReqState);
 					return HANDLED;
@@ -510,6 +511,7 @@ class TransportStateMachineExt extends StateMachine {
 			switch (msg.what) {
 			case MSG_CONNECT:
 				String address = (String) msg.obj;
+				mServer.close();
 				mClientIdleState.setConnectingAddress(address);
 				transitionTo(mClientIdleState);
 				return HANDLED;

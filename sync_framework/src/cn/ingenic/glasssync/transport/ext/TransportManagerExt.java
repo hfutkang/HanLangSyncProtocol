@@ -124,6 +124,7 @@ public class TransportManagerExt extends TransportManager {
 				} else if (type == Pkg.NEG) {
 					Neg neg = (Neg) pkg;
 					int reason = 0;
+					w("neg.isACK1()"+neg.isACK1());
 					if (neg.isACK1()) {
 						DefaultSyncManager mgr = DefaultSyncManager.getDefault();
 						String bondingAddr = mgr.getLockedAddress();
@@ -136,9 +137,14 @@ public class TransportManagerExt extends TransportManager {
 						}
 						
 						boolean reBond = false;
+						w("reason"+reason);
 						if (reason == 0) {
+							w("isInit"+isInit);
 							if (isInit) {
+								w("hasBondAddr"+hasBondAddr);
 								if (hasBondAddr) {
+									w("bondingAddr"+bondingAddr);
+									w("remoteAddr"+remoteAddr);
 									if (bondingAddr.equalsIgnoreCase(remoteAddr)) {
 										reBond = true;
 									} else {
@@ -154,7 +160,10 @@ public class TransportManagerExt extends TransportManager {
 									}
 								}
 							} else {
+								w("hasBondAddr----else"+hasBondAddr);
 								if (hasBondAddr) {
+									w("bondingAddr"+bondingAddr);
+									w("remoteAddr"+remoteAddr);
 									if (!bondingAddr.equalsIgnoreCase(remoteAddr)) {
 										w("Address mismatch without Initilization.");
 										reason = Neg.FAIL_ADDRESS_MISMATCH;
@@ -174,14 +183,17 @@ public class TransportManagerExt extends TransportManager {
 						mStateMachine.sendMessage(
 								TransportStateMachineExt.MSG_S_CONTINUE,
 								Neg.fromResponse(reason == 0, reason));
-						
+						w("reason====if"+reason);
 						if (reason == 0) {
 							Message m = mMgrHandler.obtainMessage(DefaultSyncManager.MSG_SET_LOCKED_ADDRESS);
 							m.arg1 = reBond ? 1 : 0;
 							m.obj = remoteAddr;
 							m.sendToTarget();
 						}
-					} else if (neg.isACK2()) {
+						
+					} 
+					else if (neg.isACK2()) {
+						w("neg.isPass()"+neg.isPass());
 						if (neg.isPass()) {
 							mStateMachine
 									.sendMessage(TransportStateMachineExt.MSG_C_CONTINUE);

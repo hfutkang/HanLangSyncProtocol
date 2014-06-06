@@ -41,6 +41,9 @@ class TransportStateMachine extends StateMachine {
 	private static final int MSG_BT_ON = MSG_BASE + 6;
 	private static final int MSG_BT_OFF = MSG_BASE + 7;
 	private static final int MSG_SEND_BOND_RESP = MSG_BASE + 8;
+
+        static final int MSG_BT_CONN_GLASS = MSG_BASE + 9;
+        static final int MSG_BT_ACCE_GLASS = MSG_BASE + 10;
 	
 	private static final int STATE_BASE = 0;
 	static final int C_IDLE = STATE_BASE + 1; 

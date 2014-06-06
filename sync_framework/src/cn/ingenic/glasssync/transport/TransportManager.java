@@ -118,24 +118,28 @@ public class TransportManager {
 	private TransportStateMachine mStateMachine;
 	
 	protected TransportManager(Context context, String sysetmModuleName, Handler mgrHandler){
+		Transport.w("TransportManager created.");
 		mContext = context;
 		mSystemModuleName = sysetmModuleName;
 		mMgrHandler = mgrHandler;
-		
+		Transport.w("PowerManager created.");
 		PowerManager powerMgr = (PowerManager) context
 				.getSystemService(Context.POWER_SERVICE);
 		mWakeLock = powerMgr.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
 				"TransportManager");
 		mWakeLock.setReferenceCounted(false);
 		
-		mHandler = new MyHandler();
+		mHandler = new MyHandler();		
 		init();
+		Transport.w("init() created.");
 	}	
 	
 	protected void init() {
+		Transport.w("init() start.");
 		mFileChannelManager = new FileChannelManager(mContext, mHandler);
 		mStateMachine = new TransportStateMachine(mContext, this);
 		mStateMachine.start();
+		Transport.w("init() start end .");
 	}
 	
 	protected final void releaseWakeLock() {

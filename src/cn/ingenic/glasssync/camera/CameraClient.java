@@ -149,18 +149,9 @@ public class CameraClient extends CameraBase implements OnChannelCallBack{
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
-							 WindowManager.LayoutParams.FLAG_FULLSCREEN);
-		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		setContentView(R.layout.camera_client);
-		initView();
-		setState(STATE_DISCONNECT);
-		CameraTransaction.setCameraClient(this);
-		WindowManager mWinManager = (WindowManager) getSystemService("window");
-		screenWidth = mWinManager.getDefaultDisplay().getWidth();
-		screenHeight= mWinManager.getDefaultDisplay().getHeight();
+	super.onCreate(savedInstanceState);
+
+	setContentView(R.layout.test);
     }
 
     private void initView () {
