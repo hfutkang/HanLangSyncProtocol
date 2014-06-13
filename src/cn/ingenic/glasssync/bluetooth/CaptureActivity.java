@@ -11,7 +11,8 @@ import cn.ingenic.glasssync.bluetooth.view.ViewfinderView;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.Result;
 
-import cn.ingenic.glasssync.*;
+//import cn.ingenic.glasssync.*;
+import cn.ingenic.glasssync.R;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;

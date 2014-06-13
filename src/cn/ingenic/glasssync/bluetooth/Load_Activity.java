@@ -29,6 +29,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.TextView;
@@ -36,7 +38,7 @@ import android.widget.Toast;
 import cn.ingenic.glasssync.DefaultSyncManager;
 
 public class Load_Activity extends Activity {
-	private String TAG = "MainActivity";
+	private String TAG = "Load_Activity";
 	private BluetoothAdapter mBLADPServer = Welcome_Activity.sBluetoothAdapter;
 	private BluetoothSocket mSocketServer;
 	private BluetoothServerSocket mServerSocket;
@@ -55,11 +57,12 @@ public class Load_Activity extends Activity {
 	private Timer mtimer;
 	private String mOnbind_Address="00:00:00:00:00:00";
 	private String mSendMsg;
+        private Context mContext;
 	private Handler mHandler = new Handler() {
 
 		@Override
 		public void handleMessage(Message msg) {
-			Log.d("Tag", msg.what+"msg.what");
+			Log.e("Tag", msg.what+"msg.what");
 			if (msg.what == 1) {
 				Toast.makeText(getApplicationContext(), "您已绑定该设备，无需重新绑定",
 						Toast.LENGTH_LONG).show();
@@ -92,168 +95,201 @@ public class Load_Activity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		mContext = this;
 		setContentView(R.layout.activity_load);
 		manger = DefaultSyncManager.getDefault();
 		Intent intent = getIntent();
-		mDevice_info = intent.getStringExtra("result");
-		Log.d("Tag", mDevice_info);
-		strarray = mDevice_info.split(",");
-		mAddress = strarray[0];
-		mIsConnect = strarray[1];
+		//mDevice_info = intent.getStringExtra("result");
+		//Log.d("Tag", mDevice_info);
+		//strarray = mDevice_info.split(",");
+		//mAddress = strarray[0];
+		mAddress = "98:FF:D0:8D:1C:73";
+		//mIsConnect = strarray[1];
 		Log.d("Tag", mBind_Address + "===============================");
-		mBind_Address = strarray[2];
+		//mBind_Address = strarray[2];
+		mBind_Address = "00:00:00:00:00:00";
 		mAddress_connect = mAddress;
 		mdevice = mBLADPServer.getRemoteDevice(mAddress);
 		mtimer = new Timer();
-		mServerThread = new Thread() {
-			@Override
-			public void run() {
-				try {
-					mServerSocket = mBLADPServer
-							.listenUsingRfcommWithServiceRecord(
-									"BluetoothServerExt",
-									UUID.fromString(SPP_UUID));
-					Log.e(TAG, "accept start");
-					mSocketServer = mServerSocket.accept();
-					Log.e(TAG, "accept end");
-					if (mSocketServer == null) {
-						Log.e(TAG, "accept fail");
-						return;
-					}
-					InputStream ipsm = mSocketServer.getInputStream();
-					byte[] b = new byte[8];
-					ipsm.read(b, 0, 8);
-					Log.e(TAG, "read:" + b[0] + b[1] + b[2] + b[3] + b[4]
-							+ b[5] + b[6] + b[7]);
 
-				} catch (IOException e) {
-					Log.e(TAG, "e:" + e);
-				}
-			}
-		};
 		mClientThread = new Thread() {
 			@Override
 			public void run() {
-
-				String strPsw = new String("567914");
-				if (mdevice.getBondState() != BluetoothDevice.BOND_BONDED) {
-					try {
-						Log.d(TAG, "NOT BOND_BONDED");
-						byte[] b = new byte[4];
-						b[0] = '0';
-						b[1] = '0';
-						b[2] = '0';
-						b[3] = '0';
-						mdevice.setPin(b);
-						try {
-							Thread.sleep(1000);
-						} catch (InterruptedException e) {
-						}
-						mdevice.createBond();
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						Log.d("mylog", "setPiN failed!");
-						e.printStackTrace();
-					}
-				}
-				Log.e(TAG, "createBond end");
-				while (mdevice.getBondState() != BluetoothDevice.BOND_BONDED) {
-					try {
-						Thread.sleep(50);
-					} catch (InterruptedException e) {
-					}
-					Log.e(TAG, "connect mAddress" + mAddress);
-					mdevice = mBLADPServer.getRemoteDevice(mAddress);
-				}
-				;
-				Log.e(TAG, "now bonded");
-
+			    if (mdevice.getBondState() != BluetoothDevice.BOND_BONDED) {
 				try {
-					mSocketServer = mdevice
-							.createRfcommSocketToServiceRecord(UUID
-									.fromString(SPP_UUID));
-					Log.e(TAG, "connect start");
-					try {
-						mSocketServer.connect();
-					} catch (Exception e) {
-						Log.e("Tag", "e:" + e);
-					}		
-					Log.e(TAG, "connect end");
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-					}
-					if(manger.getLockedAddress()!=""){
-						mOnbind_Address=manger.getLockedAddress();
-					}
-					mSendMsg=mOnbind_Address+","+mBLADPServer.getAddress();
-					OutputStream opsm = mSocketServer.getOutputStream();
-					opsm.write(mSendMsg.getBytes());
-					Log.e(TAG, "write:" + mBLADPServer.getAddress().getBytes());	
-					Log.e(TAG, "Address" +mBind_Address+"------"+mBLADPServer.getAddress()+"========="+manger.getLockedAddress()+"======"+mAddress);	
-					if (mBind_Address.equals(mBLADPServer.getAddress()) && manger.getLockedAddress().equals(mAddress)) {
-						Message message = new Message();
-						message.what = 1;
-						mHandler.sendMessage(message);
-						return;
-					}	
-					Log.d("Tag", mBind_Address
-							+ "======mBind_Address==================");
-					if (manger.getLockedAddress() != null) {
-						Log.d("Tag", manger.getLockedAddress()
-								+ "manger.getLockedAddress()==============");
-						manger.disconnect();
-						try {
-							Thread.sleep(1000);
-						} catch (InterruptedException e) {
-						}
-						manger.setLockedAddress("", true);
-					}
-//					if(manger.getLockedAddress()!=""){
-//						OutputStream ops = mSocketServer.getOutputStream();
-//						ops.write(manger.getLockedAddress().getBytes());
-//						Log.e(TAG, "write:manger.getLockedAddress()" +manger.getLockedAddress());
-//					}					
-					
-				} catch (IOException i) {
-					Log.e(TAG, "e:", i);
+				    Log.d(TAG, "NOT BOND_BONDED");
+				    byte[] b = new byte[4];
+				    b[0] = '0';
+				    b[1] = '0';
+				    b[2] = '0';
+				    b[3] = '0';
+				    mdevice.setPin(b);
+				    try {
+					Thread.sleep(500);
+				    } catch (InterruptedException e) {
+				    }
+				    mdevice.createBond();
+				} catch (Exception e) {
+				    // TODO Auto-generated catch block
+				    Log.d("mylog", "setPiN failed!");
+				    e.printStackTrace();
 				}
+			    }
+			    Log.e(TAG, "createBond start");
+			    long sbondtime = System.currentTimeMillis() / 1000l;
+			    while (mdevice.getBondState() != BluetoothDevice.BOND_BONDED) {
 				try {
-					Thread.sleep(2000);
+				    Thread.sleep(50);
 				} catch (InterruptedException e) {
 				}
-				try {
-					mSocketServer.close();
-				} catch (Exception e) {
-					// TODO: handle exception
+				if (((System.currentTimeMillis() / 1000l) - 60) > sbondtime){
+				    Log.e(TAG, "Bond timeout");
+				    break;
 				}
-				Log.e(TAG, "connect mAddress" + mAddress_connect);
-				// manger.hasLockedAddress();
-				manger.glass_connect(mAddress_connect);
-				Log.e(TAG, "timer_start");
-				timer_start();
-				Log.e(TAG, "timer_end");
+				//Log.e(TAG, "connect mAddress" + mAddress);
+				mdevice = mBLADPServer.getRemoteDevice(mAddress);
+			    };
+
+			    if (mdevice.getBondState() != BluetoothDevice.BOND_BONDED){
+				mdevice.setBondState(BluetoothDevice.BOND_NONE);
+				    Message msg = new Message();
+				    msg.what = 3;
+				    mHandler.sendMessage(msg);
+				    return;
+			    }
+			    Log.e(TAG, "now bonded");
+
+			    try {
+				mSocketServer = mdevice
+				    .createRfcommSocketToServiceRecord(UUID
+								       .fromString(SPP_UUID));
+				Log.e(TAG, "connect start");
+				try {
+				    mSocketServer.connect();
+				} catch (Exception e) {
+				    Log.e("Tag", "e:" + e);
+				}		
+				Log.e(TAG, "connect end");
+
+				long scontime = System.currentTimeMillis() / 1000l;
+				while (mSocketServer.isConnected() == false){
+				    try {
+					Thread.sleep(50);
+				    } catch (InterruptedException e) {
+				    }
+
+				    if (((System.currentTimeMillis() / 1000l) - 60) > sbondtime){
+					Log.e(TAG, "Connect timeout");
+					break;
+				    }
+				}
+
+				if (mSocketServer.isConnected() == false){
+				    Log.e(TAG, "isConnected false");
+				    mdevice.setBondState(BluetoothDevice.BOND_NONE);
+				    Message msg = new Message();
+				    msg.what = 3;
+				    mHandler.sendMessage(msg);
+				    Log.e(TAG, "sendMessage end");
+				    return;
+				}else{
+				    Log.e(TAG, "isConnected true");
+				}
+
+				if(manger.getLockedAddress()!=""){
+				    mOnbind_Address=manger.getLockedAddress();
+				}
+				mSendMsg=mOnbind_Address+","+mBLADPServer.getAddress();
+				OutputStream opsm = mSocketServer.getOutputStream();
+				opsm.write(mSendMsg.getBytes());
+				Log.e(TAG, "write:" + mBLADPServer.getAddress().getBytes());	
+				Log.e(TAG, "Address" +mBind_Address+"------"+mBLADPServer.getAddress()+"========="+manger.getLockedAddress()+"======"+mAddress);	
+				if (mBind_Address.equals(mBLADPServer.getAddress()) && manger.getLockedAddress().equals(mAddress)) {
+				    Message message = new Message();
+				    message.what = 1;
+				    mHandler.sendMessage(message);
+				    return;
+				}	
+				Log.d("Tag", mBind_Address
+				      + "======mBind_Address==================");
+				if (manger.getLockedAddress() != null) {
+				    Log.d("Tag", manger.getLockedAddress()
+					  + "manger.getLockedAddress()==============");
+				    manger.disconnect();
+				    try {
+					Thread.sleep(1000);
+				    } catch (InterruptedException e) {
+				    }
+				    manger.setLockedAddress("", true);
+				}
+				//					if(manger.getLockedAddress()!=""){
+				//						OutputStream ops = mSocketServer.getOutputStream();
+				//						ops.write(manger.getLockedAddress().getBytes());
+				//						Log.e(TAG, "write:manger.getLockedAddress()" +manger.getLockedAddress());
+				//					}					
+					
+			    } catch (IOException i) {
+				Log.e(TAG, "e:", i);
+			    }
+			    try {
+				Thread.sleep(2000);
+			    } catch (InterruptedException e) {
+			    }
+			    try {
+				mSocketServer.close();
+			    } catch (Exception e) {
+				// TODO: handle exception
+			    }
+			    Log.e(TAG, "connect mAddress" + mAddress_connect);
+			    // manger.hasLockedAddress();
+			    manger.glass_connect(mAddress_connect);
+			    Log.e(TAG, "timer_start");
+			    timer_start();
+			    Log.e(TAG, "timer_end");
 			}
-		}; 
-		Log.e(TAG, "onResume registerReceiver end");
-//		while (mBLADPServer.getState() != BluetoothAdapter.STATE_ON)
-//			;
+		    }; 
+
+		long ttime = System.currentTimeMillis() / 1000l;
+		while (mBLADPServer.getState() != BluetoothAdapter.STATE_ON){
+		    if ((System.currentTimeMillis() / 1000l) - 30 > ttime){
+			Log.e(TAG, "BT ON timeout");
+			break;
+		    }
+
+		    try {
+			Thread.sleep(10);
+		    } catch (InterruptedException e) {
+		    }
+
+		};
+
+		if (mBLADPServer.getState() != BluetoothAdapter.STATE_ON){
+		    Log.e(TAG, "can not turn on the bluetooth");
+		    
+		    Message msg = new Message();
+		    msg.what = 3;
+		    mHandler.sendMessage(msg);
+		    return;
+		}
+
 		Log.e(TAG, "bl state on");
-			mBLADPServer.cancelDiscovery();
-			mClientThread.start();
+		mBLADPServer.cancelDiscovery();
+		mClientThread.start();
 		
 	}
+
     private void timer_start(){
     	mtimer.schedule(new TimerTask() {
-    	                    @Override
-    	                    public void run() {
-    	                    	Log.e(TAG, "timer_Start");
-    	                        Message msg = new Message();
-    	                        msg.what = 3;
-    	                        mHandler.sendMessage(msg);
-    	                    }   	 
-    	                }, 60000);
-    	            }   
+		@Override
+		public void run() {
+		    Log.e(TAG, "timer_Start");
+		    Message msg = new Message();
+		    msg.what = 3;
+		    mHandler.sendMessage(msg);
+		}   	 
+	    }, 60000);
+    }   
+
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -329,6 +365,12 @@ public class Load_Activity extends Activity {
 							Welcome_Activity.class);
 					bind.putExtra("mdevice", mdevice.getName());
 					bind.putExtra("mAddress", mAddress_connect);
+					////
+					SharedPreferences tsp = mContext.getSharedPreferences("MAC_INFO", MODE_PRIVATE);
+					Editor editor = tsp.edit();
+					editor.putString("mDevice", mdevice.getName());
+					editor.commit();
+					////
 					bind.putExtra("Tag", 2);
 					Log.e(TAG, "mdevice:" + mdevice.getName());
 					mtimer.cancel();

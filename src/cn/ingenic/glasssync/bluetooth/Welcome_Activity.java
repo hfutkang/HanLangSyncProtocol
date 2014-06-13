@@ -23,6 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class Welcome_Activity extends Activity {
+    private static final String TAG = "Welcome_Activity";
 	private LinearLayout mlayout_welcome, mLayout_bind;
 	private TextView mTv_mobile;
 	private String mMobile_name;
@@ -41,6 +42,7 @@ public class Welcome_Activity extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+	    Log.e(TAG, "onCreate in");
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_welcome);
 		mpreferences = getSharedPreferences("MAC_INFO", MODE_PRIVATE);
@@ -49,35 +51,44 @@ public class Welcome_Activity extends Activity {
 		mTv_mobile = (TextView) findViewById(R.id.tv_mobile);
 		mManger = DefaultSyncManager.getDefault();
 		mAddress = mpreferences.getString("mAddress", null);
+		Log.e(TAG, "mAddress:" + mAddress);
 		visible();
 		enabke();
+		Log.e(TAG, "enabke end");
 		mlayout_welcome.setOnTouchListener(new myTouchListener());
 		mLayout_bind.setOnTouchListener(new myTouchListener());
 	}
 
 	@Override
 	protected void onStart() {
+	    Log.e(TAG, "onStart in");
 		mAddress = mpreferences.getString("mAddress", null);
+		Log.e(TAG, "onStart mAddress:" + mAddress);
 		editor= mpreferences.edit();
-		mMobile_name = getIntent().getStringExtra("mdevice");
+		mMobile_name = mpreferences.getString("mDevice", null);
 		mMobileAddress = getIntent().getStringExtra("mAddress");
 		mTag = getIntent().getIntExtra("Tag", 1);
+		Log.e(TAG, "mMobile_name:" + mMobile_name + " mMobileAddress:" + mMobileAddress + " mTag:" + mTag);
 		if (mAddress != null) {
 			mdevice = sBluetoothAdapter.getRemoteDevice(mAddress);
-			Toast.makeText(this, mMobile_name + "-------mMobileAddress---------",
-					Toast.LENGTH_LONG).show();
-			mAddress=mMobileAddress;
-			editor.putString("mAddress", mMobileAddress);
-			editor.commit();
+			// Toast.makeText(this, mMobile_name + "-------mMobileAddress---------",
+			// 		Toast.LENGTH_LONG).show();
+
 			if (mTag == 1) {
 				mMobile_name = mdevice.getName();
 				mTv_mobile.setText(mMobile_name);
-				mManger.glass_connect(mAddress);
+				if (mAddress != null)
+				    mManger.glass_connect(mAddress);
 			} else if (mTag == 2) {
-				mLayout_bind.setVisibility(View.VISIBLE);
-				mlayout_welcome.setVisibility(View.GONE); 
+			    if (mMobileAddress != null){
+				mAddress = mMobileAddress;
+				editor.putString("mAddress", mMobileAddress);
+				editor.commit();
+			    }
+			    mLayout_bind.setVisibility(View.VISIBLE);
+			    mlayout_welcome.setVisibility(View.GONE); 
 				
-				mTv_mobile.setText(mMobile_name);				
+			    mTv_mobile.setText(mMobile_name);				
 			}
 		} else if (mAddress == null) {
 			if (mTag == 2) {
@@ -109,6 +120,24 @@ public class Welcome_Activity extends Activity {
 			Toast.makeText(this, "本机没有找到蓝牙硬件或驱动！", Toast.LENGTH_SHORT).show();
 			finish();
 		}
+		Log.e(TAG, "enabke sBluetoothAdapter is done");
+
+		// sBluetoothAdapter.disable();
+		// Log.e(TAG, "disable bl sleep 8sec");
+		// try {
+		//     Thread.sleep(8000);
+		// } catch (InterruptedException e) {
+		// }
+		// Log.e(TAG, "now bl state:" + sBluetoothAdapter.getState());
+
+		// sBluetoothAdapter.enable();
+		// Log.e(TAG, "enable bl sleep 8sec");
+		// try {
+		//     Thread.sleep(8000);
+		// } catch (InterruptedException e) {
+		// }
+		// Log.e(TAG, "now bl state:" + sBluetoothAdapter.getState());
+
 		if (!sBluetoothAdapter.isEnabled()) {
 			sBluetoothAdapter.enable();
 		}
@@ -134,8 +163,11 @@ public class Welcome_Activity extends Activity {
 				Log.d("Tag", "end_time" + end);
 				if (Math.abs(x1 - x2) < 10 && end - start < 2000) {
 					Log.d("Tag", "click");
+					// Intent sacn = new Intent(Welcome_Activity.this,
+					// 		CaptureActivity.class);
+					// startActivity(sacn);
 					Intent sacn = new Intent(Welcome_Activity.this,
-							CaptureActivity.class);
+					 		Load_Activity.class);
 					startActivity(sacn);
 					Welcome_Activity.this.finish();
 				} else if (Math.abs(x1 - x2) < 10 && end - start > 1400) {

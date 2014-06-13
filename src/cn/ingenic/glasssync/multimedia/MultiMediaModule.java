@@ -223,9 +223,9 @@ public class MultiMediaModule extends SyncModule {
 	    m.reply_ffail(data.getString(GSMMD_NAME), data.getInt(GSMMD_TYPE));
 	}else if (cmd.equals(GSMMD_AUTOSYNC)){
 	    
-	    int async = data.getInt(GSMMD_STASM);
+	    boolean async = data.getBoolean(GSMMD_STASM, false);
 	    Log.e(TAG, "GSMMD_AUTOSYNC:" + async);
-	    if (async == STASM_TRUE)
+	    if (async == true)
 		setAutoSync(true);
 	    else
 		setAutoSync(false);
