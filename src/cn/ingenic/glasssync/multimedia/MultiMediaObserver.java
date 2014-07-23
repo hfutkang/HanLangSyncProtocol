@@ -114,6 +114,7 @@ public class MultiMediaObserver extends ContentObserver {
 	    }catch(IllegalArgumentException e){
 	    }
 	}
+	cs.close();
 
 	where = new StringBuilder();
 	where.append(MediaStore.Video.Media.DATA + " like ?");
@@ -137,6 +138,7 @@ public class MultiMediaObserver extends ContentObserver {
 	    }catch(IllegalArgumentException e){
 	    }
 	}
+	cs.close();
     }
 
     public void deleteFile(String fileName, int type){

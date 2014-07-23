@@ -50,7 +50,7 @@ class BluetoothClientExt implements BluetoothChannelExt {
         private final boolean is_ping(byte[] b){
 	    if (b[0] == 'p' && b[1] == 'i' && b[2] == 'n' && b[3] == 'g'
 		&& b[4] == 'g' && b[5] == 'n' && b[6] == 'i' && b[7] == 'p'){
-		Client.e("is_ping");
+		//Client.e("is_ping");
 		return true;
 	    }
 
@@ -114,19 +114,21 @@ class BluetoothClientExt implements BluetoothChannelExt {
 					i++;
 				}
 				try {
-					Client.e("while " + mClosed);
+				    //Client.e("while " + mClosed);
 					while (!mClosed) {
-						Client.e("pkg");
+					    //Client.e("pkg");
 						Pkg pkg = BluetoothChannelExtTools.retrivePkg(input);
-						Client.e("while " + pkg.getType());
+						//Client.e("while " + pkg.getType());
 						if (pkg.getType() == Pkg.PKG){
 						    byte[] b = pkg.getData();
-						    Client.e("pkg.getData() " + pkg.getData());
-						    Client.e("retrive length:" + b.length);
-						    if (is_ping(b))
+						    //Client.e("pkg.getData() " + pkg.getData());
+						    //Client.e("retrive length:" + b.length);
+						    if (is_ping(b)){
 							continue;
-						    else
+						    }else if (pkg.getData().length > Pkg.BIG_LEN){
+							Client.e("set mLastRetriveSec length:%d" + pkg.getData().length);
 							mLastRetriveSec = System.currentTimeMillis() / 1000l;
+						    }
 						}
 						Message msg = mRetrive.obtainMessage();
 						msg.obj = pkg;

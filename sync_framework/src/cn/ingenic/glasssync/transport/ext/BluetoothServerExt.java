@@ -92,10 +92,12 @@ class BluetoothServerExt implements BluetoothChannelExt {
 							if (pkg.getType() == Pkg.PKG){
 							    byte[] b = pkg.getData();
 							    if (is_ping(b)){
-								Server.i("retrive length:" + b.length);
+								//Server.i("retrive length:" + b.length);
 								continue;
-							    }else
+							    }else if (pkg.getData().length > Pkg.BIG_LEN){
+								Server.e("set mLastRetriveSec length:%d" + pkg.getData().length);
 								mLastRetriveSec = System.currentTimeMillis() / 1000l;
+							    }
 							}
 					
 							if (pkg instanceof Neg) {

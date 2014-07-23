@@ -99,15 +99,19 @@ public class Load_Activity extends Activity {
 		setContentView(R.layout.activity_load);
 		manger = DefaultSyncManager.getDefault();
 		Intent intent = getIntent();
-		//mDevice_info = intent.getStringExtra("result");
-		//Log.d("Tag", mDevice_info);
-		//strarray = mDevice_info.split(",");
-		//mAddress = strarray[0];
-		mAddress = "98:FF:D0:8D:1C:73";
-		//mIsConnect = strarray[1];
 		Log.d("Tag", mBind_Address + "===============================");
-		//mBind_Address = strarray[2];
+
+		mDevice_info = intent.getStringExtra("result");
+		Log.d("Tag", mDevice_info);
+		strarray = mDevice_info.split(",");
+		mAddress = strarray[0];
+		mIsConnect = strarray[1];
+		mBind_Address = strarray[2];
+
+		/*
 		mBind_Address = "00:00:00:00:00:00";
+		mAddress = "98:FF:D0:8D:1C:73";
+		*/
 		mAddress_connect = mAddress;
 		mdevice = mBLADPServer.getRemoteDevice(mAddress);
 		mtimer = new Timer();

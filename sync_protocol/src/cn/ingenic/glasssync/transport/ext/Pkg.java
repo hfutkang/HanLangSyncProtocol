@@ -13,7 +13,8 @@ class Pkg {
 	static final int CHANNEL_FILE = 0x3;
 	
 	static final int MAX_LEN = (1 << 14) - 1;
-	
+        static final int BIG_LEN = MAX_LEN - 10;
+    	
 	protected final byte[] mDatas;
 	private final int mType;
 	

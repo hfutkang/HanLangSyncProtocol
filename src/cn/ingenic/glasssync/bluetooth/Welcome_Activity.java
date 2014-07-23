@@ -163,12 +163,16 @@ public class Welcome_Activity extends Activity {
 				Log.d("Tag", "end_time" + end);
 				if (Math.abs(x1 - x2) < 10 && end - start < 2000) {
 					Log.d("Tag", "click");
-					// Intent sacn = new Intent(Welcome_Activity.this,
-					// 		CaptureActivity.class);
-					// startActivity(sacn);
+															
+					Intent sacn = new Intent(Welcome_Activity.this,
+							CaptureActivity.class);
+					startActivity(sacn);
+					
+					/*
 					Intent sacn = new Intent(Welcome_Activity.this,
 					 		Load_Activity.class);
 					startActivity(sacn);
+					*/
 					Welcome_Activity.this.finish();
 				} else if (Math.abs(x1 - x2) < 10 && end - start > 1400) {
 					Log.d("Tag", "longclick");

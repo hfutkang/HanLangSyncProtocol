@@ -28,6 +28,7 @@ final class BluetoothChannelExtTools {
 		output.write(buffer);
 		logv("end send PKG" + " a:" + a + " b:" + b);
 		try {
+		    if (length > Pkg.BIG_LEN)
 			Thread.sleep(190);
 		}catch (InterruptedException e){
 		}
