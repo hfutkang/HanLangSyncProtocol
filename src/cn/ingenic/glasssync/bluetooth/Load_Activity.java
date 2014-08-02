@@ -108,10 +108,15 @@ public class Load_Activity extends Activity {
 		mIsConnect = strarray[1];
 		mBind_Address = strarray[2];
 
-		/*
-		mBind_Address = "00:00:00:00:00:00";
-		mAddress = "98:FF:D0:8D:1C:73";
-		*/
+		// mBind_Address = "00:00:00:00:00:00";
+		// mAddress = "98:FF:D0:8D:1C:73";
+		//mAddress = "50:3C:C4:C1:2E:D7"; //llqing
+		//mAddress = "00:01:DA:F9:F3:B0"; //malata
+		//mAddress = "D8:50:E6:7E:23:6C"; //N7
+		//mAddress = "BC:F5:AC:7A:1E:53"; //N5
+		//mAddress = "78:52:1A:DE:56:08";   //S4
+		//mAddress = "00:18:30:59:B8:D4"; //htc
+
 		mAddress_connect = mAddress;
 		mdevice = mBLADPServer.getRemoteDevice(mAddress);
 		mtimer = new Timer();
@@ -119,19 +124,20 @@ public class Load_Activity extends Activity {
 		mClientThread = new Thread() {
 			@Override
 			public void run() {
+			    TextView tv = (TextView) findViewById(R.id.tv_load);
+
+			    mdevice.setBondState(BluetoothDevice.BOND_NONE);
+			    manger.disconnect();
+			    manger.setLockedAddress(null);
+			    try {
+				Thread.sleep(10000);
+			    } catch (InterruptedException e) {
+			    }
+
+			    //tv.setText(R.string.load_req);
 			    if (mdevice.getBondState() != BluetoothDevice.BOND_BONDED) {
 				try {
 				    Log.d(TAG, "NOT BOND_BONDED");
-				    byte[] b = new byte[4];
-				    b[0] = '0';
-				    b[1] = '0';
-				    b[2] = '0';
-				    b[3] = '0';
-				    mdevice.setPin(b);
-				    try {
-					Thread.sleep(500);
-				    } catch (InterruptedException e) {
-				    }
 				    mdevice.createBond();
 				} catch (Exception e) {
 				    // TODO Auto-generated catch block
@@ -162,88 +168,13 @@ public class Load_Activity extends Activity {
 				    return;
 			    }
 			    Log.e(TAG, "now bonded");
+			    //tv.setText(R.string.load_cfm);
 
-			    try {
-				mSocketServer = mdevice
-				    .createRfcommSocketToServiceRecord(UUID
-								       .fromString(SPP_UUID));
-				Log.e(TAG, "connect start");
-				try {
-				    mSocketServer.connect();
-				} catch (Exception e) {
-				    Log.e("Tag", "e:" + e);
-				}		
-				Log.e(TAG, "connect end");
-
-				long scontime = System.currentTimeMillis() / 1000l;
-				while (mSocketServer.isConnected() == false){
-				    try {
-					Thread.sleep(50);
-				    } catch (InterruptedException e) {
-				    }
-
-				    if (((System.currentTimeMillis() / 1000l) - 60) > sbondtime){
-					Log.e(TAG, "Connect timeout");
-					break;
-				    }
-				}
-
-				if (mSocketServer.isConnected() == false){
-				    Log.e(TAG, "isConnected false");
-				    mdevice.setBondState(BluetoothDevice.BOND_NONE);
-				    Message msg = new Message();
-				    msg.what = 3;
-				    mHandler.sendMessage(msg);
-				    Log.e(TAG, "sendMessage end");
-				    return;
-				}else{
-				    Log.e(TAG, "isConnected true");
-				}
-
-				if(manger.getLockedAddress()!=""){
-				    mOnbind_Address=manger.getLockedAddress();
-				}
-				mSendMsg=mOnbind_Address+","+mBLADPServer.getAddress();
-				OutputStream opsm = mSocketServer.getOutputStream();
-				opsm.write(mSendMsg.getBytes());
-				Log.e(TAG, "write:" + mBLADPServer.getAddress().getBytes());	
-				Log.e(TAG, "Address" +mBind_Address+"------"+mBLADPServer.getAddress()+"========="+manger.getLockedAddress()+"======"+mAddress);	
-				if (mBind_Address.equals(mBLADPServer.getAddress()) && manger.getLockedAddress().equals(mAddress)) {
-				    Message message = new Message();
-				    message.what = 1;
-				    mHandler.sendMessage(message);
-				    return;
-				}	
-				Log.d("Tag", mBind_Address
-				      + "======mBind_Address==================");
-				if (manger.getLockedAddress() != null) {
-				    Log.d("Tag", manger.getLockedAddress()
-					  + "manger.getLockedAddress()==============");
-				    manger.disconnect();
-				    try {
-					Thread.sleep(1000);
-				    } catch (InterruptedException e) {
-				    }
-				    manger.setLockedAddress("", true);
-				}
-				//					if(manger.getLockedAddress()!=""){
-				//						OutputStream ops = mSocketServer.getOutputStream();
-				//						ops.write(manger.getLockedAddress().getBytes());
-				//						Log.e(TAG, "write:manger.getLockedAddress()" +manger.getLockedAddress());
-				//					}					
-					
-			    } catch (IOException i) {
-				Log.e(TAG, "e:", i);
-			    }
 			    try {
 				Thread.sleep(2000);
 			    } catch (InterruptedException e) {
 			    }
-			    try {
-				mSocketServer.close();
-			    } catch (Exception e) {
-				// TODO: handle exception
-			    }
+
 			    Log.e(TAG, "connect mAddress" + mAddress_connect);
 			    // manger.hasLockedAddress();
 			    manger.glass_connect(mAddress_connect);
@@ -302,7 +233,7 @@ public class Load_Activity extends Activity {
 		filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
 		filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
 		filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
-		filter.addAction(BluetoothDevice.ACTION_PAIRING_REQUEST);
+		//filter.addAction(BluetoothDevice.ACTION_PAIRING_REQUEST);
 		filter.addAction(DefaultSyncManager.RECEIVER_ACTION_STATE_CHANGE);
 		registerReceiver(mBluetoothReceiver, filter);
 
@@ -337,25 +268,6 @@ public class Load_Activity extends Activity {
 				}
 				int connectState = device.getBondState();
 				Log.e(TAG, "connectState:" + connectState);
-			} else if (BluetoothDevice.ACTION_PAIRING_REQUEST.equals(intent
-					.getAction())) {
-				Log.e(TAG, "ACTION_PAIRING_REQUEST");
-				BluetoothDevice btDevice = intent
-						.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-				int type = intent.getIntExtra(
-						BluetoothDevice.EXTRA_PAIRING_VARIANT,
-						BluetoothDevice.ERROR);
-				Log.e(TAG, "type:" + type);
-				if (type == BluetoothDevice.PAIRING_VARIANT_PASSKEY_CONFIRMATION
-						|| type == BluetoothDevice.PAIRING_VARIANT_DISPLAY_PASSKEY
-						|| type == BluetoothDevice.PAIRING_VARIANT_DISPLAY_PIN) {
-					int pairingKey = intent.getIntExtra(
-							BluetoothDevice.EXTRA_PAIRING_KEY,
-							BluetoothDevice.ERROR);
-					Log.e(TAG, "pairingKey:" + pairingKey);
-				}
-				Log.e(TAG, "setPairingConfirmation true");
-				btDevice.setPairingConfirmation(true);
 			} else if (DefaultSyncManager.RECEIVER_ACTION_STATE_CHANGE
 					.equals(intent.getAction())) {
 				int state = intent.getIntExtra(DefaultSyncManager.EXTRA_STATE,
@@ -382,11 +294,6 @@ public class Load_Activity extends Activity {
 					finish();
 				}
 			} 
-//			else {
-//				   Message message = new Message();
-//				   message.what = 2;
-//				   mHandler.sendMessage(message);
-//			}
 		}
 	};
 }

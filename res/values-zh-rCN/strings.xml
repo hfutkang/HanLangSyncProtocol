@@ -199,6 +199,8 @@
     <string name="welcome_content"> \u0020 \u0020 \u0020首先您需要在手机上下载同步应用的手机客户端，然后通过点击屏幕添加绑定设备。</string>
     <string name="into">点击屏幕进行绑定设备>>></string>
     <string name="load_cn">正在玩命加载中，请您耐心等待</string>
+    <string name="load_req">请您在手机中确认蓝牙的绑定请求</string>
+    <string name="load_cfm">绑定已确认，正在匹配您的手机</string>
     <string name="load_en"> \u0020 \u0020 \u0020 \u0020Loading。。。。。。</string>
     <string name="unbind">绑定失败了（T﹏T）</string>
     <string name="rebind"> 点击屏幕重新绑定>>></string>
