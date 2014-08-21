@@ -32,9 +32,12 @@ public class MultiMediaModule extends SyncModule {
     private static final String GSMMD_NAME = "gsmmd_name";
 
     private static final String GSMMD_TYPE = "gsmmd_type";
+
+    public static int GSMMD_NONE = 0x0;
     public static int GSMMD_PIC = 0x1;
     public static int GSMMD_VIDEO = 0x2;
     public static int GSMMD_SINGLE_FILE = 0x3;
+    public static int GSMMD_THUMB = 0x4;
     public static int GSMMD_ALL = 0x10;
 
     private static final String GSMMD_ACT = "gsmmd_act";
@@ -100,12 +103,18 @@ public class MultiMediaModule extends SyncModule {
 	    pathname = MultiMediaObserver.getPubPath() + "Pictures/" + name;
 	else if (type == GSMMD_VIDEO)
 	    pathname = MultiMediaObserver.getPubPath() + "Video/" + name;
+	else if (type == GSMMD_THUMB) 
+	    pathname = MultiMediaObserver.getThumbnailsPubPath() + name;
 
 	File f = new File(pathname);
-	Log.e(TAG, "sync_file length:" + f.length());
+	Log.e(TAG, "--sync_file name:" + name + "--type="+type+"--pathname="+pathname);
+
+	if(!f.exists()){ 
+	    Log.e(TAG,"file(" + pathname + ") is not exist!");
+	    return;
+	}
 	Date date = new Date();
 	SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-	Log.e(TAG, "tttime:" + sdf.format(date));
 
 	try{
 	    //sendFile(f, name, (int)f.length());
@@ -113,6 +122,9 @@ public class MultiMediaModule extends SyncModule {
 		sendFileByPath(f, name, (int)f.length(), "IGlass/Pictures");
 	    else if (type == GSMMD_VIDEO)
 		sendFileByPath(f, name, (int)f.length(), "IGlass/Video");
+	    else if (type == GSMMD_THUMB)
+		sendFileByPath(f, name, (int)f.length(), "IGlass/Thumbnails");
+
 	}catch (SyncException e){
 	    Log.e(TAG, "" + e);
 	}catch (FileNotFoundException e){
@@ -172,35 +184,26 @@ public class MultiMediaModule extends SyncModule {
 	    m.clearWaitList();
 	}else{
 	    MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
-	    m.sync_pic();
+	    m.sync_all();
 	}
     }
 
     @Override
     protected void onRetrive(SyncData data) {
-	Log.e(TAG, "onRetrive");
-
 	String cmd = data.getString(GSMMD_CMD);
-
+	Log.e(TAG, "onRetrive cmd="+cmd);
 	if (cmd.equals(GSMMD_rqst)){
 	    int type = data.getInt(GSMMD_TYPE);
+		if(DEBUG) Log.e(TAG, "--type="+type);
 	    if (type == GSMMD_SINGLE_FILE){
-		if(DEBUG) Log.e(TAG, "--GSMMD_SINGLE_FILE");
 		int file_type = data.getInt(GSMMD_SINGLE_FILE_TYPE);
 		String file_name = data.getString(GSMMD_SINGLE_FILE_NAME);
 		MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
 		m.sync_single_file(file_name,file_type);
 	    }else if (type == GSMMD_ALL){
-		Log.e(TAG, "GSMMD_ALL");
-		// Intent i = new Intent("cn.ingenic.glasssync.smssend.SENDMESSAGE");
-		// i.putExtra("ismsidtf", 1234321l);
-		// i.putExtra("ismsphnum", "15901336736");
-		// i.putExtra("ismscont", "This is test message from bl");
-		// Log.e("SMSSend", "SENDMESSAGE");
-		// mContext.sendBroadcast(i);
 		MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
-		m.sync_pic();
-	    }else if (type == GSMMD_PIC || type == GSMMD_VIDEO){
+		m.sync_all();
+	    }else if (type == GSMMD_PIC || type == GSMMD_VIDEO || type == GSMMD_THUMB){
 		Log.e(TAG, "req " + type);
 		int tsp = data.getInt(GSMMD_TSP);
 		if (tsp != ASK_TSP)

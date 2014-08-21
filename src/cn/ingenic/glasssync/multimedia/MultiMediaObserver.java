@@ -23,6 +23,7 @@ public class MultiMediaObserver extends ContentObserver {
 
     private static MultiMediaObserver sInstance;
     private static String mPubPath;
+    private static String mThumbnailsPubPath;
 
     String[] picColu = new String[] {
 	MediaStore.Images.Media.DATA
@@ -30,6 +31,14 @@ public class MultiMediaObserver extends ContentObserver {
 
     String[] videoColu = new String[] {
 	MediaStore.Video.Media.DATA
+    };
+
+    String[] picThumbnailsColu = new String[] {
+	MediaStore.Images.Thumbnails.DATA
+    };
+
+    String[] videoThumbnailsColu = new String[] {
+	MediaStore.Video.Thumbnails.DATA
     };
 
     private MultiMediaObserver(Context context, Handler handler){
@@ -49,54 +58,130 @@ public class MultiMediaObserver extends ContentObserver {
 	return mPubPath;
     }
 
+    public static String getThumbnailsPubPath(){
+	return mThumbnailsPubPath;
+    }
+
     @Override  
 	public void onChange(boolean selfChange, Uri uri) {  
 	Log.e(TAG, "onChange " + uri);
 
 	MultiMediaModule mmm = MultiMediaModule.getInstance(mContext);
 	if (mmm.getAutoSync())
-	    sync_pic();
+	    sync_all();
     }
+
+    public void sync_all(){
+	sync_pic_thumbnails();
+	sync_video_thumbnails();
+	sync_pics();
+	sync_videos();
+    }
+
     public void sync_single_file(String name,int type){
 	if(DEBUG) Log.e(TAG,"----------sync_single_file in type="+type+" name:" + name);
-	if(type != MultiMediaModule.GSMMD_PIC) 
-	    return;
-
-	StringBuilder where = new StringBuilder();
-	where.append(MediaStore.Images.Media.DATA + " like ?");
-	String whereVal[] = {"%" + "IGlass/Pictures" + "%" + name};
-
-	Cursor cs = mContext.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, 
+	if(type == MultiMediaModule.GSMMD_PIC){ 
+	    StringBuilder where = new StringBuilder();
+	    where.append(MediaStore.Images.Media.DATA + " like ?");
+	    String whereVal[] = {"%" + "IGlass/Pictures" + "%" + name};
+	   
+	    Cursor cs = mContext.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, 
 							picColu, where.toString(), whereVal, null);
-
-	if(DEBUG) Log.e(TAG, "ex getColumnCount " + cs.getColumnCount() + " getCount:" + cs.getCount());
-	if  (cs == null) return;
-	cs.moveToFirst();
-	try{
-	    int pathidx = cs.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-
-	    String picPath = cs.getString(pathidx);
-	    String picName = picPath.substring(picPath.lastIndexOf('/')+1, picPath.length());
-	    if (mPubPath == null)
-		mPubPath = picPath.substring(1, picPath.lastIndexOf("IGlass")+7);
-	    if(DEBUG) Log.e(TAG, "picPath " + picPath + " picName:" + picName + " mPubPath:" + mPubPath);
-
-	    MultiMediaManager m = MultiMediaManager.getInstance(mContext);
-	    m.addWaitList(picName, MultiMediaModule.GSMMD_PIC);
-	    
-	}catch(IllegalArgumentException e){
+	    if  (cs == null) return;
+	    cs.moveToFirst();
+	    try{
+		int pathidx = cs.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+		String picPath = cs.getString(pathidx);
+		String picName = picPath.substring(picPath.lastIndexOf('/')+1, picPath.length());
+		if (mPubPath == null)
+		    mPubPath = picPath.substring(1, picPath.lastIndexOf("IGlass")+7);
+		if(DEBUG) Log.e(TAG, "picPath " + picPath + " picName:" + picName + " mPubPath:" + mPubPath);
+		
+		MultiMediaManager m = MultiMediaManager.getInstance(mContext);
+		m.addHighPriorityList(picName, MultiMediaModule.GSMMD_PIC);
+		
+	    }catch(IllegalArgumentException e){
+	    }
+	    cs.close();
+	}else if(type == MultiMediaModule.GSMMD_VIDEO){
+	    StringBuilder where = new StringBuilder();
+	    where.append(MediaStore.Video.Media.DATA + " like ?");
+	    String whereVal[] = {"%" + "IGlass/Video" + "%" + name};
+	   
+	    Cursor cs = mContext.getContentResolver().query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, 
+							videoColu, where.toString(), whereVal, null);
+	    if  (cs == null) return;
+	    cs.moveToFirst();
+	    try{
+		int pathidx = cs.getColumnIndexOrThrow(MediaStore.Video.Media.DATA);
+		String picPath = cs.getString(pathidx);
+		String picName = picPath.substring(picPath.lastIndexOf('/')+1, picPath.length());
+		if (mPubPath == null)
+		    mPubPath = picPath.substring(1, picPath.lastIndexOf("IGlass")+7);
+		if(DEBUG) Log.e(TAG, "picPath " + picPath + " picName:" + picName + " mPubPath:" + mPubPath);
+		
+		MultiMediaManager m = MultiMediaManager.getInstance(mContext);
+		m.addHighPriorityList(picName, MultiMediaModule.GSMMD_VIDEO);
+		
+	    }catch(IllegalArgumentException e){
+	    }
+	    cs.close();	
 	}
     }
+    public void sync_pic_thumbnails(){	
+	Cursor cs = mContext.getContentResolver().query(MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI, 
+							picThumbnailsColu, null, null, null);
+	if  (cs.moveToFirst()){
+	    try{
+		do{
+		    String picPath = cs.getString(0);
+		    File f = new File(picPath);
+		    
+		    if(f.exists()){ 
+			String picName = picPath.substring(picPath.lastIndexOf('/')+1, picPath.length());
+			if(DEBUG) Log.e(TAG, " ---sync_pic_thumbnails picPath:" + picPath);
+			if (mThumbnailsPubPath == null)
+			    mThumbnailsPubPath = picPath.substring(1, picPath.lastIndexOf(".thumbnails")+12);
+			MultiMediaManager m = MultiMediaManager.getInstance(mContext);
+			m.addWaitList(picName, MultiMediaModule.GSMMD_THUMB);
+		    }
+		}while (cs.moveToNext());
+	    }catch(IllegalArgumentException e){
+	    }
+	}
+	cs.close();
+    }
 
-    public void sync_pic(){
-	Log.e(TAG,"----------sync_pic in");
+    public void sync_video_thumbnails(){	
+	Cursor cs = mContext.getContentResolver().query(MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI, 
+							videoThumbnailsColu, null, null, null);
+	if  (cs.moveToFirst()){
+	    try{
+		do{
+		    String picPath = cs.getString(0);
+		    String picName = picPath.substring(picPath.lastIndexOf('/')+1, picPath.length());
+		    if(DEBUG) Log.e(TAG, " --sync_video_thumbnails picPath:" + picPath);
+		    if (mThumbnailsPubPath == null)
+			mThumbnailsPubPath = picPath.substring(1, picPath.lastIndexOf(".thumbnails")+12);
+		    MultiMediaManager m = MultiMediaManager.getInstance(mContext);
+		    m.addWaitList(picName, MultiMediaModule.GSMMD_THUMB);
+		}while (cs.moveToNext());
+	    }catch(IllegalArgumentException e){
+	    }
+	}
+	cs.close();
+    }
+
+    public void sync_pics(){
+	if(DEBUG) Log.e(TAG,"----------sync_pic in");
 	StringBuilder where = new StringBuilder();
 	where.append(MediaStore.Images.Media.DATA + " like ?");
 	String whereVal[] = {"%" + "IGlass/Pictures" + "%"};
-	Log.e(TAG,"----------sync_pic in2");
-	Cursor cs = mContext.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, picColu, where.toString(), whereVal, null);
 
-	Log.e(TAG, "ex getColumnCount " + cs.getColumnCount() + " getCount:" + cs.getCount());
+	Cursor cs = mContext.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+							picColu, where.toString(), whereVal, null);
+
+//	if(DEBUG) Log.e(TAG, "ex getColumnCount " + cs.getColumnCount() + " getCount:" + cs.getCount());
 	if  (cs.moveToFirst()){
 	    try{
 		int pathidx = cs.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
@@ -106,8 +191,7 @@ public class MultiMediaObserver extends ContentObserver {
 		    String picName = picPath.substring(picPath.lastIndexOf('/')+1, picPath.length());
 		    if (mPubPath == null)
 			mPubPath = picPath.substring(1, picPath.lastIndexOf("IGlass")+7);
-		    Log.e(TAG, "picPath " + picPath + " picName:" + picName + " mPubPath:" + mPubPath);
-		    Log.e(TAG, "lastIndexOf:" + picPath.lastIndexOf("IGlass/Pictures") + " length:" + picPath.length() + " lastIndexOf:" + picPath.lastIndexOf('/'));
+		      //Log.e(TAG, "picPath " + picPath + " picName:" + picName + " mPubPath:" + mPubPath);
 		    MultiMediaManager m = MultiMediaManager.getInstance(mContext);
 		    m.addWaitList(picName, MultiMediaModule.GSMMD_PIC);
 		}while (cs.moveToNext());
@@ -115,23 +199,25 @@ public class MultiMediaObserver extends ContentObserver {
 	    }
 	}
 	cs.close();
+    }
 
-	where = new StringBuilder();
+    public void sync_videos(){
+	Log.e(TAG,"----------sync_video in");
+	StringBuilder where = new StringBuilder();
 	where.append(MediaStore.Video.Media.DATA + " like ?");
 	String whereVal1[] = {"%" + "IGlass/Video" + "%"};
 
-	cs = mContext.getContentResolver().query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, videoColu, where.toString(), whereVal1, null);
+	Cursor cs = mContext.getContentResolver().query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, videoColu, where.toString(), whereVal1, null);
 	if  (cs.moveToFirst()){
 	    try{
 		int pathidx = cs.getColumnIndexOrThrow(MediaStore.Video.Media.DATA);
-
+		
 		do{
 		    String picPath = cs.getString(pathidx);
 		    String picName = picPath.substring(picPath.lastIndexOf('/')+1, picPath.length());
 		    if (mPubPath == null)
 			mPubPath = picPath.substring(1, picPath.lastIndexOf("IGlass")+7);
-		    Log.e(TAG, "picPath " + picPath + " picName:" + picName + " mPubPath:" + mPubPath);
-		    //Log.e(TAG, "lastIndexOf:" + picPath.lastIndexOf("IGlass/Pictures") + " length:" + picPath.length() + " lastIndexOf:" + picPath.lastIndexOf('/'));
+		      // Log.e(TAG, "picPath " + picPath + " picName:" + picName + " mPubPath:" + mPubPath);
 		    MultiMediaManager m = MultiMediaManager.getInstance(mContext);
 		    m.addWaitList(picName, MultiMediaModule.GSMMD_VIDEO);
 		}while (cs.moveToNext());
