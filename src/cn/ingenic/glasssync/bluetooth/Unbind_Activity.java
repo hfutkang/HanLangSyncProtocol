@@ -13,8 +13,10 @@ import android.view.View.OnTouchListener;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.util.Log;
 
 public class Unbind_Activity extends Activity {
+    private String TAG = "Unbind_Activity";
 	private RelativeLayout mLayout_Unbind;
 	private float x1 = 0;
 	private float x2 = 0;
@@ -24,11 +26,13 @@ public class Unbind_Activity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Log.e(TAG, "Unbind_Activity onCreate in");
 		setContentView(R.layout.activity_unbind);
 		mLayout_Unbind = (RelativeLayout) findViewById(R.id.layout_unbind);
 		Toast.makeText(getApplicationContext(), R.string.toast_message,
 				Toast.LENGTH_LONG).show();
 		mLayout_Unbind.setOnTouchListener(new myTouchListener());
+		SysApplication.getInstance().addActivity(this); 
 	}
 
 	class myTouchListener implements OnTouchListener {
@@ -48,7 +52,8 @@ public class Unbind_Activity extends Activity {
 	  			  startActivity(intent);
 	  			  finish();
 	            	}
-	            if(y2 - y1 > 50) {  
+	            if(y2 - y1 > 50) { 
+	            	SysApplication.getInstance().exit();
 	            	finish();
 	            } 
 	        } 

@@ -36,7 +36,7 @@ import android.widget.Toast;
 import android.util.Log;
 
 public class CaptureActivity extends Activity implements Callback {
-    private static final String TAG = "ZXING_DEMO";
+    private static final String TAG = "CaptureActivity";
 	private CaptureActivityHandler handler;
 	private ViewfinderView viewfinderView;
 	private boolean hasSurface;
@@ -58,8 +58,9 @@ public class CaptureActivity extends Activity implements Callback {
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+	    	super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_capture);
+		Log.e(TAG, "onCreate");
 		CameraManager.init(getApplication());
 		viewfinderView = (ViewfinderView) findViewById(R.id.viewfinder_view);
 		mLayout_scan=(FrameLayout) findViewById(R.id.layout_scan);

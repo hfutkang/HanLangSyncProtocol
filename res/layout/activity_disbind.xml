@@ -1,0 +1,21 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+ <LinearLayout
+        android:id="@+id/Layout_disbind"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#ff09bfff"
+        android:orientation="vertical" 
+        android:visibility="visible">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="3"
+            android:gravity="center"
+            android:text="@string/disbind"
+            android:textColor="#ffffff"
+            android:textSize="29sp" />
+        </LinearLayout>
+        </LinearLayout>

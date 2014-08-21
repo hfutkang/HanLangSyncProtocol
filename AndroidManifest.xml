@@ -143,12 +143,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".bluetooth.Load_Activity" >
+        <activity android:name=".bluetooth.Load_Activity" 
+          >
         </activity>
-        <activity android:name=".bluetooth.Bind_Activity" >
+        
+        <activity android:name=".bluetooth.Unbind_Activity" 
+          >
+         
         </activity>
-        <activity android:name=".bluetooth.Unbind_Activity" >
+        <activity android:name=".bluetooth.Disbind_Activity" 
+          >
         </activity>
+          <activity android:name=".bluetooth.Bind_Activity" 
+          >
+        </activity>
+        
         <!-- kli occupy! -->
 
         <activity
