@@ -27,7 +27,8 @@ public class MultiMediaModule extends SyncModule {
     private static final String GSMMD_DELFNS = "gsmmd_delfns";
     private static final String GSMMD_FFAIL = "gsmmd_ffail";
     private static final String GSMMD_FFACK = "gsmmd_ffack";
-    private static final String GSMMD_AUTOSYNC = "gsmmd_autosync";
+    private static final String GSMMD_IMAGESYNC = "gsmmd_imgsync";
+    private static final String GSMMD_VIDEOSYNC = "gsmmd_vidsync";
 
     private static final String GSMMD_NAME = "gsmmd_name";
 
@@ -37,7 +38,11 @@ public class MultiMediaModule extends SyncModule {
     public static int GSMMD_PIC = 0x1;
     public static int GSMMD_VIDEO = 0x2;
     public static int GSMMD_SINGLE_FILE = 0x3;
-    public static int GSMMD_THUMB = 0x4;
+    public static int GSMMD_IMG_THUMB = 0x4;
+    public static int GSMMD_VID_THUMB = 0x5;
+
+    public static int GSMMD_PICS = 0x6;
+    public static int GSMMD_VIDS = 0x7;
     public static int GSMMD_ALL = 0x10;
 
     private static final String GSMMD_ACT = "gsmmd_act";
@@ -57,8 +62,6 @@ public class MultiMediaModule extends SyncModule {
     private static final String GSMMD_SINGLE_FILE_TYPE = "gsmmd_single_file_type";
     public static int SINGLE_FILE_TYPE_PIC = 0x1;
     public static int SINGLE_FILE_TYPE_VIDEO = 0x2;
-
-    private boolean gnAutoSync = false;
 
     private Context mContext;
     private static MultiMediaModule sInstance;
@@ -103,7 +106,7 @@ public class MultiMediaModule extends SyncModule {
 	    pathname = MultiMediaObserver.getPubPath() + "Pictures/" + name;
 	else if (type == GSMMD_VIDEO)
 	    pathname = MultiMediaObserver.getPubPath() + "Video/" + name;
-	else if (type == GSMMD_THUMB) 
+	else if (type == GSMMD_IMG_THUMB || type == GSMMD_VID_THUMB) 
 	    pathname = MultiMediaObserver.getThumbnailsPubPath() + name;
 
 	File f = new File(pathname);
@@ -122,7 +125,7 @@ public class MultiMediaModule extends SyncModule {
 		sendFileByPath(f, name, (int)f.length(), "IGlass/Pictures");
 	    else if (type == GSMMD_VIDEO)
 		sendFileByPath(f, name, (int)f.length(), "IGlass/Video");
-	    else if (type == GSMMD_THUMB)
+	    else if (type == GSMMD_IMG_THUMB || type == GSMMD_VID_THUMB)
 		sendFileByPath(f, name, (int)f.length(), "IGlass/Thumbnails");
 
 	}catch (SyncException e){
@@ -162,29 +165,53 @@ public class MultiMediaModule extends SyncModule {
 	}
     }
 
-    public boolean getAutoSync(){
+    public boolean getImageSync(){
 	SharedPreferences sp = mContext.getSharedPreferences(LETAG, Context.MODE_PRIVATE);
-
-	boolean async = sp.getBoolean("autosync", false);
-	Log.e(TAG, "getAutoSync:" + async);
-	return async;
+	return sp.getBoolean("imagesync", false);
     }
 
-    public void setAutoSync(boolean value){
+    public boolean getVideoSync(){
+	SharedPreferences sp = mContext.getSharedPreferences(LETAG, Context.MODE_PRIVATE);
+	return sp.getBoolean("videosync", false);
+    }
+
+    public void setImageSync(boolean value){
 	SharedPreferences sp = mContext.getSharedPreferences(LETAG, Context.MODE_PRIVATE);
 	SharedPreferences.Editor editor = sp.edit();
-	Log.e(TAG, "setAutoSync:" + value);
-	editor.putBoolean("autosync", value);
+
+	boolean videosync = sp.getBoolean("videosync", false);
+	Log.e(TAG, "setImageSync:" + value);
+
+	editor.putBoolean("imagesync", value);
+	editor.putBoolean("videosync", videosync);
 	editor.commit();
 
-	gnAutoSync = value;
-
-	if (gnAutoSync == false){
+	if (value == false){
 	    MultiMediaManager m = MultiMediaManager.getInstance(mContext);
-	    m.clearWaitList();
+	    m.clearImageWaitList();
 	}else{
 	    MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
-	    m.sync_all();
+	    m.sync_images();
+	}
+    }
+
+    public void setVideoSync(boolean value){
+	SharedPreferences sp = mContext.getSharedPreferences(LETAG, Context.MODE_PRIVATE);
+	SharedPreferences.Editor editor = sp.edit();
+
+	boolean imagesync = sp.getBoolean("imagesync", false);
+	Log.e(TAG, "setVideoSync:" + value);
+
+	editor.putBoolean("imagesync", imagesync);
+	editor.putBoolean("videosync", value);
+	editor.commit();
+
+	if (value == false){
+	    MultiMediaManager m = MultiMediaManager.getInstance(mContext);
+	    m.clearVideoWaitList();
+	}else{
+	    MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
+	    m.sync_videos();
 	}
     }
 
@@ -200,10 +227,14 @@ public class MultiMediaModule extends SyncModule {
 		String file_name = data.getString(GSMMD_SINGLE_FILE_NAME);
 		MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
 		m.sync_single_file(file_name,file_type);
-	    }else if (type == GSMMD_ALL){
-		MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
-		m.sync_all();
-	    }else if (type == GSMMD_PIC || type == GSMMD_VIDEO || type == GSMMD_THUMB){
+	    } else if (type == GSMMD_PICS){
+	     	MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
+	     	m.sync_images();
+	    } else if (type == GSMMD_VIDS){
+	     	MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
+	     	m.sync_videos();
+	    } else if (type == GSMMD_PIC || type == GSMMD_VIDEO 
+		      || type == GSMMD_IMG_THUMB || type == GSMMD_VID_THUMB){
 		Log.e(TAG, "req " + type);
 		int tsp = data.getInt(GSMMD_TSP);
 		if (tsp != ASK_TSP)
@@ -224,14 +255,10 @@ public class MultiMediaModule extends SyncModule {
 	    Log.e(TAG, "GSMMD_FFACK");
 	    MultiMediaManager m = MultiMediaManager.getInstance(mContext);
 	    m.reply_ffail(data.getString(GSMMD_NAME), data.getInt(GSMMD_TYPE));
-	}else if (cmd.equals(GSMMD_AUTOSYNC)){
-	    
-	    boolean async = data.getBoolean(GSMMD_STASM, false);
-	    Log.e(TAG, "GSMMD_AUTOSYNC:" + async);
-	    if (async == true)
-		setAutoSync(true);
-	    else
-		setAutoSync(false);
+	}else if (cmd.equals(GSMMD_IMAGESYNC)){
+	    setImageSync(data.getBoolean(GSMMD_STASM, false));
+	}else if (cmd.equals(GSMMD_VIDEOSYNC)){
+	    setVideoSync(data.getBoolean(GSMMD_STASM, false));
 	}
     }
 

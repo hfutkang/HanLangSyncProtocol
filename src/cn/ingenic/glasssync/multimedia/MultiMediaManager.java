@@ -20,8 +20,11 @@ public class MultiMediaManager {
     static int CNT = 0;
 
 
-    private ArrayList<String> mThumbList = new ArrayList<String>();
-    private ArrayList<String> mThumbWaitList = new ArrayList<String>();
+    private ArrayList<String> mPicThumbList = new ArrayList<String>();
+    private ArrayList<String> mPicThumbWaitList = new ArrayList<String>();
+
+    private ArrayList<String> mVideoThumbList = new ArrayList<String>();
+    private ArrayList<String> mVideoThumbWaitList = new ArrayList<String>();
 
     private ArrayList<String> mPicList = new ArrayList<String>();
     private ArrayList<String> mPicWaitList = new ArrayList<String>();
@@ -29,7 +32,8 @@ public class MultiMediaManager {
     private ArrayList<String> mVideoList = new ArrayList<String>();
     private ArrayList<String> mVideoWaitList = new ArrayList<String>();
 
-    private ArrayList<String> mThumbFailList = new ArrayList<String>();
+    private ArrayList<String> mPicThumbFailList = new ArrayList<String>();
+    private ArrayList<String> mVideoThumbFailList = new ArrayList<String>();
     private ArrayList<String> mPicFailList = new ArrayList<String>();
     private ArrayList<String> mVideoFailList = new ArrayList<String>();
 
@@ -101,16 +105,25 @@ public class MultiMediaManager {
 		Log.e(TAG, "Add to wait list " + name);
 		mVideoWaitList.add(name);
 	    }
-	}
-	else if (type == MultiMediaModule.GSMMD_THUMB){
-	    if (mThumbList.contains(name)){
+	}else if (type == MultiMediaModule.GSMMD_IMG_THUMB){
+	    if (mPicThumbList.contains(name)){
 		Log.e(TAG, "addWaitList exist " + name);
 		return;
 	    }
 
-	    if (!mThumbWaitList.contains(name)){
+	    if (!mPicThumbWaitList.contains(name)){
 		Log.e(TAG, "Add to wait list " + name);
-		mThumbWaitList.add(name);
+		mPicThumbWaitList.add(name);
+	    }
+	}else if (type == MultiMediaModule.GSMMD_VID_THUMB){
+	    if (mVideoThumbList.contains(name)){
+		Log.e(TAG, "addWaitList exist " + name);
+		return;
+	    }
+
+	    if (!mVideoThumbWaitList.contains(name)){
+		Log.e(TAG, "Add to wait list " + name);
+		mVideoThumbWaitList.add(name);
 	    }
 	}
     }
@@ -160,14 +173,30 @@ public class MultiMediaManager {
 		MultiMediaModule m = MultiMediaModule.getInstance(mContext);
 		m.sync_file(name, type);
 	    }
-	}else if (type == MultiMediaModule.GSMMD_THUMB) {
+	}else if (type == MultiMediaModule.GSMMD_IMG_THUMB) {
 	    Log.e(TAG, "replyAsk THUMB");
 	    if (act == MultiMediaModule.GSMMD_EXIST){
 		Log.e(TAG, "replyAsk EXIST");
-		if (!mThumbList.contains(name)){
-		    mThumbList.add(name);
+		if (!mPicThumbList.contains(name)){
+		    mPicThumbList.add(name);
 		}
-		mThumbWaitList.remove(name);
+		mPicThumbWaitList.remove(name);
+		mReqState = REQ_IDEL;
+	    }else{
+		Log.e(TAG, "replyAsk NOEXIST");
+		mReqState = REQ_SYNC;
+		syncType = type;
+		MultiMediaModule m = MultiMediaModule.getInstance(mContext);
+		m.sync_file(name, type);
+	    }
+	}else if (type == MultiMediaModule.GSMMD_VID_THUMB) {
+	    Log.e(TAG, "replyAsk THUMB");
+	    if (act == MultiMediaModule.GSMMD_EXIST){
+		Log.e(TAG, "replyAsk EXIST");
+		if (!mVideoThumbList.contains(name)){
+		    mVideoThumbList.add(name);
+		}
+		mVideoThumbWaitList.remove(name);
 		mReqState = REQ_IDEL;
 	    }else{
 		Log.e(TAG, "replyAsk NOEXIST");
@@ -199,12 +228,19 @@ public class MultiMediaManager {
 		if (!mVideoList.contains(askName)){
 		    mVideoList.add(askName);
 		}	    
-	    }else if (syncType == MultiMediaModule.GSMMD_THUMB){
+	    }else if (syncType == MultiMediaModule.GSMMD_IMG_THUMB){
 		if (askName != null)
-		    mThumbWaitList.remove(askName);
+		    mPicThumbWaitList.remove(askName);
 	
-		if (!mThumbList.contains(askName)){
-		    mThumbList.add(askName);
+		if (!mPicThumbList.contains(askName)){
+		    mPicThumbList.add(askName);
+		}	    
+	    }else if (syncType == MultiMediaModule.GSMMD_VID_THUMB){
+		if (askName != null)
+		    mVideoThumbWaitList.remove(askName);
+	
+		if (!mVideoThumbList.contains(askName)){
+		    mVideoThumbList.add(askName);
 		}	    
 	    }
 	}
@@ -226,11 +262,17 @@ public class MultiMediaManager {
 		m.deleteFile(fileName, type);
 		mVideoList.remove(fileName);
 	    }
-	}else if (type == MultiMediaModule.GSMMD_THUMB){
-	    if (mThumbList.contains(fileName)){
+	}else if (type == MultiMediaModule.GSMMD_IMG_THUMB){
+	    if (mPicThumbList.contains(fileName)){
 		MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
 		m.deleteFile(fileName, type);
-		mThumbList.remove(fileName);
+		mPicThumbList.remove(fileName);
+	    }
+	}else if (type == MultiMediaModule.GSMMD_VID_THUMB){
+	    if (mVideoThumbList.contains(fileName)){
+		MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
+		m.deleteFile(fileName, type);
+		mVideoThumbList.remove(fileName);
 	    }
 	}
 	// to do delete end
@@ -246,10 +288,14 @@ public class MultiMediaManager {
 	}else if (syncType == MultiMediaModule.GSMMD_VIDEO){
 	    mVideoFailList.add(fileName);
 	    mVideoWaitList.remove(fileName);
-	}else if (syncType == MultiMediaModule.GSMMD_THUMB){
-	    mThumbFailList.add(fileName);
-	    mThumbWaitList.remove(fileName);
+	}else if (syncType == MultiMediaModule.GSMMD_IMG_THUMB){
+	    mPicThumbFailList.add(fileName);
+	    mPicThumbWaitList.remove(fileName);
+	}else if (syncType == MultiMediaModule.GSMMD_VID_THUMB){
+	    mVideoThumbFailList.add(fileName);
+	    mVideoThumbWaitList.remove(fileName);
 	}
+
 	mReqState = REQ_IDEL;
     }
 
@@ -258,24 +304,32 @@ public class MultiMediaManager {
 	    mPicFailList.remove(askName);
 	}else if (type == MultiMediaModule.GSMMD_VIDEO){
 	    mVideoFailList.remove(fileName);
-	}else if (type == MultiMediaModule.GSMMD_THUMB){
-	    mThumbFailList.remove(fileName);
+	}else if (type == MultiMediaModule.GSMMD_IMG_THUMB){
+	    mPicThumbFailList.remove(fileName);
+	}else if (type == MultiMediaModule.GSMMD_VID_THUMB){
+	    mVideoThumbFailList.remove(fileName);
 	}
     }
 
-    public void clearWaitList(){
+    public void clearImageWaitList(){
 	if (!mPicWaitList.isEmpty()){
 	    mPicWaitList.clear();
 	}
+	if (!mPicThumbWaitList.isEmpty()){
+	    mPicThumbWaitList.clear();
+	}
+    }
 
+    public void clearVideoWaitList(){
 	if (!mVideoWaitList.isEmpty()){
 	    mVideoWaitList.clear();
 	}
 
-	if (!mThumbWaitList.isEmpty()){
-	    mThumbWaitList.clear();
+	if (!mVideoThumbWaitList.isEmpty()){
+	    mVideoThumbWaitList.clear();
 	}
     }
+
 
     private void RequestHandler(Context c){
 	mReqHandle = new Handler();
@@ -300,11 +354,20 @@ public class MultiMediaManager {
 		        
 		       **/
 		      //send file sync fail information when no wait file to send
-		    if (mPicWaitList.isEmpty() && mVideoWaitList.isEmpty() && mThumbWaitList.isEmpty()){
-			if (!mThumbFailList.isEmpty()){
-			    String name = mThumbFailList.get(0);
+		    if (mPicWaitList.isEmpty() && mVideoWaitList.isEmpty() 
+			&& mPicThumbWaitList.isEmpty() && mVideoThumbWaitList.isEmpty()){
+			if (!mPicThumbFailList.isEmpty()){
+			    String name = mPicThumbFailList.get(0);
 			    MultiMediaModule m = MultiMediaModule.getInstance(mContext);
-			    m.fileFail(name, MultiMediaModule.GSMMD_THUMB);
+			    m.fileFail(name, MultiMediaModule.GSMMD_IMG_THUMB);
+			    mReqHandle.postDelayed(this, 3000);
+			    return;
+			}
+
+			if (!mVideoThumbFailList.isEmpty()){
+			    String name = mVideoThumbFailList.get(0);
+			    MultiMediaModule m = MultiMediaModule.getInstance(mContext);
+			    m.fileFail(name, MultiMediaModule.GSMMD_VID_THUMB);
 			    mReqHandle.postDelayed(this, 3000);
 			    return;
 			}
@@ -329,14 +392,27 @@ public class MultiMediaManager {
 			return;
 		    }
 
-		    if (!mThumbWaitList.isEmpty()){
-			String name = mThumbWaitList.get(0);
+		    if (!mPicThumbWaitList.isEmpty()){
+			String name = mPicThumbWaitList.get(0);
 			if (name != null){
 			    mReqState = REQ_ASK;
 			    askName = name;
 			    MultiMediaModule m = MultiMediaModule.getInstance(mContext);
 			    CNT = 0;
-			    m.ask_sync(name, MultiMediaModule.GSMMD_THUMB);
+			    m.ask_sync(name, MultiMediaModule.GSMMD_IMG_THUMB);
+			    mReqHandle.postDelayed(this, 1000);
+			    return;
+			}
+		    }
+
+		    if (!mVideoThumbWaitList.isEmpty()){
+			String name = mVideoThumbWaitList.get(0);
+			if (name != null){
+			    mReqState = REQ_ASK;
+			    askName = name;
+			    MultiMediaModule m = MultiMediaModule.getInstance(mContext);
+			    CNT = 0;
+			    m.ask_sync(name, MultiMediaModule.GSMMD_VID_THUMB);
 			    mReqHandle.postDelayed(this, 1000);
 			    return;
 			}

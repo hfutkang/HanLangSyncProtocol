@@ -67,15 +67,20 @@ public class MultiMediaObserver extends ContentObserver {
 	Log.e(TAG, "onChange " + uri);
 
 	MultiMediaModule mmm = MultiMediaModule.getInstance(mContext);
-	if (mmm.getAutoSync())
-	    sync_all();
+	if (mmm.getImageSync()){
+	    sync_images();
+	}else if (mmm.getVideoSync()){
+	    sync_videos();
+	}
     }
 
-    public void sync_all(){
-	sync_pic_thumbnails();
-	sync_video_thumbnails();
-	sync_pics();
-	sync_videos();
+    public void sync_images(){
+	scan_pic_thumbnails();
+	scan_pics();
+    }
+    public void sync_videos(){
+	scan_video_thumbnails();
+	scan_videos();
     }
 
     public void sync_single_file(String name,int type){
@@ -128,7 +133,7 @@ public class MultiMediaObserver extends ContentObserver {
 	    cs.close();	
 	}
     }
-    public void sync_pic_thumbnails(){	
+    public void scan_pic_thumbnails(){	
 	Cursor cs = mContext.getContentResolver().query(MediaStore.Images.Thumbnails.EXTERNAL_CONTENT_URI, 
 							picThumbnailsColu, null, null, null);
 	if  (cs.moveToFirst()){
@@ -143,7 +148,7 @@ public class MultiMediaObserver extends ContentObserver {
 			if (mThumbnailsPubPath == null)
 			    mThumbnailsPubPath = picPath.substring(1, picPath.lastIndexOf(".thumbnails")+12);
 			MultiMediaManager m = MultiMediaManager.getInstance(mContext);
-			m.addWaitList(picName, MultiMediaModule.GSMMD_THUMB);
+			m.addWaitList(picName, MultiMediaModule.GSMMD_IMG_THUMB);
 		    }
 		}while (cs.moveToNext());
 	    }catch(IllegalArgumentException e){
@@ -152,7 +157,7 @@ public class MultiMediaObserver extends ContentObserver {
 	cs.close();
     }
 
-    public void sync_video_thumbnails(){	
+    public void scan_video_thumbnails(){	
 	Cursor cs = mContext.getContentResolver().query(MediaStore.Video.Thumbnails.EXTERNAL_CONTENT_URI, 
 							videoThumbnailsColu, null, null, null);
 	if  (cs.moveToFirst()){
@@ -164,7 +169,7 @@ public class MultiMediaObserver extends ContentObserver {
 		    if (mThumbnailsPubPath == null)
 			mThumbnailsPubPath = picPath.substring(1, picPath.lastIndexOf(".thumbnails")+12);
 		    MultiMediaManager m = MultiMediaManager.getInstance(mContext);
-		    m.addWaitList(picName, MultiMediaModule.GSMMD_THUMB);
+		    m.addWaitList(picName, MultiMediaModule.GSMMD_VID_THUMB);
 		}while (cs.moveToNext());
 	    }catch(IllegalArgumentException e){
 	    }
@@ -172,7 +177,7 @@ public class MultiMediaObserver extends ContentObserver {
 	cs.close();
     }
 
-    public void sync_pics(){
+    public void scan_pics(){
 	if(DEBUG) Log.e(TAG,"----------sync_pic in");
 	StringBuilder where = new StringBuilder();
 	where.append(MediaStore.Images.Media.DATA + " like ?");
@@ -201,7 +206,7 @@ public class MultiMediaObserver extends ContentObserver {
 	cs.close();
     }
 
-    public void sync_videos(){
+    public void scan_videos(){
 	Log.e(TAG,"----------sync_video in");
 	StringBuilder where = new StringBuilder();
 	where.append(MediaStore.Video.Media.DATA + " like ?");
