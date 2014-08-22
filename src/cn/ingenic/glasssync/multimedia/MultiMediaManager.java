@@ -19,12 +19,17 @@ public class MultiMediaManager {
     public MultiMediaObserver MMObsv;
     static int CNT = 0;
 
+
+    private ArrayList<String> mThumbList = new ArrayList<String>();
+    private ArrayList<String> mThumbWaitList = new ArrayList<String>();
+
     private ArrayList<String> mPicList = new ArrayList<String>();
     private ArrayList<String> mPicWaitList = new ArrayList<String>();
 
     private ArrayList<String> mVideoList = new ArrayList<String>();
     private ArrayList<String> mVideoWaitList = new ArrayList<String>();
 
+    private ArrayList<String> mThumbFailList = new ArrayList<String>();
     private ArrayList<String> mPicFailList = new ArrayList<String>();
     private ArrayList<String> mVideoFailList = new ArrayList<String>();
 
@@ -60,6 +65,21 @@ public class MultiMediaManager {
 	context.getContentResolver().registerContentObserver(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, false, MMObsv);
     }
 
+    public void addHighPriorityList(String name, int type){
+	if (type == MultiMediaModule.GSMMD_PIC){
+	    if (mPicWaitList.contains(name)){
+		mPicWaitList.remove(name);
+	    }
+	    mPicWaitList.add(0,name);
+
+	}else if (type == MultiMediaModule.GSMMD_VIDEO){
+	    if (mVideoWaitList.contains(name)){
+		mVideoWaitList.remove(name);
+	    }
+	    mVideoWaitList.add(0,name);
+	}
+    }
+
     public void addWaitList(String name, int type){
 	if (type == MultiMediaModule.GSMMD_PIC){
 	    if (mPicList.contains(name)){
@@ -80,6 +100,17 @@ public class MultiMediaManager {
 	    if (!mVideoWaitList.contains(name)){
 		Log.e(TAG, "Add to wait list " + name);
 		mVideoWaitList.add(name);
+	    }
+	}
+	else if (type == MultiMediaModule.GSMMD_THUMB){
+	    if (mThumbList.contains(name)){
+		Log.e(TAG, "addWaitList exist " + name);
+		return;
+	    }
+
+	    if (!mThumbWaitList.contains(name)){
+		Log.e(TAG, "Add to wait list " + name);
+		mThumbWaitList.add(name);
 	    }
 	}
     }
@@ -129,6 +160,22 @@ public class MultiMediaManager {
 		MultiMediaModule m = MultiMediaModule.getInstance(mContext);
 		m.sync_file(name, type);
 	    }
+	}else if (type == MultiMediaModule.GSMMD_THUMB) {
+	    Log.e(TAG, "replyAsk THUMB");
+	    if (act == MultiMediaModule.GSMMD_EXIST){
+		Log.e(TAG, "replyAsk EXIST");
+		if (!mThumbList.contains(name)){
+		    mThumbList.add(name);
+		}
+		mThumbWaitList.remove(name);
+		mReqState = REQ_IDEL;
+	    }else{
+		Log.e(TAG, "replyAsk NOEXIST");
+		mReqState = REQ_SYNC;
+		syncType = type;
+		MultiMediaModule m = MultiMediaModule.getInstance(mContext);
+		m.sync_file(name, type);
+	    }
 	}else{
 	    Log.e(TAG, "Invalid type " + mReqState);
 	}
@@ -152,6 +199,13 @@ public class MultiMediaManager {
 		if (!mVideoList.contains(askName)){
 		    mVideoList.add(askName);
 		}	    
+	    }else if (syncType == MultiMediaModule.GSMMD_THUMB){
+		if (askName != null)
+		    mThumbWaitList.remove(askName);
+	
+		if (!mThumbList.contains(askName)){
+		    mThumbList.add(askName);
+		}	    
 	    }
 	}
 
@@ -172,6 +226,12 @@ public class MultiMediaManager {
 		m.deleteFile(fileName, type);
 		mVideoList.remove(fileName);
 	    }
+	}else if (type == MultiMediaModule.GSMMD_THUMB){
+	    if (mThumbList.contains(fileName)){
+		MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
+		m.deleteFile(fileName, type);
+		mThumbList.remove(fileName);
+	    }
 	}
 	// to do delete end
 	MultiMediaModule m = MultiMediaModule.getInstance(mContext);
@@ -186,6 +246,9 @@ public class MultiMediaManager {
 	}else if (syncType == MultiMediaModule.GSMMD_VIDEO){
 	    mVideoFailList.add(fileName);
 	    mVideoWaitList.remove(fileName);
+	}else if (syncType == MultiMediaModule.GSMMD_THUMB){
+	    mThumbFailList.add(fileName);
+	    mThumbWaitList.remove(fileName);
 	}
 	mReqState = REQ_IDEL;
     }
@@ -195,6 +258,8 @@ public class MultiMediaManager {
 	    mPicFailList.remove(askName);
 	}else if (type == MultiMediaModule.GSMMD_VIDEO){
 	    mVideoFailList.remove(fileName);
+	}else if (type == MultiMediaModule.GSMMD_THUMB){
+	    mThumbFailList.remove(fileName);
 	}
     }
 
@@ -205,6 +270,10 @@ public class MultiMediaManager {
 
 	if (!mVideoWaitList.isEmpty()){
 	    mVideoWaitList.clear();
+	}
+
+	if (!mThumbWaitList.isEmpty()){
+	    mThumbWaitList.clear();
 	}
     }
 
@@ -224,7 +293,22 @@ public class MultiMediaManager {
 			return;
 		    }
 
-		    if (mPicWaitList.isEmpty() && mVideoWaitList.isEmpty()){
+		      /**
+		       *list priority:
+		       *          waitList(wait to sync to mobile list):thumb,pic,video
+		       *          failList(sync failed info list):thumb,pic,video
+		        
+		       **/
+		      //send file sync fail information when no wait file to send
+		    if (mPicWaitList.isEmpty() && mVideoWaitList.isEmpty() && mThumbWaitList.isEmpty()){
+			if (!mThumbFailList.isEmpty()){
+			    String name = mThumbFailList.get(0);
+			    MultiMediaModule m = MultiMediaModule.getInstance(mContext);
+			    m.fileFail(name, MultiMediaModule.GSMMD_THUMB);
+			    mReqHandle.postDelayed(this, 3000);
+			    return;
+			}
+
 			if (!mPicFailList.isEmpty()){
 			    String name = mPicFailList.get(0);
 			    MultiMediaModule m = MultiMediaModule.getInstance(mContext);
@@ -243,6 +327,19 @@ public class MultiMediaManager {
 
 			mReqHandle.postDelayed(this, 10000);
 			return;
+		    }
+
+		    if (!mThumbWaitList.isEmpty()){
+			String name = mThumbWaitList.get(0);
+			if (name != null){
+			    mReqState = REQ_ASK;
+			    askName = name;
+			    MultiMediaModule m = MultiMediaModule.getInstance(mContext);
+			    CNT = 0;
+			    m.ask_sync(name, MultiMediaModule.GSMMD_THUMB);
+			    mReqHandle.postDelayed(this, 1000);
+			    return;
+			}
 		    }
 
 		    if (!mPicWaitList.isEmpty()){
