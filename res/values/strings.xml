@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_label">Sync</string>
+    <string name="app_label">Connect the phone</string>
 	<string name="bond">bind</string>
 	<string name="bond_message">bind the device %1$s ?</string>
 	<string name="open_bt">open bluetooth</string>

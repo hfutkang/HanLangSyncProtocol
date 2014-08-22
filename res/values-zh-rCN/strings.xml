@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_label">同步</string>
+    <string name="app_label">连接手机</string>
 	<string name="bond">绑定</string>
 	<string name="bond_message">确定要绑定设备%1$s吗？</string>
 	<string name="open_bt">打开蓝牙</string>
