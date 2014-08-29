@@ -90,38 +90,33 @@ public class GlassSyncWifiModule extends SyncModule {
 
 	if (mgmt.contains("WPA_PSK")){
 	    newwfcfg.preSharedKey = "\"" + pswd + "\""; 
-            newwfcfg.hiddenSSID = true;
+            //newwfcfg.hiddenSSID = true;
 	    if (connect == 0)
 		newwfcfg.status = WifiConfiguration.Status.ENABLED;
 	    else
 		newwfcfg.status = WifiConfiguration.Status.CURRENT;
 
-	    if (group.contains("CCMP")){
-		newwfcfg.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
-		newwfcfg.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
-	    }
-	    if (group.contains("TKIP")){
-		newwfcfg.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
-		newwfcfg.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
-	    }
+	    // if (group.contains("CCMP")){
+	    // 	newwfcfg.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
+	    // 	newwfcfg.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
+	    // }
+	    // if (group.contains("TKIP")){
+	    // 	newwfcfg.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
+	    // 	newwfcfg.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
+	    // }
 
 	    newwfcfg.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
 
-	    if (prot.contains("RSN"))
-		newwfcfg.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
-	    if (prot.contains("WPA"))
-		newwfcfg.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
+	    // if (prot.contains("RSN"))
+	    // 	newwfcfg.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
+	    // if (prot.contains("WPA"))
+	    // 	newwfcfg.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
 	}
 
-	wifi_service.addNetwork(newwfcfg);
+	int network_id = wifi_service.addNetwork(newwfcfg);
 
-	List<WifiConfiguration> wfcfg = wifi_service.getConfiguredNetworks();
-	for (WifiConfiguration w : wfcfg){
-	    //Log.e(TAG, "ssid:" + w.SSID + " id:" + w.networkId);
-	    if (w.SSID.equals(newwfcfg.SSID)){
-		Log.e(TAG, "enable network " + newwfcfg.SSID);
-		wifi_service.enableNetwork(w.networkId, true);
-	    }
+	if (connect == 1){
+	    wifi_service.enableNetwork(network_id, true);
 	}
     }
 
