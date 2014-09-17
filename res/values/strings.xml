@@ -204,13 +204,16 @@
 	<string name="retry_connect_failed">reconnect failed</string>
 	<string name="retry_connect_failed_with_no_address">Lost remote device</string>
 	<!-- Bluetooth -->
+	<string name="pre_info">Bluetooth finding...</string>
+	<string name="err_nofind_bluetooth">Bluetooth device no find！</string>
 	<string name="welcome">Welcome to use Glass synchronization application</string>
     <string name="welcome_content"> \u0020 \u0020 \u0020You first need to install glasses aide in the mobile end,
 And then open mobile terminal glasses helper application, into the 2 d
 Code scanning page, by clicking on the screen to add binding equipment</string>
     <string name="into">Binding equipment to click on the screen>>></string>
-    <string name="load_cn">Is your life is loading, please wait patiently</string>
-    <string name="load_en"> \u0020 \u0020 \u0020 \u0020Loading......</string>
+    <string name="loading">Is Bonding, please wait</string>
+    <string name="load_message">\u0020 \u0020 \u0020 make sure Bluetooth is bonded in MobilePhone.</string>
+    <string name="load_connect">\u0020 \u0020 \u0020 is bonding,waiting please.</string>
     <string name="unbind">Bind failed (T ﹏ T)</string>
     <string name="disbind">Has fallen unbound, Slide out application,\nClick the binding a new mobile phone.</string>
     <string name="bind">\u0020 \u0020 \u0020 \u0020Bonded devices</string>

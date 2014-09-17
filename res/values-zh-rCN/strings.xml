@@ -152,7 +152,7 @@
     <string name="camera_alert_cancel">否</string>
     <string name="camera_return_preview">退出查看</string>
     <string name="rotate_preview">旋转图像</string>
-    <string name="no_camera_connection">相机连接中断,请在手表端重新打开</string>
+    <!-- <string name="no_camera_connection">相机连接中断,请在手表端重新打开</string> -->
     <string name="no_connection">蓝牙连接已中断</string>
     
     <!--快速回复(短信) -->
@@ -166,8 +166,6 @@
     <string name="respond_via_sms_edittext_dialog_title">"快速回复"</string>
     <string name="sync_via_sms">同步到手表"</string>
     <string name="sync_via_sms_content">同步以上快速回复短信到手表上"</string>
-    <string name="response_sms_sync_new">"新信息"</string>
-    <string name="response_sms_sync_close">"关闭"</string>
 
 	<!-- SMS -->
     <string name="no_subject_view">"（无主题）"</string>
@@ -195,6 +193,8 @@
 	<string name="retry_connect_failed">连接失败</string>
 	<string name="retry_connect_failed_with_no_address">失去远程设备</string>
 	<!-- Bluetooth -->
+	<string name="pre_info">查找蓝牙...</string>
+	<string name="err_nofind_bluetooth">本机没有找到蓝牙硬件或驱动！</string>
 	<string name="welcome">欢迎使用Glass同步应用</string>
     <string name="welcome_content"> \u0020 \u0020 \u0020
      首先您需要在手机端安装眼镜助手，
@@ -202,13 +202,9 @@
 码扫描页，通过点击屏幕添加绑定设备
 </string>
     <string name="into">点击屏幕进行绑定设备>>></string>
-    <string name="load_cn">正在玩命加载中，请您耐心等待</string>
-    <string name="load_req">请您在手机中确认蓝牙的绑定请求</string>
-    <string name="load_cfm">绑定已确认，正在匹配您的手机</string>
-    <string name="load_en"> \u0020 \u0020 \u0020 \u0020Loading。。。。。。</string>
+    <string name="loading">正在玩命加载中，请您耐心等待\n\nLoading...</string>
     <string name="unbind">绑定失败了（T﹏T）</string>
     <string name="disbind">已经解除绑定，下滑退出应用，\n单击绑定新的手机。</string>
-    <string name="rebind"> 点击屏幕重新绑定>>></string>
     <string name="bind">已绑定的设备</string>
     <string name="long_click">（长按解除绑定）</string>
     <string name="mobile">Lenovo \u0020 \u0020A790E</string>

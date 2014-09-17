@@ -1,67 +1,59 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" >
+    android:id="@+id/main">
 
-    <LinearLayout
-        android:id="@+id/Layout_welcome"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#ff09bfff"
-        android:orientation="vertical" 
-        android:visibility="gone">
+  <!-- maybe bluetooth opration will lost many time.so show this info -->
+  <TextView
+      android:id="@+id/pre_info"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:gravity="center"
+      android:text="@string/pre_info"
+      android:textColor="@color/color_white"
+      android:textSize="@dimen/big_font_size" 
+      android:background="@color/color_background"/>
+
+  <!--  -->
+  <LinearLayout
+      android:id="@+id/Layout_welcome"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:background="@color/color_background"
+      android:orientation="vertical" 
+      android:visibility="gone">
 
         <TextView
-            
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="3"
+            android:layout_height="0dp"
+            android:layout_weight="2"
             android:gravity="center"
             android:text="@string/welcome"
-            android:textColor="#ffffff"
-            android:textSize="29sp" />
+            android:textColor="@color/color_white"
+            android:textSize="@dimen/big_font_size" />
 
         <TextView
             android:id="@+id/welcome_content"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="0dp"
             android:layout_weight="2"
-            android:gravity="center_horizontal"
+            android:gravity="left"
+	    android:paddingLeft="3px"
+	    android:paddingRight="3px"
             android:lineSpacingExtra="8dp"
             android:text="@string/welcome_content"
-            android:textColor="#ffffff"
-            android:textSize="24sp" />
+            android:textColor="@color/color_white"
+            android:textSize="@dimen/normal_font_size" />
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="3.5" >
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
-                android:text="@string/into"
-                android:textColor="#ffffff"
-                android:textSize="18sp" />
-        </RelativeLayout>
-    </LinearLayout>
-      <LinearLayout
-        android:id="@+id/Layout_welcome1"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#ff09bfff"
-        android:orientation="vertical" 
-        android:visibility="visible">
-          <TextView
-            
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="3"
-            android:gravity="center"
-           
-            android:textColor="#ffffff"
-            android:textSize="29sp" />
-       </LinearLayout>  
-    </LinearLayout>
+	<TextView
+	    android:layout_width="match_parent"
+	    android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="right"
+	    android:paddingRight="3px"
+	    android:text="@string/into"
+	    android:textColor="@color/color_white"
+	    android:textSize="@dimen/small_font_size" />
+  </LinearLayout>
+</FrameLayout>
    

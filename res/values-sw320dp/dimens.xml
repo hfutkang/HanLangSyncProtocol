@@ -1,0 +1,27 @@
+<resources>
+    <!--font size-->
+    <dimen name="bigbig_font_size">45dp</dimen>
+    <dimen name="big_font_size">30dp</dimen>
+    <dimen name="normal_font_size">25dp</dimen>
+    <dimen name="small_font_size">20dp</dimen>
+
+    <!--image size-->
+    <dimen name="large_image_w">100dp</dimen>
+    <dimen name="large_image_h">100dp</dimen>
+    <dimen name="normal_image_w">80dp</dimen>
+    <dimen name="normal_image_h">80dp</dimen>
+    <dimen name="small_image_w">30dp</dimen>
+    <dimen name="small_image_h">30dp</dimen>
+
+    <!--line size-->
+    <dimen name="vertical_line_w">1dp</dimen>
+    <dimen name="vertical_line_h">220dp</dimen>
+
+    <dimen name="horizontal_line_w">290dp</dimen>
+    <dimen name="horizontal_line_h">1dp</dimen>
+
+    <!--padding size-->
+    <dimen name="view_padding_left">5dp</dimen>
+    <dimen name="view_padding_top">5dp</dimen>
+    <dimen name="view_padding_right">8dp</dimen>
+</resources>

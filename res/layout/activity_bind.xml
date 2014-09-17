@@ -1,53 +1,65 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical" >
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	      android:id="@+id/main"
+	      android:layout_width="match_parent"
+	      android:layout_height="match_parent"
+	      android:background="@color/color_background">
 
-    <LinearLayout
-        android:id="@+id/activity_bind"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#ff09bfff"
-        android:clickable="true"
-        android:orientation="vertical" >
+  <!-- Bluetooth remove bond -->
+   <TextView
+       android:id="@+id/layout_disbind"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       android:gravity="center"
+       android:text="@string/disbind"
+       android:textColor="@color/color_white"
+       android:textSize="@dimen/normal_font_size" 
+       android:visibility="gone"/>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1.20"
-            android:layout_marginLeft="30dp"
-            android:layout_marginTop="30dp"
-            android:gravity="center_vertical"
-            android:text="@string/bind"
-            android:textColor="#ffffff"
-            android:textSize="27sp" />
+  <!-- Bluetooth already bond -->
+  <LinearLayout 
+      android:id="@+id/layout_bind"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:background="@color/color_background"
+      android:clickable="true"
+      android:orientation="vertical" >
+    
+  <TextView
+      android:layout_weight="1.20"
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:gravity="center_vertical"
+      android:paddingLeft="5px"
+      android:text="@string/bind"
+      android:textColor="@color/color_white"
+      android:textSize="@dimen/normal_font_size" />
+  
+  <TextView
+      android:id="@+id/tv_mobile"
+      android:layout_weight="3.47"
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:gravity="center"
+      android:textColor="@color/color_white"
+      android:textSize="@dimen/bigbig_font_size" />
+  
+  <TextView
+      android:layout_weight="1.20"
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:gravity="right"
+      android:paddingRight="3px"
+      android:text="@string/long_click"
+      android:textColor="@color/color_white"
+      android:textSize="@dimen/normal_font_size" />
+  
+  <!-- <LinearLayout -->
+  <!--     android:layout_width="match_parent" -->
+  <!--     android:layout_height="1dp" -->
+  <!--     android:layout_weight="0.1" -->
+  <!--     android:background="#ffffff" > -->
+  <!-- </LinearLayout> -->
+</LinearLayout>
 
-        <TextView
-            android:id="@+id/tv_mobile"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="3.47"
-            android:gravity="center"
-            android:textColor="#ffffff"
-            android:textSize="45sp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1.20"
-            android:gravity="right"
-             android:layout_marginLeft="30dp"
-            android:text="@string/long_click"
-            android:textColor="#ffffff"
-            android:textSize="27sp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_weight="0.1"
-            android:background="#ffffff" >
-        </LinearLayout>
-    </LinearLayout>
-
-    </LinearLayout>
-   
+  
+</FrameLayout>

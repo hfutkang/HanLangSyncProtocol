@@ -11,7 +11,7 @@ import android.content.Intent;
 public class SysApplication extends Application { 
 	 private List<Activity> mList = new LinkedList<Activity>();
     private static SysApplication instance; 
-
+    public static final int SNAP_VELOCITY = 600;
     private SysApplication() {   
     } 
     public synchronized static SysApplication getInstance() { 

@@ -1,14 +1,12 @@
 package cn.ingenic.glasssync.bluetooth;
 
 import java.io.IOException;
-import java.util.Vector;
 
 import cn.ingenic.glasssync.bluetooth.camera.CameraManager;
 import cn.ingenic.glasssync.bluetooth.decoding.CaptureActivityHandler;
 import cn.ingenic.glasssync.bluetooth.decoding.InactivityTimer;
 import cn.ingenic.glasssync.bluetooth.view.ViewfinderView;
 
-import com.google.zxing.BarcodeFormat;
 import com.google.zxing.Result;
 
 //import cn.ingenic.glasssync.*;
@@ -29,44 +27,43 @@ import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.SurfaceHolder.Callback;
 import android.view.View.OnTouchListener;
+import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
+
 import android.view.SurfaceView;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.util.Log;
 
-public class CaptureActivity extends Activity implements Callback {
+public class CaptureActivity extends Activity implements Callback ,OnTouchListener{
     private static final String TAG = "CaptureActivity";
-	private CaptureActivityHandler handler;
-	private ViewfinderView viewfinderView;
-	private boolean hasSurface;
-	private Vector<BarcodeFormat> decodeFormats;
-	private String characterSet;
-	//private TextView txtResult;
-	private InactivityTimer inactivityTimer;
-	private MediaPlayer mediaPlayer;
-	private boolean playBeep;
-	private static final float BEEP_VOLUME = 0.10f;
-	private boolean vibrate;
-	private FrameLayout mLayout_scan;
-	public  BluetoothAdapter sBluetoothAdapter=Welcome_Activity.sBluetoothAdapter;
-	private float x1 = 0;  
-    private float x2 = 0;  
-    private float y1 = 0;  
-    private float y2 = 0; 
+    private static final boolean DEBUG = true;
+    private CaptureActivityHandler mHandler;
+    private ViewfinderView mViewfinderView;
+    private boolean mHasSurface;
+    private String mCharacterSet;
+      //private TextView txtResult;
+    private InactivityTimer mInactivityTimer;
+    private MediaPlayer mMediaPlayer;
+    private boolean mPlayBeep;
+    private static final float BEEP_VOLUME = 0.10f;
+    private boolean mVibrate;
+    // public  BluetoothAdapter sBluetoothAdapter=Welcome_Activity.sBluetoothAdapter;
+    private GestureDetector mGestureDetector;
 
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    	super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_capture);
-		Log.e(TAG, "onCreate");
 		CameraManager.init(getApplication());
-		viewfinderView = (ViewfinderView) findViewById(R.id.viewfinder_view);
-		mLayout_scan=(FrameLayout) findViewById(R.id.layout_scan);
-		mLayout_scan.setOnTouchListener(new myTouchListener());
-		hasSurface = false;
-		inactivityTimer = new InactivityTimer(this);
+		mViewfinderView = (ViewfinderView) findViewById(R.id.viewfinder_view);
+		FrameLayout fl=(FrameLayout) findViewById(R.id.layout_scan);
+		fl.setOnTouchListener(this);
+		mHasSurface = false;
+		mInactivityTimer = new InactivityTimer(this);
+		gestureDetectorWorker();
 	}
 
 	@Override
@@ -74,37 +71,36 @@ public class CaptureActivity extends Activity implements Callback {
 		super.onResume();
 		SurfaceView surfaceView = (SurfaceView) findViewById(R.id.preview_view);
 		SurfaceHolder surfaceHolder = surfaceView.getHolder();
-		if (hasSurface) {
+		if (mHasSurface) {
 			initCamera(surfaceHolder);
 		} else {
 			surfaceHolder.addCallback(this);
 			surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 		}
-		decodeFormats = null;
-		characterSet = null;
+		mCharacterSet = null;
 
-		playBeep = true;
+		mPlayBeep = true;
 		AudioManager audioService = (AudioManager) getSystemService(AUDIO_SERVICE);
 		if (audioService.getRingerMode() != AudioManager.RINGER_MODE_NORMAL) {
-			playBeep = false;
+			mPlayBeep = false;
 		}
 		initBeepSound();
-		vibrate = true;
+		mVibrate = true;
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		if (handler != null) {
-			handler.quitSynchronously();
-			handler = null;
+		if (mHandler != null) {
+			mHandler.quitSynchronously();
+			mHandler = null;
 		}
 		CameraManager.get().closeDriver();
 	}
 
 	@Override
 	protected void onDestroy() {
-		inactivityTimer.shutdown();
+		mInactivityTimer.shutdown();
 		super.onDestroy();
 	}
 
@@ -116,9 +112,9 @@ public class CaptureActivity extends Activity implements Callback {
 		} catch (RuntimeException e) {
 			return;
 		}
-		if (handler == null) {
-			handler = new CaptureActivityHandler(this, decodeFormats,
-					characterSet);
+		if (mHandler == null) {
+			mHandler = new CaptureActivityHandler(this, null,
+					mCharacterSet);
 		}
 	}
 
@@ -130,64 +126,62 @@ public class CaptureActivity extends Activity implements Callback {
 
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		if (!hasSurface) {
-			hasSurface = true;
+		if (!mHasSurface) {
+			mHasSurface = true;
 			initCamera(holder);
 		}
 
 	}
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
-		hasSurface = false;
+		mHasSurface = false;
 
 	}
 
 	public ViewfinderView getViewfinderView() {
-		return viewfinderView;
+		return mViewfinderView;
 	}
 
 	public Handler getHandler() {
-		return handler;
+		return mHandler;
 	}
 
 	public void drawViewfinder() {
-		viewfinderView.drawViewfinder();
+		mViewfinderView.drawViewfinder();
 
 	}
 
 	public void handleDecode(Result obj, Bitmap barcode) {
-	    Log.e(TAG, "handleDecode:" + obj.getText());
-		  inactivityTimer.onActivity();
-		  viewfinderView.drawResultBitmap(barcode);
+	    if(DEBUG) Log.e(TAG, "handleDecode:" + obj.getText());
+		  mInactivityTimer.onActivity();
+		  mViewfinderView.drawResultBitmap(barcode);
 		  playBeepSoundAndVibrate();	  
 		  Intent intent=new Intent(CaptureActivity.this,Load_Activity.class);
 		  intent.putExtra("result", obj.getText());
 		  startActivity(intent);
 		  CaptureActivity.this.finish();
-//		 txtResult.setText(obj.getBarcodeFormat().toString() + ":"
-//		 		+ obj.getText());
 	}
 
 	private void initBeepSound() {
-		if (playBeep && mediaPlayer == null) {
+		if (mPlayBeep && mMediaPlayer == null) {
 			// The volume on STREAM_SYSTEM is not adjustable, and users found it
 			// too loud,
 			// so we now play on the music stream.
 			setVolumeControlStream(AudioManager.STREAM_MUSIC);
-			mediaPlayer = new MediaPlayer();
-			mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-			mediaPlayer.setOnCompletionListener(beepListener);
+			mMediaPlayer = new MediaPlayer();
+			mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+			mMediaPlayer.setOnCompletionListener(beepListener);
 
 			AssetFileDescriptor file = getResources().openRawResourceFd(
 					R.raw.beep);
 			try {
-				mediaPlayer.setDataSource(file.getFileDescriptor(),
+				mMediaPlayer.setDataSource(file.getFileDescriptor(),
 						file.getStartOffset(), file.getLength());
 				file.close();
-				mediaPlayer.setVolume(BEEP_VOLUME, BEEP_VOLUME);
-				mediaPlayer.prepare();
+				mMediaPlayer.setVolume(BEEP_VOLUME, BEEP_VOLUME);
+				mMediaPlayer.prepare();
 			} catch (IOException e) {
-				mediaPlayer = null;
+				mMediaPlayer = null;
 			}
 		}
 	}
@@ -195,10 +189,10 @@ public class CaptureActivity extends Activity implements Callback {
 	private static final long VIBRATE_DURATION = 200L;
 
 	private void playBeepSoundAndVibrate() {
-		if (playBeep && mediaPlayer != null) {
-			mediaPlayer.start();
+		if (mPlayBeep && mMediaPlayer != null) {
+			mMediaPlayer.start();
 		}
-		if (vibrate) {
+		if (mVibrate) {
 			Vibrator vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
 			vibrator.vibrate(VIBRATE_DURATION);
 		}
@@ -209,26 +203,36 @@ public class CaptureActivity extends Activity implements Callback {
 	 */
 	private final OnCompletionListener beepListener = new OnCompletionListener() {
 		public void onCompletion(MediaPlayer mediaPlayer) {
-			mediaPlayer.seekTo(0);
+			mMediaPlayer.seekTo(0);
 		}
 	};
-	class myTouchListener implements OnTouchListener {
 
-		@Override
-		public boolean onTouch(View v, MotionEvent event) {
-			// TODO Auto-generated method stub
-			if(event.getAction() == MotionEvent.ACTION_DOWN) {  
-	            x1 = event.getX();  
-	            y1 = event.getY();  
-	        }  
-		 if(event.getAction() == MotionEvent.ACTION_UP) {   
-	            x2 = event.getX();  
-	            y2 = event.getY();  
-	            if(y2 - y1 > 50) {  
-	             CaptureActivity.this.finish();
-	            } 
-	        } 
+    private void gestureDetectorWorker(){
+	mGestureDetector =  new GestureDetector(this,new SimpleOnGestureListener() {
+		      // Touch down时触发
+		    @Override
+			public boolean onDown(MotionEvent e) {
+			if(DEBUG) Log.d(TAG,"---onDown in");
 			return true;
-		}
-	}
+		    }
+		    
+		    @Override
+			public boolean onFling(MotionEvent e1, MotionEvent e2,
+					       float velocityX, float velocityY) {
+			if(DEBUG) Log.d(TAG,"---velocityX="+velocityX+"--velocityY="+velocityY);
+			if (velocityY > SysApplication.SNAP_VELOCITY 
+			    && Math.abs(velocityX) < SysApplication.SNAP_VELOCITY) {
+			    CaptureActivity.this.finish();
+			}
+			return true;
+		    }
+		    		    
+	    });
+    }
+
+    @Override
+	public boolean onTouch(View v, MotionEvent event) {
+	return mGestureDetector.onTouchEvent(event);
+    }	
+
 }
