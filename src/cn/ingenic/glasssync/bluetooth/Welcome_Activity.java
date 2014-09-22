@@ -51,6 +51,7 @@ public class Welcome_Activity extends Activity implements OnTouchListener{
 	    bind.putExtra("Tag", 1);
 	      //  bind.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK); 
 	    startActivity(bind);
+	    Welcome_Activity.this.finish();
 	    
 	} else {
 	    TextView tv = (TextView) findViewById(R.id.pre_info);

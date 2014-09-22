@@ -297,6 +297,7 @@ public class DefaultSyncManager extends Handler {
 //							mContext.getString(R.string.lost_bond_st_content), null);
 //					mgr.notify(NOTI_LOST_BOND_ST, noti);
 //				}
+				disconnect();
 				setLockedAddress("");
 			}
 			break;
@@ -786,7 +787,7 @@ public class DefaultSyncManager extends Handler {
 	public String getLockedAddress() {
 		
 		SharedPreferences sp = mContext.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE);
-		Mgr.d("getLockedAddress()" + sp);
+		Mgr.d("getLockedAddress()" + sp.getString(UNIQUE_ADDRESS, ""));
 		
 		return sp.getString(UNIQUE_ADDRESS, "");
 	}
