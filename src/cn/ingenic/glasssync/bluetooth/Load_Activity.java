@@ -60,7 +60,7 @@ public class Load_Activity extends Activity implements OnTouchListener{
 		    startBondWorker();
                 case MESSAGE_BOND_NONE:
 		case MESSAGE_CONNECT_FAILED:
-		    mManger.setLockedAddress(null);
+		    mManger.setLockedAddress("");
 		    mManger.disconnect();
 		    
 		    TextView tv = (TextView) findViewById(R.id.tv_load);
@@ -136,7 +136,7 @@ public class Load_Activity extends Activity implements OnTouchListener{
 		TextView tv = (TextView) findViewById(R.id.tv_load);
 		tv.setText(R.string.loading);
 	       
-		mManger.setLockedAddress(null);
+		mManger.setLockedAddress("");
 		mManger.disconnect();
 		try {
 		    Thread.sleep(10000); //wait what?

@@ -76,9 +76,8 @@ public class Bind_Activity extends Activity{
     } 
 
     private void disableBond(){
-	mManger.setLockedAddress(null);
+	mManger.setLockedAddress("");
 	mManger.disconnect();
-		
 	SharedPreferences tsp = mContext.getSharedPreferences("MAC_INFO", MODE_PRIVATE);
 	Editor editor = tsp.edit();
 	editor.putString("mAddress", null);
