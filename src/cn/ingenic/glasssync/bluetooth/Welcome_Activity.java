@@ -11,8 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.View.OnTouchListener;
-import android.view.GestureDetector;
-import android.view.GestureDetector.SimpleOnGestureListener;
+import android.widget.GestureDetector;
+import android.widget.GestureDetector.SimpleOnGestureListener;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -94,28 +94,16 @@ public class Welcome_Activity extends Activity implements OnTouchListener{
 
     private void gestureDetectorWorker(){
 	mGestureDetector =  new GestureDetector(this,new SimpleOnGestureListener() {
-		      // Touch down时触发
 		    @Override
-			public boolean onDown(MotionEvent e) {
-			if(DEBUG) Log.d(TAG,"---onDown in");
-			return true;
-		    }
-		    
-		    @Override
-			public boolean onFling(MotionEvent e1, MotionEvent e2,
-					       float velocityX, float velocityY) {
-			if(DEBUG) Log.d(TAG,"---velocityX="+velocityX+"--velocityY="+velocityY);
-			if (velocityY > SysApplication.SNAP_VELOCITY 
-			    && Math.abs(velocityX) < SysApplication.SNAP_VELOCITY) {
+		    public boolean onSlideDown(boolean fromPhone){		    
 			    Welcome_Activity.this.finish();
 			    System.exit(0);
-			}
-			return true;
+			    return true;
 		    }
 		    
 		    @Override
-			public boolean onSingleTapConfirmed(MotionEvent e) {
-			if(DEBUG) Log.d(TAG,"---onSingleTapConfirmed in");
+		    public boolean onTap(boolean fromPhone){
+			if(DEBUG) Log.d(TAG,"---onTap in");
 			if(mCurrentView == WELCOME_VIEW){
 			    Intent sacn = new Intent(Welcome_Activity.this,CaptureActivity.class);
 			    startActivity(sacn);

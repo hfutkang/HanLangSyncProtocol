@@ -24,8 +24,8 @@ import android.widget.LinearLayout;
 import android.view.View;
 import android.view.MotionEvent;
 import android.view.View.OnTouchListener;
-import android.view.GestureDetector;
-import android.view.GestureDetector.SimpleOnGestureListener;
+import android.widget.GestureDetector;
+import android.widget.GestureDetector.SimpleOnGestureListener;
 
 import cn.ingenic.glasssync.DefaultSyncManager;
 
@@ -237,26 +237,15 @@ public class Load_Activity extends Activity implements OnTouchListener{
 	};
 
     private void gestureDetectorWorker(){
-	mGestureDetector =  new GestureDetector(this,new SimpleOnGestureListener() {
-		      // Touch down时触发
-		    @Override
-			public boolean onDown(MotionEvent e) {
-			if(DEBUG) Log.d(TAG,"---onDown in");
-			return true;
+	mGestureDetector =  new GestureDetector(this, new SimpleOnGestureListener() {
+		@Override
+		public boolean onSlideDown(boolean fromPhone){		    
+		    Log.e(TAG, "onSlideDown ....................");
+		    if(mCanTouch){
+			SysApplication.getInstance().exit();
 		    }
-		    
-		    @Override
-			public boolean onFling(MotionEvent e1, MotionEvent e2,
-					       float velocityX, float velocityY) {
-			if(DEBUG) Log.d(TAG,"---velocityX="+velocityX+"--velocityY="+velocityY);
-			if (velocityY > SysApplication.SNAP_VELOCITY 
-			    && Math.abs(velocityX) < SysApplication.SNAP_VELOCITY) {
-			    if(mCanTouch){
-				SysApplication.getInstance().exit();
-			    }
-			}
-			return true;
-		    }
+		    return true;
+		}
 	    });
     }
 

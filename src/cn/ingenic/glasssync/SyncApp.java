@@ -8,6 +8,7 @@ import cn.ingenic.glasssync.phone.PhoneModule;
 import cn.ingenic.glasssync.appmanager.AppManagerModule;
 import cn.ingenic.glasssync.calendar.CalendarModule;
 import cn.ingenic.glasssync.camera.CameraModule;
+import cn.ingenic.glasssync.screen.control.ScreenControlModule;
 import cn.ingenic.glasssync.services.SyncService;
 import cn.ingenic.glasssync.updater.UpdaterModule;
 import cn.ingenic.glasssync.notify.GlassSyncNotifyModule;
@@ -57,6 +58,9 @@ public class SyncApp extends Application implements
         }
         //app manager
         AppManagerModule.getInstance(this);
+        
+        //screen controller
+        ScreenControlModule.getInstance(this);
         
         DeviceModule dm = DeviceModule.getInstance();
         if(manager.registModule(dm)){

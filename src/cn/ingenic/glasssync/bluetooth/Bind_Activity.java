@@ -13,8 +13,8 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
-import android.view.GestureDetector;
-import android.view.GestureDetector.SimpleOnGestureListener;
+import android.widget.GestureDetector;
+import android.widget.GestureDetector.SimpleOnGestureListener;
 
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -95,42 +95,30 @@ public class Bind_Activity extends Activity{
 
     private void gestureDetectorWorker(){
 	mGestureDetector =  new GestureDetector(this,new SimpleOnGestureListener() {
-		      // Touch down时触发
-		    @Override
-			public boolean onDown(MotionEvent e) {
-			if(DEBUG) Log.d(TAG,"---onDown in");
-			return true;
-		    }
-		    
-		    @Override
-			public boolean onFling(MotionEvent e1, MotionEvent e2,
-					       float velocityX, float velocityY) {
-			if (velocityY > SysApplication.SNAP_VELOCITY 
-			    && Math.abs(velocityX) < SysApplication.SNAP_VELOCITY) {
-			    if(DEBUG) Log.d(TAG,"---downslide");
-			    SysApplication.getInstance().exit();
-			}
-			return true;
-		    }
+		@Override
+		public boolean onSlideDown(boolean fromPhone){		    
+		    if(DEBUG) Log.d(TAG,"---onSlideDown");
+		    SysApplication.getInstance().exit();
+		    return true;
+		}
 
-		    @Override
-			public boolean onSingleTapConfirmed(MotionEvent e) {
-			if(DEBUG) Log.d(TAG,"---onSingleTapConfirmed in");
-			if(mCurrentView == DISBOND_VIEW){
-			    Intent load = new Intent(Bind_Activity.this,Welcome_Activity.class);
-			    startActivity(load);
-			    finish();
-			}
-			return true;
+		@Override
+		public boolean onTap(boolean fromPhone){
+		    if(DEBUG) Log.d(TAG,"---onTap in");
+		    if(mCurrentView == DISBOND_VIEW){
+			Intent load = new Intent(Bind_Activity.this,Welcome_Activity.class);
+			startActivity(load);
+			finish();
 		    }
+		    return true;
+		}
 
-		    
-		    @Override
-			public void onLongPress(MotionEvent e) {
-			if(DEBUG) Log.d(TAG,"---onLongPress remote address="+mMobileAddress);
-			disableBond();
-		    }
-		    
+		@Override
+		public boolean onLongPress(boolean fromPhone){
+		    if(DEBUG) Log.d(TAG,"---onLongPress remote address="+mMobileAddress);
+		    disableBond();
+		    return true;
+		}		    
 	    });
     }
     class myTouchListener implements OnTouchListener {

@@ -27,8 +27,8 @@ import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.SurfaceHolder.Callback;
 import android.view.View.OnTouchListener;
-import android.view.GestureDetector;
-import android.view.GestureDetector.SimpleOnGestureListener;
+import android.widget.GestureDetector;
+import android.widget.GestureDetector.SimpleOnGestureListener;
 
 import android.view.SurfaceView;
 import android.widget.FrameLayout;
@@ -209,24 +209,11 @@ public class CaptureActivity extends Activity implements Callback ,OnTouchListen
 
     private void gestureDetectorWorker(){
 	mGestureDetector =  new GestureDetector(this,new SimpleOnGestureListener() {
-		      // Touch down时触发
 		    @Override
-			public boolean onDown(MotionEvent e) {
-			if(DEBUG) Log.d(TAG,"---onDown in");
+		    public boolean onSlideDown(boolean fromPhone){		    
+			CaptureActivity.this.finish();
 			return true;
-		    }
-		    
-		    @Override
-			public boolean onFling(MotionEvent e1, MotionEvent e2,
-					       float velocityX, float velocityY) {
-			if(DEBUG) Log.d(TAG,"---velocityX="+velocityX+"--velocityY="+velocityY);
-			if (velocityY > SysApplication.SNAP_VELOCITY 
-			    && Math.abs(velocityX) < SysApplication.SNAP_VELOCITY) {
-			    CaptureActivity.this.finish();
-			}
-			return true;
-		    }
-		    		    
+		    }		    		    
 	    });
     }
 
