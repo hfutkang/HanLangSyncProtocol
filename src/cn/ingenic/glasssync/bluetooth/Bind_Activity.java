@@ -95,6 +95,10 @@ public class Bind_Activity extends Activity{
 
     private void gestureDetectorWorker(){
 	mGestureDetector =  new GestureDetector(this,new SimpleOnGestureListener() {
+		 @Override
+		    public boolean onDown(boolean fromPhone){		    
+			    return true;
+		    }
 		@Override
 		public boolean onSlideDown(boolean fromPhone){		    
 		    if(DEBUG) Log.d(TAG,"---onSlideDown");

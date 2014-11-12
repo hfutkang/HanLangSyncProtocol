@@ -2,8 +2,10 @@ package cn.ingenic.glasssync.bluetooth;
 import cn.ingenic.glasssync.R;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -21,12 +23,13 @@ public class Welcome_Activity extends Activity implements OnTouchListener{
     private static final boolean DEBUG = true;
 
     public static BluetoothAdapter sBluetoothAdapter;
-
-    private LinearLayout mlayout_welcome;
+    public BluetoothDevice pairDeivce;
+    private LinearLayout mlayout_welcome,mlayout_pairing;
     private GestureDetector mGestureDetector;
     private static final int ERROR_VIEW = 1;
     private static final int WELCOME_VIEW = 2;
-
+    private static final int PAIRING_VIEW=3;
+    private TextView mPairing_info;
     private int mCurrentView = 0;
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -54,13 +57,27 @@ public class Welcome_Activity extends Activity implements OnTouchListener{
 	    Welcome_Activity.this.finish();
 	    
 	} else {
-	    TextView tv = (TextView) findViewById(R.id.pre_info);
-	    tv.setVisibility(View.INVISIBLE);
+		String start=getIntent().getStringExtra("start");
+		if(null!=start){
+			MediaPlayer player = MediaPlayer.create(Welcome_Activity.this, R.raw.pair);
+			player.start();
+			mlayout_pairing=(LinearLayout)findViewById(R.id.Layout_pairing);
+			mPairing_info=(TextView) findViewById(R.id.device_info);
+			mlayout_pairing.setVisibility(View.VISIBLE);
+			mlayout_pairing.setOnTouchListener(this);
+			pairDeivce=getIntent().getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+			mPairing_info.setText(pairDeivce.getName());
+			mCurrentView=PAIRING_VIEW;
+		}else{
+			TextView tv = (TextView) findViewById(R.id.pre_info);
+		    tv.setVisibility(View.INVISIBLE);
+		    
+		    mlayout_welcome = (LinearLayout) findViewById(R.id.Layout_welcome);
+		    mlayout_welcome.setOnTouchListener(this);
+		    mlayout_welcome.setVisibility(View.VISIBLE);			
+		    mCurrentView = WELCOME_VIEW;
+		}
 	    
-	    mlayout_welcome = (LinearLayout) findViewById(R.id.Layout_welcome);
-	    mlayout_welcome.setOnTouchListener(this);
-	    mlayout_welcome.setVisibility(View.VISIBLE);			
-	    mCurrentView = WELCOME_VIEW;
 	}
 	super.onStart();
     }
@@ -94,6 +111,10 @@ public class Welcome_Activity extends Activity implements OnTouchListener{
 
     private void gestureDetectorWorker(){
 	mGestureDetector =  new GestureDetector(this,new SimpleOnGestureListener() {
+		  @Override
+		    public boolean onDown(boolean fromPhone){		    
+			    return true;
+		    }
 		    @Override
 		    public boolean onSlideDown(boolean fromPhone){		    
 			    Welcome_Activity.this.finish();
@@ -108,6 +129,9 @@ public class Welcome_Activity extends Activity implements OnTouchListener{
 			    Intent sacn = new Intent(Welcome_Activity.this,CaptureActivity.class);
 			    startActivity(sacn);
 			    Welcome_Activity.this.finish();
+			}else if(mCurrentView==PAIRING_VIEW){
+				pairDeivce.setPairingConfirmation(true);
+				Welcome_Activity.this.finish();
 			}
 			return true;
 		    }

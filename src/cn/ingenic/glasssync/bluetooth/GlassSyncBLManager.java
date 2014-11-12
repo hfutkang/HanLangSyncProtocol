@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Environment;
 import android.bluetooth.BluetoothDevice;
+import cn.ingenic.glasssync.bluetooth.Welcome_Activity;;
 
 public class GlassSyncBLManager {
     private static final String TAG = "GlassSyncBLManager";
@@ -51,7 +52,13 @@ public class GlassSyncBLManager {
 		if (type == BluetoothDevice.PAIRING_VARIANT_PASSKEY_CONFIRMATION){
 		    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 		    Log.e(TAG, "setPairingConfirmation true");
-		    device.setPairingConfirmation(true);
+		    Intent pairIntent=new Intent();
+		    pairIntent.setClass(context, Welcome_Activity.class);
+		    pairIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
+		    pairIntent.putExtra("start", "receiver");
+		    pairIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		    context.startActivity(pairIntent);
+		    //device.setPairingConfirmation(true);
 		}
 	    }
         }

@@ -239,6 +239,11 @@ public class Load_Activity extends Activity implements OnTouchListener{
     private void gestureDetectorWorker(){
 	mGestureDetector =  new GestureDetector(this, new SimpleOnGestureListener() {
 		@Override
+		public boolean onDown(boolean fromPhone) {
+			return true;
+					}
+
+		@Override
 		public boolean onSlideDown(boolean fromPhone){		    
 		    Log.e(TAG, "onSlideDown ....................");
 		    if(mCanTouch){

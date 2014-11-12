@@ -222,6 +222,9 @@ Code scanning page, by clicking on the screen to add binding equipment</string>
     <string name="toast_message">Click on the screen to bind or slipped through the exit application</string>
    <string name="bind_message">\u0020 \u0020 \u0020Please confirm the binding information in the mobile terminal.</string>
     <string name="bind_connect">\u0020 \u0020 \u0020 Is connect mobile phone, please later</string>
+    <string name="pairing_request_title">Bluetooth pairing request</string>
+    <string name="pairing_request_button">Click ok,Decline to cancel</string>
+    <string name="pairing_info">To be paired with the following equipment:</string>
 
 </resources>
 
