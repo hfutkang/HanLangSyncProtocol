@@ -62,12 +62,12 @@ public class Load_Activity extends Activity implements OnTouchListener{
 		case MESSAGE_CONNECT_FAILED:
 		    mManger.setLockedAddress("");
 		    mManger.disconnect();
-		    
+		    mDevice.removeBond();
 		    TextView tv = (TextView) findViewById(R.id.tv_load);
 		    tv.setText(R.string.unbind);
 		    mCanTouch = true;
                     break;    
-                case MESSAGE_BOND_BONDED:
+       case MESSAGE_BOND_BONDED:
 		    mManger.glass_connect(mAddress);
                     break;    
 		case MESSAGE_CONNECT_SUCCESS:
@@ -89,7 +89,7 @@ public class Load_Activity extends Activity implements OnTouchListener{
 	SysApplication.getInstance().addActivity(this); 
 	
 	String device_info = intent.getStringExtra("result");
-	Log.d(TAG,"----device_info="+device_info);
+	if(DEBUG)Log.d(TAG,"----device_info="+device_info);
 	strarray = device_info.split(",");
 	mAddress = strarray[0];
 	String isConnect = strarray[1];
@@ -135,9 +135,16 @@ public class Load_Activity extends Activity implements OnTouchListener{
 		public void run() {
 		TextView tv = (TextView) findViewById(R.id.tv_load);
 		tv.setText(R.string.loading);
-	       
+		if(DEBUG)Log.d(TAG, mManger.getLockedAddress()+"mManger.getLockedAddress()");
 		mManger.setLockedAddress("");
 		mManger.disconnect();
+		Set<BluetoothDevice> device=mBTAdapter.getBondedDevices();
+		if(device.size()!=0){
+			for(BluetoothDevice bluetoothDevice:device){
+				bluetoothDevice.removeBond();
+				if(DEBUG)Log.d(TAG, bluetoothDevice.getName()+"bonddevice_name");
+			}
+		}
 		try {
 		    Thread.sleep(10000); //wait what?
 		} catch (InterruptedException e) {}
@@ -193,7 +200,7 @@ public class Load_Activity extends Activity implements OnTouchListener{
 		    if(DEBUG) Log.e(TAG, "ACTION_BOND_STATE_CHANGED");
 		    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 		    if (device != null)
-			Log.d(TAG, "Name : " + device.getName() + " Address:"+ device.getAddress());
+		    if(DEBUG)Log.d(TAG, "Name : " + device.getName() + " Address:"+ device.getAddress());
 		    Message msg = new Message();
 		    switch (device.getBondState()) {    
 		    case BluetoothDevice.BOND_BONDING:    
@@ -245,7 +252,7 @@ public class Load_Activity extends Activity implements OnTouchListener{
 
 		@Override
 		public boolean onSlideDown(boolean fromPhone){		    
-		    Log.e(TAG, "onSlideDown ....................");
+			if(DEBUG)Log.e(TAG, "onSlideDown ....................");
 		    if(mCanTouch){
 			SysApplication.getInstance().exit();
 		    }

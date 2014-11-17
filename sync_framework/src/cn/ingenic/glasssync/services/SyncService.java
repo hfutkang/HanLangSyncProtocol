@@ -54,7 +54,7 @@ public class SyncService extends Service {
 		        System.currentTimeMillis());
 		notification.setLatestEventInfo(this, getText(R.string.app_name),
 		        getText(R.string.service_msg), null);
-		startForeground(1099, notification);
+		startForeground(0, notification);
 	}
 
 	@Override
