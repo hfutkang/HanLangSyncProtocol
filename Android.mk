@@ -22,6 +22,10 @@ LOCAL_AAPT_FLAGS := --auto-add-overlay
 # Builds against the public SDK
 #LOCAL_SDK_VERSION := current
 
+LOCAL_JNI_SHARED_LIBRARIES := libscreencap_jni
+LOCAL_REQUIRED_MODULES := libscreencap_jni
+
+
 include $(BUILD_PACKAGE)
 
 # This finds and builds the test apk as well, so a single make does both.

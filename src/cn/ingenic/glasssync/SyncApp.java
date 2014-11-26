@@ -22,6 +22,7 @@ import cn.ingenic.glasssync.wifi.GlassSyncWifiModule;
 import cn.ingenic.glasssync.multimedia.MultiMediaManager;
 import cn.ingenic.glasssync.lbs.GlassSyncLbsManager;
 import cn.ingenic.glasssync.blmanager.GlassSyncBLManager;
+import cn.ingenic.glasssync.screen.screenshare.ScreenModule;
 
 
 public class SyncApp extends Application implements
@@ -77,6 +78,10 @@ public class SyncApp extends Application implements
 	    //GlassSyncLbsManager mGslbs = GlassSyncLbsManager.getInstance(this);
 	    GlassSyncBLManager gsblm = GlassSyncBLManager.getInstance(this);
 
+	    Log.v(LogTag.APP,"before ScreenModule");
+	    //if (android.os.Build.VERSION.SDK_INT >= 16) {
+		ScreenModule mSM= ScreenModule.getInstance(this);
+		// }
         UpdaterModule um = new UpdaterModule();
         if (manager.registModule(um)) {
             Log.i(LogTag.APP, "UpdaterModule is registed.");
