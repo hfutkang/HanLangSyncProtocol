@@ -16,7 +16,7 @@ public abstract class Module {
 	
 	private final String mName;
 	private final String[] mFeatures;
-	
+    private boolean mSyncEnabled;
 	public Module(String name) {
 		this(name, new String[]{name});
 	}
@@ -32,8 +32,16 @@ public abstract class Module {
 		
 		mName = name;
 		mFeatures = features;
+		mSyncEnabled = true;
 	}
 	
+    public void setSyncEnable(boolean enabled){
+	    mSyncEnabled = enabled;
+	}
+    public boolean getSyncEnable(){
+	    return mSyncEnabled;
+	}
+
 	protected void onFeatureStateChange(String feature, boolean enabled) {
 	}
 	

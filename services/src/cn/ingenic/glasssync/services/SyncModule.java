@@ -43,7 +43,19 @@ public abstract class SyncModule {
 	public static final int FEATURE_DISABLED = SUCCESS - 2;
 	public static final int NO_LOCKED_ADDRESS = SUCCESS - 3;
 	
+        private boolean mSyncEnabled = true;
 	private class ModuleCallback extends IModuleCallback.Stub {
+		@Override
+		public void setSyncEnable(boolean enabled){
+		    Log.v(TAG, "---ModuleCallback--setSyncEnable---" + enabled);
+		    mSyncEnabled = enabled;
+		}
+
+		@Override
+		public boolean getSyncEnable(){
+		    Log.v(TAG, "---ModuleCallback--getSyncEnable---" + mSyncEnabled);
+		    return mSyncEnabled;
+		}
 
 		@Override
 		public void onClear(String address) throws RemoteException {
@@ -290,6 +302,16 @@ public abstract class SyncModule {
 	
 	public final String getName() {
 		return mName;
+	}
+
+        public void setSyncEnable(boolean enabled){
+	    Log.v(TAG, "---SyncMode--setSyncEnable---" + enabled);
+	    mSyncEnabled = enabled;
+	}
+    
+	public boolean getSyncEnable(){
+	Log.v(TAG, "---SyncMode--getSyncEnable---" + mSyncEnabled);
+	return mSyncEnabled;
 	}
 
 	public boolean isConnected() throws SyncException {

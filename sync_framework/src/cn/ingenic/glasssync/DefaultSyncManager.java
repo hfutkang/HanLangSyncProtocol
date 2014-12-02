@@ -269,7 +269,9 @@ public class DefaultSyncManager extends Handler {
 						}
 						
 						for (Module m : mModules.values()) {
-							m.onConnectivityStateChange(true);
+						    if(env.isWatch() && m.getSyncEnable()){
+						    	m.onConnectivityStateChange(true);
+						     }
 						}
 						
 						mConnected = true;

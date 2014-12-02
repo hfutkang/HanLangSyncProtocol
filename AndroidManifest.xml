@@ -186,6 +186,37 @@
                 <data android:host="com.android.calendar" />
             </intent-filter>
         </receiver>
+
+	<!-- for contacts -->
+        <receiver android:name="cn.ingenic.glasssync.contact.SyncServiceReceiver" >
+            <intent-filter>
+                <action android:name="action.sync_service_ready.RECEIVER" />
+                <action android:name="action.sync_service_ready.restart_module" />
+            </intent-filter>
+        </receiver>
+
+        <provider
+            android:name="cn.ingenic.glasssync.contact.ContactsLiteProvider"
+            android:authorities="cn.ingenic.contactslite"
+            android:exported="true"
+            android:multiprocess="false"
+            android:readPermission="android.permission.READ_CONTACTS"
+            android:writePermission="android.permission.WRITE_CONTACTS" />
+
+	<!-- for sms -->
+        <receiver android:name="cn.ingenic.glasssync.sms.SyncServiceReceiver">
+            <intent-filter>
+                <action android:name="action.sync_service_ready.RECEIVER"/>
+                <action android:name="action.sync_service_ready.restart_module"/>
+            </intent-filter>
+        </receiver>
+      
+        <provider
+            android:name="cn.ingenic.glasssync.sms.SmsMidProvider"
+            android:authorities="sms-dest"
+            android:grantUriPermissions="true"
+            android:exported="true"/>
+
     </application>
 
 </manifest>

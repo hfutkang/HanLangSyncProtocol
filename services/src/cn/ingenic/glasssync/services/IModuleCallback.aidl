@@ -4,6 +4,11 @@ import cn.ingenic.glasssync.services.SyncData;
 import android.os.ParcelUuid;
 
 interface IModuleCallback {
+	
+    void setSyncEnable(boolean enabled);
+
+    boolean getSyncEnable();
+
 	void onInit();
 
 	void onCreate();

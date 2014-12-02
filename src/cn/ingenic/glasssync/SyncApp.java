@@ -23,6 +23,8 @@ import cn.ingenic.glasssync.multimedia.MultiMediaManager;
 import cn.ingenic.glasssync.lbs.GlassSyncLbsManager;
 import cn.ingenic.glasssync.blmanager.GlassSyncBLManager;
 import cn.ingenic.glasssync.screen.screenshare.ScreenModule;
+import cn.ingenic.glasssync.contact.ContactsLiteModule;
+import cn.ingenic.glasssync.sms.SmsModule;
 
 
 public class SyncApp extends Application implements
@@ -101,6 +103,8 @@ public class SyncApp extends Application implements
         
         //screen controller
         ScreenControlModule.getInstance(this);
+	    ContactsLiteModule.getInstance(this);
+    	SmsModule.getInstance(this);
         
         DeviceModule dm = DeviceModule.getInstance();
         if(manager.registModule(dm)){

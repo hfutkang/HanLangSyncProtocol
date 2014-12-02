@@ -255,6 +255,26 @@ public class SyncService extends Service {
 		}
 
 		@Override
+		public void setSyncEnable(boolean enabled){
+		    try {
+			mCallback.setSyncEnable(enabled);
+		    } catch (Exception e) {
+			loge("Exception:", e);
+		    }
+		}
+
+		@Override
+		public boolean getSyncEnable(){
+		    boolean ret = false;
+		    try {
+			ret = mCallback.getSyncEnable();
+		    } catch (Exception e) {
+			loge("Exception:", e);
+		    }
+		    return ret;
+		}
+
+		@Override
 		protected void onCreate(Context context) {
 			try {
 				mCallback.onCreate();
