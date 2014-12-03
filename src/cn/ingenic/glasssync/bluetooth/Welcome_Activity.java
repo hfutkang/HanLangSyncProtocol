@@ -17,7 +17,7 @@ import android.widget.GestureDetector;
 import android.widget.GestureDetector.SimpleOnGestureListener;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
+import cn.ingenic.glasssync.DefaultSyncManager;
 public class Welcome_Activity extends Activity implements OnTouchListener{
     private static final String TAG = "Welcome_Activity";
     private static final boolean DEBUG = true;
@@ -44,11 +44,11 @@ public class Welcome_Activity extends Activity implements OnTouchListener{
 	mCurrentView = 0;
 	gestureDetectorWorker();
 	Enabke();
-	
 	SharedPreferences tsp = getSharedPreferences("MAC_INFO", MODE_PRIVATE);
 	String mAddress=tsp.getString("mAddress", null);
 	if(DEBUG) Log.e(TAG, "mAddress:" + mAddress);
-	if (mAddress!=null) {			
+	DefaultSyncManager mManager=DefaultSyncManager.getDefault();
+	if (!mManager.getLockedAddress().equals("")) {			
 	    Intent bind = new Intent(Welcome_Activity.this,Bind_Activity.class);
 	    // bind.putExtra("mAddress", mAddress);
 	    bind.putExtra("Tag", 1);

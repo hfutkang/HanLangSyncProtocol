@@ -35,7 +35,7 @@ public class Bind_Activity extends Activity{
     private static final int DISBOND_VIEW = 2;
 
     private int mCurrentView = 1;
-    
+    private BluetoothAdapter mBluetoothAdapter ;
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
 	super.onCreate(savedInstanceState);
@@ -58,6 +58,8 @@ public class Bind_Activity extends Activity{
 	SharedPreferences mpreferences = getSharedPreferences("MAC_INFO", MODE_PRIVATE);
 	mMobileName = mpreferences.getString("mDevice", null);
 	mMobileAddress= mpreferences.getString("mAddress", null);
+	mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+	mDevice = mBluetoothAdapter.getRemoteDevice(mMobileAddress);
 	SharedPreferences tsp = mContext.getSharedPreferences("MAC_INFO", MODE_PRIVATE);
 	int tag = getIntent().getIntExtra("Tag", 1);
 	  // sBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -78,6 +80,7 @@ public class Bind_Activity extends Activity{
     private void disableBond(){
 	mManger.setLockedAddress("");
 	mManger.disconnect();
+	mDevice.removeBond();
 	SharedPreferences tsp = mContext.getSharedPreferences("MAC_INFO", MODE_PRIVATE);
 	Editor editor = tsp.edit();
 	editor.putString("mAddress", null);
