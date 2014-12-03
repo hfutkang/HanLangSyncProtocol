@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
@@ -44,15 +43,10 @@ public class Welcome_Activity extends Activity implements OnTouchListener{
 	mCurrentView = 0;
 	gestureDetectorWorker();
 	Enabke();
-	SharedPreferences tsp = getSharedPreferences("MAC_INFO", MODE_PRIVATE);
-	String mAddress=tsp.getString("mAddress", null);
-	if(DEBUG) Log.e(TAG, "mAddress:" + mAddress);
 	DefaultSyncManager mManager=DefaultSyncManager.getDefault();
 	if (!mManager.getLockedAddress().equals("")) {			
 	    Intent bind = new Intent(Welcome_Activity.this,Bind_Activity.class);
-	    // bind.putExtra("mAddress", mAddress);
 	    bind.putExtra("Tag", 1);
-	      //  bind.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK); 
 	    startActivity(bind);
 	    Welcome_Activity.this.finish();
 	    

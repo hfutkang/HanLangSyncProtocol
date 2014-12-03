@@ -10,14 +10,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.LinearLayout;
@@ -162,12 +159,6 @@ public class Load_Activity extends Activity implements OnTouchListener{
 
     private void bluetoothBonded(){
 	Intent bind = new Intent(Load_Activity.this,Bind_Activity.class);
-	SharedPreferences tsp = mContext.getSharedPreferences("MAC_INFO", MODE_PRIVATE);
-	Editor editor = tsp.edit();
-	editor.putString("mAddress", mAddress);
-	editor.putString("mDevice", mDevice.getName());
-	editor.commit();
-	
 	bind.putExtra("Tag", 2);
 	startActivity(bind);
 	finish();

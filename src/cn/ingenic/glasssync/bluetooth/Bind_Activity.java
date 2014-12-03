@@ -6,8 +6,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -25,8 +23,6 @@ public class Bind_Activity extends Activity{
     private static final boolean DEBUG = true;
 
     private DefaultSyncManager mManger;
-    private String mMobileAddress;
-    private String mMobileName;
     private BluetoothDevice mDevice;
     private Context mContext;
     private GestureDetector mGestureDetector;
@@ -55,23 +51,20 @@ public class Bind_Activity extends Activity{
     @Override
 	protected void onStart() {
 	super.onStart();
-	SharedPreferences mpreferences = getSharedPreferences("MAC_INFO", MODE_PRIVATE);
-	mMobileName = mpreferences.getString("mDevice", null);
-	mMobileAddress= mpreferences.getString("mAddress", null);
 	mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-	mDevice = mBluetoothAdapter.getRemoteDevice(mMobileAddress);
-	SharedPreferences tsp = mContext.getSharedPreferences("MAC_INFO", MODE_PRIVATE);
+	String bindAddress = mManger.getLockedAddress();
+	mDevice = mBluetoothAdapter.getRemoteDevice(bindAddress);
+	String bindName = mDevice.getName();
+
 	int tag = getIntent().getIntExtra("Tag", 1);
-	  // sBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 	
 	TextView tv = (TextView)findViewById(R.id.tv_mobile);
-	if(DEBUG) Log.e(TAG, "onStart in tag="+tag);
+	if(DEBUG) Log.e(TAG, "onStart in tag="+tag +"--bindAddress="+bindAddress+"--bindName="+bindName);
 	if (tag == 1) {
-	    tv.setText(mMobileName);
-	      //if (mAddress != null)
-	    mManger.glass_connect(mMobileAddress);
+	    tv.setText(bindName);
+	    mManger.glass_connect(bindAddress);
 	} else if (tag == 2) {
-	    tv.setText(mMobileName);
+	    tv.setText(bindName);
 	}
 
 	gestureDetectorWorker();
@@ -81,11 +74,6 @@ public class Bind_Activity extends Activity{
 	mManger.setLockedAddress("");
 	mManger.disconnect();
 	mDevice.removeBond();
-	SharedPreferences tsp = mContext.getSharedPreferences("MAC_INFO", MODE_PRIVATE);
-	Editor editor = tsp.edit();
-	editor.putString("mAddress", null);
-	editor.putString("mDevice", null);
-	editor.commit();
 
 	LinearLayout layout_bind = (LinearLayout) findViewById(R.id.layout_bind);
 	layout_bind.setVisibility(View.GONE);
@@ -122,7 +110,7 @@ public class Bind_Activity extends Activity{
 
 		@Override
 		public boolean onLongPress(boolean fromPhone){
-		    if(DEBUG) Log.d(TAG,"---onLongPress remote address="+mMobileAddress);
+		    if(DEBUG) Log.d(TAG,"---onLongPress remote address=");
 		    disableBond();
 		    return true;
 		}		    
