@@ -62,11 +62,11 @@ public class SmsMidProvider extends MidDestContentProvider {
 			table = Sms.THREAD_NAME;
 			break;
 		case THREAD_CHECK:
-			// if(selection==null||selection.equals("")){
-			// 	checkDeleteThreadData();
-			// }else{
-			// 	checkDeleteThreadDate(selection);
-			// }
+			if(selection==null||selection.equals("")){
+				checkDeleteThreadData();
+			}else{
+				checkDeleteThreadDate(selection);
+			}
 			return 0x00;
 		case THREAD_DELETE_ALL:
 			table = Sms.THREAD_NAME;
@@ -90,89 +90,89 @@ public class SmsMidProvider extends MidDestContentProvider {
 //				+" AND "+Sms.SMS_NAME+"."+Sms.SmsColumns.TYPE+" = "+Sms.MESSAGE_TYPE_DRAFT+"))";
 //	}
 	
-	// private void checkDeleteThreadData(){
-	// 	Cursor allSmsCursor = query(SmsEntry.SmsUri.SMS_URI,SmsEntry.PROJECTION, null, null,
-	// 			null);
-	// 	if (Sms.DEBUG)
-	// 		Log.i(Sms.TAG,
-	// 				"checkThread data sms cursor count is :"
-	// 						+ allSmsCursor.getCount());
-	// 	if (allSmsCursor.getCount() == 0) {
-	// 		allSmsCursor.close();
-	// 		this.getWritableDatabase().delete(Sms.THREAD_NAME, null, null);
-	// 		return;
-	// 	}
-	// 	allSmsCursor.moveToFirst();
+	private void checkDeleteThreadData(){
+		Cursor allSmsCursor = query(SmsEntry.SmsUri.SMS_URI,SmsEntry.PROJECTION, null, null,
+				null);
+		if (Sms.DEBUG)
+			Log.i(Sms.TAG,
+					"checkThread data sms cursor count is :"
+							+ allSmsCursor.getCount());
+		if (allSmsCursor.getCount() == 0) {
+			allSmsCursor.close();
+			this.getWritableDatabase().delete(Sms.THREAD_NAME, null, null);
+			return;
+		}
+		allSmsCursor.moveToFirst();
 		
-	// 	Map<Long,SmsEntry> smsEntryMap=new HashMap<Long,SmsEntry>();
-	// 	String ALL_SMS_PHONE_THREAD_ID = null;
-	// 	do {
-	// 		SmsEntry se=new SmsEntry(allSmsCursor);
-	// 		smsEntryMap.put(se.getMidKey(), se);
+		Map<Long,SmsEntry> smsEntryMap=new HashMap<Long,SmsEntry>();
+		String ALL_SMS_PHONE_THREAD_ID = null;
+		do {
+			SmsEntry se=new SmsEntry(allSmsCursor);
+			smsEntryMap.put(se.getMidKey(), se);
 
-	// 		if (ALL_SMS_PHONE_THREAD_ID == null) {
-	// 				ALL_SMS_PHONE_THREAD_ID = String.valueOf(se.getPhoneThreadId());
-	// 		} else {
-	// 				ALL_SMS_PHONE_THREAD_ID = ALL_SMS_PHONE_THREAD_ID + ","
-	// 						+ se.getPhoneThreadId();
-	// 		}
-	// 	} while (allSmsCursor.moveToNext());
-	// 	allSmsCursor.close();
-	// 	if (Sms.DEBUG)
-	// 		Log.i(Sms.TAG, "checkThread data delete selectionArgs is :"
-	// 				+ ALL_SMS_PHONE_THREAD_ID);
-	// 	this.getWritableDatabase().delete(
-	// 			Sms.THREAD_NAME,
-	// 			Sms.ThreadColumns.PHONE_THREAD_ID + " NOT IN ("
-	// 					+ ALL_SMS_PHONE_THREAD_ID + ")", null);
-	// }
+			if (ALL_SMS_PHONE_THREAD_ID == null) {
+					ALL_SMS_PHONE_THREAD_ID = String.valueOf(se.getPhoneThreadId());
+			} else {
+					ALL_SMS_PHONE_THREAD_ID = ALL_SMS_PHONE_THREAD_ID + ","
+							+ se.getPhoneThreadId();
+			}
+		} while (allSmsCursor.moveToNext());
+		allSmsCursor.close();
+		if (Sms.DEBUG)
+			Log.i(Sms.TAG, "checkThread data delete selectionArgs is :"
+					+ ALL_SMS_PHONE_THREAD_ID);
+		this.getWritableDatabase().delete(
+				Sms.THREAD_NAME,
+				Sms.ThreadColumns.PHONE_THREAD_ID + " NOT IN ("
+						+ ALL_SMS_PHONE_THREAD_ID + ")", null);
+	}
 
-	// private void checkDeleteThreadDate(String selection) {
-	// 	Cursor allSmsCursor = query(SmsEntry.SmsUri.SMS_URI,SmsEntry.PROJECTION, null, null,
-	// 			null);
-	// 	if (allSmsCursor.getCount() == 0) {
-	// 		allSmsCursor.close();
-	// 		return;
-	// 	}
-	// 	allSmsCursor.moveToFirst();
-	// 	Map<String,SmsEntry> smsEntryMap=new HashMap<String,SmsEntry>();
-	// 	do {
-	// 		SmsEntry se=new SmsEntry(allSmsCursor);
-	// 		smsEntryMap.put(String.valueOf(se.getMidKey()), se);
-	// 	} while (allSmsCursor.moveToNext());	
-	// 	allSmsCursor.close();
+	private void checkDeleteThreadDate(String selection) {
+		Cursor allSmsCursor = query(SmsEntry.SmsUri.SMS_URI,SmsEntry.PROJECTION, null, null,
+				null);
+		if (allSmsCursor.getCount() == 0) {
+			allSmsCursor.close();
+			return;
+		}
+		allSmsCursor.moveToFirst();
+		Map<String,SmsEntry> smsEntryMap=new HashMap<String,SmsEntry>();
+		do {
+			SmsEntry se=new SmsEntry(allSmsCursor);
+			smsEntryMap.put(String.valueOf(se.getMidKey()), se);
+		} while (allSmsCursor.moveToNext());	
+		allSmsCursor.close();
 		
-	// 	String[] midKeyArray=selection.split(",");
-	// 	ArrayList<Long> haveUpdateThreadList=new ArrayList<Long>();
-	// 	for(String mid_key:midKeyArray){
-	// 		SmsEntry se=smsEntryMap.get(mid_key);
-	// 		if(se==null){
-	// 			Log.e("yangliu","sms table no this delete mid key!");
-	// 			continue;
-	// 		}
-	// 		long phoneThreadId=se.getPhoneThreadId();
-	// 		if(haveUpdateThreadList.contains(phoneThreadId))continue;
+		String[] midKeyArray=selection.split(",");
+		ArrayList<Long> haveUpdateThreadList=new ArrayList<Long>();
+		for(String mid_key:midKeyArray){
+			SmsEntry se=smsEntryMap.get(mid_key);
+			if(se==null){
+				Log.e("yangliu","sms table no this delete mid key!");
+				continue;
+			}
+			long phoneThreadId=se.getPhoneThreadId();
+			if(haveUpdateThreadList.contains(phoneThreadId))continue;
 			
-	// 		Cursor cursor=query(SmsEntry.SmsUri.SMS_URI,new String[]{"MAX("+Sms.SmsColumns.DATE+")"},
-	// 				Sms.SmsColumns.PHONE_THREAD_ID+"="+phoneThreadId+" AND "
-	// 				+Sms.MID_KEY_COLUMN+" NOT IN("+selection+")",null,null);
-	// 		if(cursor.getCount()==0){
-	// 			cursor.close();
-	// 			continue;
-	// 		}
-	// 		cursor.moveToFirst();
-	// 		long date=cursor.getLong(0);
-	// 		cursor.close();
-	// 		ContentValues cv=new ContentValues();
-	// 		cv.put(Sms.ThreadColumns.DATE, date);
-	// 		update(ThreadEntry.ThreadUri.THREAD_URI,cv,
-	// 				Sms.ThreadColumns.PHONE_THREAD_ID+"="+se.getPhoneThreadId(),null);
-	// 		haveUpdateThreadList.add(phoneThreadId);
+			Cursor cursor=query(SmsEntry.SmsUri.SMS_URI,new String[]{"MAX("+Sms.SmsColumns.DATE+")"},
+					Sms.SmsColumns.PHONE_THREAD_ID+"="+phoneThreadId+" AND "
+					+Sms.MID_KEY_COLUMN+" NOT IN("+selection+")",null,null);
+			if(cursor.getCount()==0){
+				cursor.close();
+				continue;
+			}
+			cursor.moveToFirst();
+			long date=cursor.getLong(0);
+			cursor.close();
+			ContentValues cv=new ContentValues();
+			cv.put(Sms.ThreadColumns.DATE, date);
+			update(ThreadEntry.ThreadUri.THREAD_URI,cv,
+					Sms.ThreadColumns.PHONE_THREAD_ID+"="+se.getPhoneThreadId(),null);
+			haveUpdateThreadList.add(phoneThreadId);
 			
-	// 	}
+		}
 		
 
-	// }
+	}
 	
 //	private String[] removeSameData(String[] old){
 //		ArrayList<String> list=new ArrayList<String>();
