@@ -6,7 +6,6 @@ import android.util.Log;
 import java.util.ArrayList;
 import android.os.Handler;
 import android.content.BroadcastReceiver;
-import android.telephony.SmsManager;
 import android.app.PendingIntent;
 import android.app.Activity;
 import android.content.IntentFilter;
