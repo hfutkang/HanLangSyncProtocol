@@ -22,7 +22,7 @@ LOCAL_C_INCLUDES := \
 	external/skia/include/effects \
 	external/skia/include/images \
 	external/skia/src/ports \
-	external/skia/include/utils
+	external/skia/include/utils 
 
 LOCAL_MODULE:= libscreencap_jni
 

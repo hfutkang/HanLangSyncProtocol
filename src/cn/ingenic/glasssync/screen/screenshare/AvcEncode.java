@@ -19,17 +19,21 @@ import cn.ingenic.glasssync.screen.screenshare.ScreenModule;
 
 public class AvcEncode {
     private static String TAG = "AvcEncode";
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final boolean TEST = false;
+    private static final boolean MTIMER = false;
     private static final String MIME_TYPE = "video/avc"; // H.264 AVC encoding
     private static final String ENCODER_NAME = "OMX.google.h264.encoder";
     private static final int BIT_RATE = 2000000;            // 2Mbps
     private static final int FRAME_RATE = 25; // 30fps
     private static final int IFRAME_INTERVAL = 10; // 1 seconds between I-frames
-    private static final int TIMEOUT_USEC = 5000; // Timeout value 10ms.
+    private static final int TIMEOUT_USEC = 5000;//5000; // Timeout value 10ms.
     private static final int FRAME_NUM = 200; 
 
     private int mWidth, mHeight;
+    private int outFrameNum, inFrameNum;
+    private long start;
+    private long time, time1;
     private Context mContext;
     private MediaCodec mMediaCodec;
     private MediaFormat mMediaFormat;
@@ -44,10 +48,14 @@ public class AvcEncode {
     static native int get_width();
     static native int get_height();
     static native void get_picture();
-    static native int get_frameData(byte[] data, int width, int height);
+    static native void get_frameData(byte[] data);
 
     public AvcEncode(Context context) {
 	this.mContext = context;
+	this.inFrameNum = 0;
+	this.outFrameNum = 0;
+	this.time =0;
+	this.time1 = 0;
 	mScreenModule = ScreenModule.getInstance(context);
 	Log.v(TAG, "new AvcEncode");
     }
@@ -105,26 +113,11 @@ public class AvcEncode {
 	mMediaCodec.start();
     }
 
-
-    private void yuvtonv12(byte[] src, byte[] dst) {
-	int frameSize = mWidth*mHeight;
-	int i = 0, j = 0;
-	
-	for(i=0; i<frameSize; i++ )
-	    dst[i] = src[i];
-	
-	for(i=0, j=0; i<frameSize/4; i++, j+=2)
-	    dst[frameSize + j] = src[frameSize + i];
-
-	for(i=0, j=1; i<frameSize/4; i++, j+=2)
-	    dst[frameSize + j] = src[frameSize +  frameSize / 4 + i];
-    }
-
     private byte[] getFramedataFromFb() {
 	if (DEBUG) Log.v(TAG, "getFramedataFromFb");
 	int frameSize = mWidth * mHeight * 3 / 2;
 	byte[] frameData = new byte[frameSize];
-	get_frameData(frameData, mWidth, mHeight);
+	get_frameData(frameData);
 	if (DEBUG) Log.v(TAG, "frameData.length = " + frameData.length);
 	return frameData;
     }
@@ -135,69 +128,85 @@ public class AvcEncode {
 	MediaCodec.BufferInfo mBufferInfo = new MediaCodec.BufferInfo();
 	ByteBuffer[] mInputBuffers = mMediaCodec.getInputBuffers();
 	ByteBuffer[] mOutputBuffers = mMediaCodec.getOutputBuffers();
+	int lastInputBufIndex = -1;
+
+	byte[][] frameData = new byte[6][frameSize];
+	byte[] buffer1 = null;
+	byte[] buffer2 = null;
 
 	try {
-	    long presentationTimeUs = 0;
-            int frameIndex = 0;
-	    int outFrameNum = 0;
             boolean sawInputEOS = false;
             boolean sawOutputEOS = false;
-
 	    mScreenModule.sendRequestData(true, mWidth, mHeight);
 
 	    while (!sawOutputEOS) {
                 if (!sawInputEOS) {
+
                     int inputBufIndex = mMediaCodec.dequeueInputBuffer(TIMEOUT_USEC);
-		    if (DEBUG) Log.v(TAG, "inputBufIndex = " + inputBufIndex);
-                    if (inputBufIndex >= 0) {
-			byte[] frame = getFramedataFromFb();
-			int bytesRead = frameSize;
-		
+		    if (inputBufIndex >= 0) {
+			if (MTIMER) start = System.currentTimeMillis();
+			inFrameNum++;
+			byte[] frame = frameData[(inFrameNum-1) % 6];
+			get_frameData(frame);
+
 			isTransFinish = mScreenModule.getFinishTag();
-			if (!isTransFinish/*frameIndex == FRAME_NUM*/) {
+			if (!isTransFinish) {
 			    if (DEBUG) Log.v(TAG, "+++InputEOS");
 			    sawInputEOS = true;
-			    bytesRead = 0;
+			    frameSize = 0;
 			}
 
                         mInputBuffers[inputBufIndex].clear();
                         mInputBuffers[inputBufIndex].put(frame);
-                        mInputBuffers[inputBufIndex].rewind();
+			mInputBuffers[inputBufIndex].rewind();
 
-                        presentationTimeUs = (frameIndex * 1000000) / FRAME_RATE;
-                        if (DEBUG) Log.d(TAG, "Encoding frame at index " + frameIndex);
-                        mMediaCodec.queueInputBuffer(
-                                inputBufIndex,
-                                0,  // offset
-                                bytesRead,  // size
-                                presentationTimeUs,
-                                sawInputEOS ? MediaCodec.BUFFER_FLAG_END_OF_STREAM : 0);
+                        mMediaCodec.queueInputBuffer(inputBufIndex, 0, frameSize, 0,
+				sawInputEOS ? MediaCodec.BUFFER_FLAG_END_OF_STREAM : 0);
 
-                        frameIndex++;
+			if (MTIMER) {
+			    long elapsed11 = System.currentTimeMillis() - start;
+			    time += elapsed11;
+			    Log.v(TAG, "frame: "+ inFrameNum + " getFramedataFromFb costtime: " + elapsed11 + "ms");
+			    Log.v(TAG, "getFramedataFromFb average costtime: " + time/inFrameNum + "ms");
+			}
                     }
                 }
 
-                int result = mMediaCodec.dequeueOutputBuffer(mBufferInfo, TIMEOUT_USEC);
-                if (result >= 0) {
-		    outFrameNum++;
-                    int outputBufIndex = result;
-                    byte[] buffer = new byte[mBufferInfo.size];
-                    mOutputBuffers[outputBufIndex].rewind();
-                    mOutputBuffers[outputBufIndex].get(buffer, 0, mBufferInfo.size);
+                int outputBufIndex = mMediaCodec.dequeueOutputBuffer(mBufferInfo, TIMEOUT_USEC);
+		if (outputBufIndex >= 0) {
+		    if (MTIMER) start = System.currentTimeMillis();
+		    if ((outFrameNum % 2) == 0) {
+			buffer1 = new byte[mBufferInfo.size];
+			mOutputBuffers[outputBufIndex].rewind();
+			mOutputBuffers[outputBufIndex].get(buffer1, 0, mBufferInfo.size);
+		    }else{
+			buffer2 = new byte[mBufferInfo.size];
+			mOutputBuffers[outputBufIndex].rewind();
+			mOutputBuffers[outputBufIndex].get(buffer2, 0, mBufferInfo.size);
+		    }
 
-		    if (DEBUG) Log.v(TAG, "mBufferInfo.size = " + mBufferInfo.size + " buffer.length = " +  buffer.length);
                     if ((mBufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
                         sawOutputEOS = true;
                     } else {
-			if (TEST) mOutputStream.write(buffer, 0, buffer.length);
-			mScreenModule.sendData(buffer);
-			mScreenModule.sendFrameNum(outFrameNum);
+			if ((outFrameNum % 2) == 1) {
+			    byte[] buffer3 = new byte[buffer1.length + buffer2.length];
+			    System.arraycopy(buffer1, 0, buffer3, 0, buffer1.length);
+			    System.arraycopy(buffer2, 0, buffer3, buffer1.length, buffer2.length);
+			    mScreenModule.sendData(buffer3, buffer1.length);
+			}
                     }
+		    outFrameNum++;
                     mMediaCodec.releaseOutputBuffer(outputBufIndex,false);  // render
-                } else if (result == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
+
+		    if (MTIMER) {
+			long elapsed22 = System.currentTimeMillis() - start;
+			time1 += elapsed22;
+			Log.v(TAG, "output send Data  costtime: " + elapsed22 + "ms");
+			Log.v(TAG, "output send Data  average costtime: " + time1/outFrameNum + "ms");
+		    }
+                } else if (outputBufIndex == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
                     mOutputBuffers = mMediaCodec.getOutputBuffers();
-                }
-		if (DEBUG) Log.v(TAG, "outFrameNum = " + outFrameNum);
+		}
             }
 
 	    mScreenModule.finishData(true);
@@ -214,8 +223,4 @@ public class AvcEncode {
 	if (DEBUG) Log.v(TAG, "Encode end");
     }
 
-
-    private static long computePresentationTime(int frameIndex) {
-        return 132 + frameIndex * 1000000 / FRAME_RATE;
-    }
 }

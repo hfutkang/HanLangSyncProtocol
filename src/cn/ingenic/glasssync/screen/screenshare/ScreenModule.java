@@ -17,26 +17,28 @@ import cn.ingenic.glasssync.screen.screenshare.AvcEncode;
 
 public class ScreenModule extends SyncModule {
     private static final String TAG = "ScreenModule";
-    private boolean DEBUG = true;
+    private boolean DEBUG = false;
     
     private Context mContext;
-    private AvcEncode mAvcEncode;
-    public static ScreenModule sInstance;
+    private static AvcEncode mAvcEncode;
+    private static BluetoothAdapter mAdapter;
+    private static ScreenModule sInstance;
 
     private static final String SCREEN_NAME = "screen_module";
-    public static final String SCREEN_SHARE = "screen_share";
-    public static final String TRANSPORT_SCREEN_CMD = "screen_cmd";    
-    public static final String GET_SCREEN_CMD = "get_screen_cmd";    
-    public static final String SEND_FRAME = "video_stream";
-    public static final String END_FRAME = "end_stream";
-    public static final String SEND_FRAME_NUM = "video_frame_num";
-    public static final String FRAME_WIDTH = "video_width";
-    public static final String FRAME_HEIGHT = "video_height";
+    private static final String SCREEN_SHARE = "screen_share";
+    private static final String TRANSPORT_SCREEN_CMD = "screen_cmd";    
+    private  static final String GET_SCREEN_CMD = "get_screen_cmd";    
+    private static final String SEND_FRAME = "video_stream";
+    private static final String END_FRAME = "end_stream";
+    private static final String SEND_FRAME_NUM = "video_frame_num";
+    private static final String FRAME_WIDTH = "video_width";
+    private static final String FRAME_HEIGHT = "video_height";
+    private static final String FRAME_LENGTH = "first_frame_length";
 
-    public static final int TRANSPORT_DATA_READY = 0;
-    public static final int TRANSPORT_DATA_IN = 1;
-    public static final int TRANSPORT_DATA_FINISH = 2;
-    public static final int TRANSPORT_DATA_NUM = 3;
+    private static final int TRANSPORT_DATA_READY = 0;
+    private static final int TRANSPORT_DATA_IN = 1;
+    private static final int TRANSPORT_DATA_FINISH = 2;
+    private static final int TRANSPORT_DATA_NUM = 3;
 
     public boolean isTransData = false;
 
@@ -93,6 +95,15 @@ public class ScreenModule extends SyncModule {
 	public void run() {
 	    super.run();
 	    if (DEBUG) Log.v(TAG, "DataTransThread");
+
+	    mAdapter = BluetoothAdapter.getDefaultAdapter();
+	    if (mAdapter == null || (!mAdapter.isEnabled()) ) {
+		Log.v(TAG, "---bluetooth is no exist or no open");
+		return;
+	    }else{
+		Log.v(TAG, "---bluetooth exist");
+	    }
+
 	    try {
 		mAvcEncode.getFrameData();
 	    }catch(Exception e){
@@ -106,15 +117,12 @@ public class ScreenModule extends SyncModule {
 	return isTransData;
     }
 
-    public boolean sendData(byte[] frame) {
+    public void sendData(byte[] frame, int length) {
 	if (DEBUG) Log.v(TAG, "sendData byte[]");
-	BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-	if (adapter == null || (!adapter.isEnabled()) ) {
-	    Log.e(TAG, "---bluetooth is no exist or no open");
-	    return false;
-	}
+
 	SyncData data = new SyncData();
 	data.putInt(SCREEN_SHARE, TRANSPORT_DATA_IN);
+	data.putInt(FRAME_LENGTH, length);
 	data.putByteArray(SEND_FRAME, frame);
 
 	try{
@@ -123,12 +131,12 @@ public class ScreenModule extends SyncModule {
 	    Log.e(TAG, "---send frame data failed:" + e);
 	    Toast.makeText(mContext,  "蓝牙传送失败！", Toast.LENGTH_LONG).show();
 	}
-	return true;
     }
 
     public void sendRequestData(boolean bool, int width, int height) {
 	if (DEBUG) Log.v(TAG, "sendRequestData");
 	SyncData data = new SyncData();
+
 	data.putInt(SCREEN_SHARE, TRANSPORT_DATA_READY);
 	data.putBoolean(GET_SCREEN_CMD, bool);
 	data.putInt(FRAME_WIDTH, width);
@@ -154,19 +162,4 @@ public class ScreenModule extends SyncModule {
 	    Log.e(TAG, "---send finish signal failed:" + e);
 	}
     }
-
-
-    public void sendFrameNum(int frameNum) {
-	if (DEBUG) Log.v(TAG, "sendFrameNum");
-	SyncData data = new SyncData();
-
-	data.putInt(SCREEN_SHARE, TRANSPORT_DATA_NUM);
-	data.putInt(SEND_FRAME_NUM, frameNum);
-	try {
-	    send(data);
-	} catch (SyncException e) {
-	    Log.e(TAG, "---send frame index failed:" + e);
-	}
-    }
-
 }
