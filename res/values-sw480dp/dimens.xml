@@ -1,9 +1,9 @@
 <resources>
     <!--font size-->
     <dimen name="bigbig_font_size">50dp</dimen>
-    <dimen name="big_font_size">32dp</dimen>
-    <dimen name="normal_font_size">28dp</dimen>
-    <dimen name="small_font_size">24dp</dimen>
+    <dimen name="big_font_size">70dp</dimen>
+    <dimen name="normal_font_size">45dp</dimen>
+    <dimen name="small_font_size">35dp</dimen>
 
     <!--image size-->
     <dimen name="large_image_w">160dp</dimen>

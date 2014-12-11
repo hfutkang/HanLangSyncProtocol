@@ -196,12 +196,9 @@
 	<string name="pre_info">查找蓝牙...</string>
 	<string name="err_nofind_bluetooth">本机没有找到蓝牙硬件或驱动！</string>
 	<string name="welcome">欢迎使用Glass同步应用</string>
-    <string name="welcome_content"> \u0020 \u0020 \u0020
-     首先您需要在手机端安装眼镜助手，
-然后手机端开启眼镜助手应用，进入二维
-码扫描页，通过点击屏幕添加绑定设备
+    <string name="welcome_content">请先开启眼镜助手
 </string>
-    <string name="into">点击屏幕进行绑定设备>>></string>
+    <string name="into">单击进行二维码扫描</string>
     <string name="loading">正在玩命加载中，请您耐心等待\n\nLoading...</string>
     <string name="unbind">绑定失败了（T﹏T）</string>
     <string name="disbind">已经解除绑定，下滑退出应用，\n单击绑定新的手机。</string>

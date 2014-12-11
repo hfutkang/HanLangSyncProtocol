@@ -1,60 +1,50 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:id="@+id/main">
+    android:layout_height="match_parent" >
 
-  <!-- maybe bluetooth opration will lost many time.so show this info -->
-  <TextView
-      android:id="@+id/pre_info"
-      android:layout_width="match_parent"
-      android:layout_height="match_parent"
-      android:gravity="center"
-      android:text="@string/pre_info"
-      android:textColor="@color/color_white"
-      android:textSize="@dimen/big_font_size" 
-      android:background="@color/color_background"/>
+    <!-- maybe bluetooth opration will lost many time.so show this info -->
 
-  <!--  -->
-  <LinearLayout
-      android:id="@+id/Layout_welcome"
-      android:layout_width="match_parent"
-      android:layout_height="match_parent"
-      android:background="@color/color_background"
-      android:orientation="vertical" 
-      android:visibility="gone">
+    <TextView
+        android:id="@+id/pre_info"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/color_background"
+        android:gravity="center"
+        android:text="@string/pre_info"
+        android:textColor="@color/color_white"
+        android:textSize="@dimen/big_font_size" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="2"
-            android:gravity="center"
-            android:text="@string/welcome"
-            android:textColor="@color/color_white"
-            android:textSize="@dimen/big_font_size" />
+    <!--  -->
+
+    <RelativeLayout
+        android:id="@+id/Layout_welcome"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/color_background" >
 
         <TextView
             android:id="@+id/welcome_content"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="2"
-            android:gravity="left"
-	    android:paddingLeft="3px"
-	    android:paddingRight="3px"
-            android:lineSpacingExtra="8dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="3px"
             android:text="@string/welcome_content"
             android:textColor="@color/color_white"
+            android:layout_centerInParent="true"
             android:textSize="@dimen/normal_font_size" />
 
-	<TextView
-	    android:layout_width="match_parent"
-	    android:layout_height="0dp"
-            android:layout_weight="1"
-            android:gravity="right"
+        <TextView
+            android:id="@+id/welcome_click_info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/welcome_content"
+			android:layout_centerHorizontal="true"
+			android:layout_marginTop="10dp"
             android:paddingRight="3px"
             android:text="@string/into"
             android:textColor="@color/color_white"
             android:textSize="@dimen/small_font_size" />
-    </LinearLayout>
+    </RelativeLayout>
     <!-- bluetooth  Pairing request dialog -->
 
     <LinearLayout
@@ -63,7 +53,7 @@
         android:layout_height="match_parent"
         android:background="@color/color_background"
         android:orientation="vertical"
- 		android:visibility="gone"	
+        android:visibility="gone"
         android:weightSum="3" >
 
         <TextView
@@ -78,15 +68,14 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1" 
-            android:orientation="vertical"
-	  	 >
+            android:layout_weight="1"
+            android:orientation="vertical" >
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/pairing_info"
                 android:gravity="center"
+                android:text="@string/pairing_info"
                 android:textColor="@color/color_white"
                 android:textSize="@dimen/big_font_size" />
 
@@ -94,8 +83,8 @@
                 android:id="@+id/device_info"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/color_white"
                 android:gravity="center"
+                android:textColor="@color/color_white"
                 android:textSize="@dimen/big_font_size" />
         </LinearLayout>
 
@@ -110,4 +99,3 @@
     </LinearLayout>
 
 </FrameLayout>
-   
