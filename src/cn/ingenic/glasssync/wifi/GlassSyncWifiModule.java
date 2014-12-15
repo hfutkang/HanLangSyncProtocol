@@ -30,7 +30,7 @@ public class GlassSyncWifiModule extends SyncModule {
 
     private Context mContext;
     private static GlassSyncWifiModule sInstance;
-    private WifiModuleReceiver nReceiver;
+    // private WifiModuleReceiver nReceiver;
 
     private GlassSyncWifiModule(Context context){
 	super(LETAG, context);
@@ -45,26 +45,7 @@ public class GlassSyncWifiModule extends SyncModule {
 
     @Override
     protected void onCreate() {
-        nReceiver = new WifiModuleReceiver();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction("cn.ingenic.glasssync.wifi.REQUEST_WIFI_INFO");
-        mContext.registerReceiver(nReceiver,filter);
     }
-
-    // public void send_Wifi(String ssid, String psd, int connect){
-    // 	SyncData data = new SyncData();
-
-    // 	data.putString(GSWFMD_SSID, ssid);
-    // 	data.putString(GSWFMD_PSD, psd);
-    // 	data.putInt(GSWFMD_CONN, connect);
-
-    // 	try {
-    // 	    Log.e(TAG, "send wifi() " + ssid);
-    // 	    send(data);
-    // 	} catch (SyncException e) {
-    // 	    Log.e(TAG, "" + e);
-    // 	}
-    // }
 
     private void process_wifi(SyncData data){
 	Log.e(TAG, "process_wifi");
@@ -128,28 +109,4 @@ public class GlassSyncWifiModule extends SyncModule {
 	if (cmd.equals(GSWFMD_SDWF)){
 	    process_wifi(data);
 	}
-    }
-
-    private void request_Wifi(){
-	SyncData data = new SyncData();
-
-	data.putString(GSWFMD_CMD, GSWFMD_RQWF);
-
-	try {
-	    Log.e(TAG, "send request wifi");
-	    send(data);
-	} catch (SyncException e) {
-	    Log.e(TAG, "" + e);
-	}
-    }
-
-    class WifiModuleReceiver extends BroadcastReceiver{
-	private String TAG = "WifiModuleReceiver";
-
-        @Override
-	public void onReceive(Context context, Intent intent) {
-	    Log.e(TAG, "onReceive");
-	    request_Wifi();
-        }
-    }
-}
+    }}
