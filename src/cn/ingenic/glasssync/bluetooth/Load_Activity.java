@@ -55,17 +55,20 @@ public class Load_Activity extends Activity implements OnTouchListener{
 		switch (msg.what) {   
 		case MESSAGE_BT_ON:
 		    startBondWorker();
-                case MESSAGE_BOND_NONE:
+		case MESSAGE_BOND_NONE:
 		case MESSAGE_CONNECT_FAILED:
-		    mManger.setLockedAddress("");
-		    mManger.disconnect();
-		    mDevice.removeBond();
+		    // mDevice.removeBond();
 		    TextView tv = (TextView) findViewById(R.id.tv_load);
-		    tv.setText(R.string.unbind);
+		    if(msg.what == MESSAGE_BOND_NONE)
+				tv.setText(R.string.unbind);
+		    else
+				tv.setText(R.string.unconnect);
+		    
 		    mCanTouch = true;
-                    break;    
-       case MESSAGE_BOND_BONDED:
-		    mManger.glass_connect(mAddress);
+            break;    
+		case MESSAGE_BOND_BONDED:
+		      /*Notice:connect must be called by mobile*/
+		    // mManger.glass_connect(mAddress);
                     break;    
 		case MESSAGE_CONNECT_SUCCESS:
 		    bluetoothBonded();
@@ -93,10 +96,13 @@ public class Load_Activity extends Activity implements OnTouchListener{
 	
 	mBTAdapter = BluetoothAdapter.getDefaultAdapter();
 	mDevice = mBTAdapter.getRemoteDevice(mAddress);
-	if (mDevice.getBondState() == BluetoothDevice.BOND_BONDED){
-	    Log.d(TAG, "--BluetoothDevice already bonded, set boned none");
-	    mDevice.removeBond();
-	    mDevice.setBondState(BluetoothDevice.BOND_NONE);
+
+	Set<BluetoothDevice> device=mBTAdapter.getBondedDevices();
+	if(device.size()!=0){
+	    for(BluetoothDevice bluetoothDevice:device){
+		bluetoothDevice.removeBond();
+		if(DEBUG)Log.d(TAG, "bonddevice_name="+bluetoothDevice.getName());
+	    }
 	}
 
 	IntentFilter filter = new IntentFilter();
@@ -133,18 +139,6 @@ public class Load_Activity extends Activity implements OnTouchListener{
 		TextView tv = (TextView) findViewById(R.id.tv_load);
 		tv.setText(R.string.loading);
 		if(DEBUG)Log.d(TAG, mManger.getLockedAddress()+"mManger.getLockedAddress()");
-		mManger.setLockedAddress("");
-		mManger.disconnect();
-		Set<BluetoothDevice> device=mBTAdapter.getBondedDevices();
-		if(device.size()!=0){
-			for(BluetoothDevice bluetoothDevice:device){
-				bluetoothDevice.removeBond();
-				if(DEBUG)Log.d(TAG, bluetoothDevice.getName()+"bonddevice_name");
-			}
-		}
-		try {
-		    Thread.sleep(10000); //wait what?
-		} catch (InterruptedException e) {}
 		
 		  //start BOND
 		try {
@@ -159,7 +153,6 @@ public class Load_Activity extends Activity implements OnTouchListener{
 
     private void bluetoothBonded(){
 	Intent bind = new Intent(Load_Activity.this,Bind_Activity.class);
-	bind.putExtra("Tag", 2);
 	startActivity(bind);
 	finish();
     }
@@ -201,10 +194,6 @@ public class Load_Activity extends Activity implements OnTouchListener{
 			break;    
 		    case BluetoothDevice.BOND_BONDED:    
 			if(DEBUG) Log.d(TAG, "ACTION_BOND_STATE_CHANGED--bonded");    
-			TextView tv_load = (TextView) findViewById(R.id.tv_load);
-			tv_load.setText(R.string.load_connect);
-			msg.what = MESSAGE_BOND_BONDED;
-			mHandler.sendMessage(msg);
 			break;    
 		    case BluetoothDevice.BOND_NONE:    
 			if(DEBUG) Log.d(TAG, "ACTION_BOND_STATE_CHANGED--bond none");    

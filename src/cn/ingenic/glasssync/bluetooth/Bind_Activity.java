@@ -1,4 +1,6 @@
 package cn.ingenic.glasssync.bluetooth;
+
+import java.util.Set;
 import cn.ingenic.glasssync.DefaultSyncManager;
 import cn.ingenic.glasssync.R;
 import android.app.Activity;
@@ -6,6 +8,8 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -22,6 +26,7 @@ public class Bind_Activity extends Activity{
     private static final String TAG = "Bind_Activity";
     private static final boolean DEBUG = true;
 
+    private static final String ACTION_CONNECT = "cn.ingenic.glasssync.bond_changed";
     private DefaultSyncManager mManger;
     private BluetoothDevice mDevice;
     private Context mContext;
@@ -45,6 +50,11 @@ public class Bind_Activity extends Activity{
 	
 	SysApplication.getInstance().addActivity(this); 
 	mContext = this;
+
+	  /*listen broadcast from DefaultSyncManager*/
+	IntentFilter filter = new IntentFilter();
+	filter.addAction(ACTION_CONNECT);
+	registerReceiver(mBindStateReceiver, filter);
 	
     }
 
@@ -60,20 +70,21 @@ public class Bind_Activity extends Activity{
 	
 	TextView tv = (TextView)findViewById(R.id.tv_mobile);
 	if(DEBUG) Log.e(TAG, "onStart in tag="+tag +"--bindAddress="+bindAddress+"--bindName="+bindName);
-	if (tag == 1) {
-	    tv.setText(bindName);
-	    mManger.glass_connect(bindAddress);
-	} else if (tag == 2) {
-	    tv.setText(bindName);
-	}
+	tv.setText(bindName);
 
 	gestureDetectorWorker();
     } 
 
+    @Override
+	protected void onDestroy() {
+	unregisterReceiver(mBindStateReceiver);
+	super.onDestroy();
+    }
+
     private void disableBond(){
 	mManger.setLockedAddress("");
 	mManger.disconnect();
-	mDevice.removeBond();
+
 
 	LinearLayout layout_bind = (LinearLayout) findViewById(R.id.layout_bind);
 	layout_bind.setVisibility(View.GONE);
@@ -110,12 +121,24 @@ public class Bind_Activity extends Activity{
 
 		@Override
 		public boolean onLongPress(boolean fromPhone){
-		    if(DEBUG) Log.d(TAG,"---onLongPress remote address=");
+		    if(DEBUG) Log.d(TAG,"---onLongPress");
 		    disableBond();
 		    return true;
 		}		    
 	    });
     }
+
+    private final BroadcastReceiver mBindStateReceiver = new BroadcastReceiver() {
+    	    @Override
+    		public void onReceive(Context context, Intent intent) {
+    		if(intent.getAction().equals(ACTION_CONNECT)){
+    		    if(intent.getBooleanExtra("validAddr",false) == true)
+    			return;
+    		    disableBond();
+    		}
+    	    }
+    	};
+
     class myTouchListener implements OnTouchListener {
 	@Override
 	    public boolean onTouch(View v, MotionEvent event) {

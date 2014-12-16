@@ -7,7 +7,7 @@
 
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
-
+LOCAL_PROGUARD_ENABLED := disabled 
 LOCAL_MODULE_TAGS := optional
 sync_framework_res_dir := sync_framework/res
 res_dirs := $(sync_framework_res_dir) res
@@ -31,11 +31,4 @@ include $(BUILD_PACKAGE)
 # This finds and builds the test apk as well, so a single make does both.
 
 include $(call all-makefiles-under,$(LOCAL_PATH))
-include $(CLEAR_VARS)
-
 LOCAL_PREBUILT_STATIC_JAVA_LIBRARIES := zxing:libs/zxing.jar
-
-include $(BUILD_MULTI_PREBUILT)
-
-# Use the folloing include to make our test apk.
-include $(call all-makefiles-under,$(LOCAL_PATH))

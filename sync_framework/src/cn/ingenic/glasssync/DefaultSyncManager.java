@@ -118,8 +118,14 @@ public class DefaultSyncManager extends Handler {
 		}
 	}
 	
+      // just be listened by glass
 	public static final String RECEIVER_ACTION_STATE_CHANGE = 
 			"receiver.action.STATE_CHANGE";
+
+      // can be listened by mobile 
+	public static final String RECEIVER_ACTION_DISCONNECTED = 
+			"receiver.action.DISCONNECTED";
+
 	public static final String EXTRA_STATE = "extra_state";
 	
 	private static final int MSG_BASE = 0;
@@ -130,7 +136,10 @@ public class DefaultSyncManager extends Handler {
 	public static final int MSG_SET_LOCKED_ADDRESS = MSG_BASE + 5;
 	//SyncManagerExt
 	public static final int MSG_RUNNABLE_WITH_ARGS = MSG_BASE + 6;
+    
+      //can be listened by glass
 	public static final int MSG_RECEIVED_OTHER_DEVICE = MSG_BASE + 7;
+
 	private static final int MSG_CANCEL_OTHER_DEVICE_DIALOG = MSG_BASE + 8;
 	
 	interface DelayedTask {
@@ -201,93 +210,99 @@ public class DefaultSyncManager extends Handler {
 		mContext.sendBroadcast(intent);
 	}
 	
+	private void notifyDisconnected() {
+		Intent intent = new Intent(RECEIVER_ACTION_DISCONNECTED);
+		mContext.sendBroadcast(intent);
+	}
+
 	@Override
 	public void handleMessage(Message msg) {
 		switch (msg.what) {
 		case MSG_STATE_CHANGE:
-			Mgr.d("state change to " + convertMsg(msg.arg1));
-			if (msg.arg1 != mState) {
-				int oldSt = mState;
-				mState = msg.arg1;
-				notifyStateChange(mState);
+		    Mgr.d("state change to " + convertMsg(msg.arg1));
+		    if (msg.arg1 != mState) {
+			int oldSt = mState;
+			mState = msg.arg1;
+			notifyStateChange(mState);
+			
+			switch (msg.arg1) {
+			case IDLE:
+			    mConnectingAddress = null;
+			    if (mConnected) {
+				Mgr.i("notify disconnected to all Modules");
+				for (Module m : mModules.values()) {
+				    m.onConnectivityStateChange(false);
+				}
 				
-				switch (msg.arg1) {
-				case IDLE:
-					mConnectingAddress = null;
-					if (mConnected) {
-						Mgr.i("notify disconnected to all Modules");
-						for (Module m : mModules.values()) {
-							m.onConnectivityStateChange(false);
-						}
-						
-						mConnected = false;
-					} else {
-						synchronized(mWaitingList) {
-							Mgr.d("connect failed, notify all delayed request callback msg.");
-							while (!mWaitingList.isEmpty()) {
-								DelayedTask task = mWaitingList.poll();
-								task.execute(false);
-							}
-						}
-					}
-					
-					if (oldSt == CONNECTING) {
-						mReConnectScheduler.schedule();
-					}
+				mConnected = false;
+			    } else {
+				synchronized(mWaitingList) {
+				    Mgr.d("connect failed, notify all delayed request callback msg.");
+				    while (!mWaitingList.isEmpty()) {
+					DelayedTask task = mWaitingList.poll();
+					task.execute(false);
+				    }
+				}
+			    }
+			    
+			    if (oldSt == CONNECTING) {
+				mReConnectScheduler.schedule();
+			    }
 //					if (CONNECT_FAILED == msg.arg2) {
 //						mReConnectScheduler.schedule();
 //					}
-					break;
-				case CONNECTED:
-					if (!mConnected) {
-						String lockedAddr = getLockedAddress();
-						Mgr.i("getLockedAddress"+lockedAddr);
-						if (!BluetoothAdapter.checkBluetoothAddress(lockedAddr)) {
-							if (!TextUtils.isEmpty(mConnectingAddress)) {
-								Mgr.d("setLockedAddress with connecting address:" + mConnectingAddress);
-								setLockedAddress(mConnectingAddress);
-								mConnectingAddress = null;
-							}
-						} else {
-							if (CONNECTED_WITH_INIT == msg.arg2) {
-								notifyCleared(lockedAddr);
-								callModulesOnInit();
-							}
-						}
-						
-						Mgr.i("notify connected to all Modules");
-						Enviroment env = Enviroment.getDefault();
-						if (!env.isWatch()) {
-							sendInitConfig();
-						}
-						
-						synchronized(mWaitingList) {
-							while (!mWaitingList.isEmpty()) {
-								DelayedTask task = mWaitingList.poll();
-								task.execute(true);
-							}
-						}
-						
-						for (Module m : mModules.values()) {
-						    if(env.isWatch() && m.getSyncEnable()){
-						    	m.onConnectivityStateChange(true);
-						     }
-						}
-						
-						mConnected = true;
-					} else {
-						Mgr.w("duplicate connected happened!");
-					}
-					
-					mReConnectScheduler.clearReConnectStatus();
-					break;
+			    break;
+			case CONNECTED:
+			    if (!mConnected) {
+				String lockedAddr = getLockedAddress();
+				Mgr.i("getLockedAddress"+lockedAddr);
+				if (!BluetoothAdapter.checkBluetoothAddress(lockedAddr)) {
+				    if (!TextUtils.isEmpty(mConnectingAddress)) {
+					Mgr.d("setLockedAddress with connecting address:" + mConnectingAddress);
+					setLockedAddress(mConnectingAddress);
+					mConnectingAddress = null;
+				    }
+				} else {
+				    if (CONNECTED_WITH_INIT == msg.arg2) {
+					notifyCleared(lockedAddr);
+					callModulesOnInit();
+				    }
 				}
-			}
-			break;
-			
-		case MSG_CLEAR_ADDRESS:
-			if (hasLockedAddress()) {
+				
+				Mgr.i("notify connected to all Modules");
 				Enviroment env = Enviroment.getDefault();
+				if (!env.isWatch()) {
+				    sendInitConfig();
+				}
+				
+				synchronized(mWaitingList) {
+				    while (!mWaitingList.isEmpty()) {
+					DelayedTask task = mWaitingList.poll();
+					task.execute(true);
+				    }
+				}
+				
+				for (Module m : mModules.values()) {
+				    if(env.isWatch() && m.getSyncEnable()){
+					m.onConnectivityStateChange(true);
+				    }
+				}
+				
+				mConnected = true;
+			    } else {
+				Mgr.w("duplicate connected happened!");
+			    }
+			    
+			    mReConnectScheduler.clearReConnectStatus();
+			    break;
+			}
+		    }
+		    break;
+		    
+		case MSG_CLEAR_ADDRESS:
+		    Mgr.i("--MSG_CLEAR_ADDRESS comes");
+			if (hasLockedAddress()) {
+			    Enviroment env = Enviroment.getDefault();
 //				if (!env.isWatch()) {
 //					NotificationManager mgr = (NotificationManager) mContext
 //							.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -299,109 +314,68 @@ public class DefaultSyncManager extends Handler {
 //							mContext.getString(R.string.lost_bond_st_content), null);
 //					mgr.notify(NOTI_LOST_BOND_ST, noti);
 //				}
-				disconnect();
-				setLockedAddress("");
+			    Mgr.i("--MSG_CLEAR_ADDRESS comes disconnect");
+			    disconnect();
+			    setLockedAddress("");
+			    notifyDisconnected();
 			}
-			break;
-			
-		case MSG_TIME_OUT:
-			Mgr.i("TIMEOUT msg comes, disconnect the connectivity.");
-			disconnect();
 			break;
 			
 		case MSG_SEND_FILE:
-			FileArg arg = (FileArg) msg.obj;
-			if (msg.arg1 == SUCCESS) {
-				mTransportManager.sendFile(arg.mmModule, arg.mmName, arg.mmLength,
-						arg.mmIn);
-			} else {
-				Mgr.w("connect create failed in SEND_FILE request. module:"
-						+ arg.mmModule + " fileName:" + arg.mmName);
-				Module m = getModule(arg.mmModule);
-				if (m == null) {
-					Mgr.e("Module:" + arg.mmModule + " not found");
-					return;
-				}
-
-				OnFileChannelCallBack callback = m.getFileChannelCallBack();
+		    FileArg arg = (FileArg) msg.obj;
+		    if (msg.arg1 == SUCCESS) {
+			mTransportManager.sendFile(arg.mmModule, arg.mmName, arg.mmLength,
+						   arg.mmIn);
+		    } else {
+			Mgr.w("connect create failed in SEND_FILE request. module:"
+			      + arg.mmModule + " fileName:" + arg.mmName);
+			Module m = getModule(arg.mmModule);
+			if (m == null) {
+			    Mgr.e("Module:" + arg.mmModule + " not found");
+			    return;
+			}
+			
+			OnFileChannelCallBack callback = m.getFileChannelCallBack();
 				if (callback == null) {
-					Mgr.e("can not found OnFileChannelCallback from Module:"
-							+ m.getName());
-					return;
+				    Mgr.e("can not found OnFileChannelCallback from Module:"
+					  + m.getName());
+				    return;
 				}
 				callback.onSendComplete(arg.mmName, false);
-			}
-			break;
-			
+		    }
+		    break;
+		    
 		case MSG_SET_LOCKED_ADDRESS:
-			String addr = (String) msg.obj;
-			boolean rebond = msg.arg1 == 1;
-			if (rebond) {
-				notifyCleared(addr);
-				callModulesOnInit();
-			} else {
-				setLockedAddress(addr);
-			}
-			break;
-			
+		    String addr = (String) msg.obj;
+		    boolean rebond = msg.arg1 == 1;
+		    if (rebond) {
+			notifyCleared(addr);
+			callModulesOnInit();
+		    } else {
+			setLockedAddress(addr);
+		    }
+		    break;
+		    
 		case MSG_RUNNABLE_WITH_ARGS:
-			RunnableWithArgs run = (RunnableWithArgs) msg.obj;
-			run.arg1 = msg.arg1;
-			run.run();
-			break;
-			
+		    RunnableWithArgs run = (RunnableWithArgs) msg.obj;
+		    run.arg1 = msg.arg1;
+		    run.run();
+		    break;
+		    
 		case MSG_RECEIVED_OTHER_DEVICE:
-			final String mac = (String) msg.obj;
-			String name = mac;
-			if (BluetoothAdapter.checkBluetoothAddress(mac)) {
-				BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(mac);
-				name = device.getName();
-				if (TextUtils.isEmpty(name)) {
-					name = mac;
-				}
-			}
-			
-			String res = mContext.getString(R.string.other_device_dialog_content, name);
-			Vibrator v = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
-			v.vibrate(500);
-			if (mOtherDeviceReqDialog != null && mOtherDeviceReqDialog.isShowing()) {
-				mOtherDeviceReqDialog.setMessage(res);
-			} else {
-				AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-				final OnClickListener listener = new OnClickListener() {
-					
-					@Override
-					public void onClick(DialogInterface dialog,
-							int which) {
-						if (which == DialogInterface.BUTTON_POSITIVE) {
-							setLockedAddress("");
-							connect(mac);
-						} 
-					}
-				};
-				builder.setMessage(res)
-						.setTitle(android.R.string.dialog_alert_title)
-						.setPositiveButton(android.R.string.ok, listener);
-				mOtherDeviceReqDialog = builder.create();
-				mOtherDeviceReqDialog.getWindow().setType(
-						WindowManager.LayoutParams.TYPE_SYSTEM_ERROR);
-				mOtherDeviceReqDialog.show();
-			}
-			
-			removeMessages(MSG_CANCEL_OTHER_DEVICE_DIALOG);
-			sendEmptyMessageDelayed(MSG_CANCEL_OTHER_DEVICE_DIALOG, 20 * 1000);
-			break;
-			
+		    Mgr.i("--glass has boned one mobile before, disconned it please.MSG_RECEIVED_OTHER_DEVICE");
+		    break;
+		    
 		case MSG_CANCEL_OTHER_DEVICE_DIALOG:
-			if (mOtherDeviceReqDialog != null && mOtherDeviceReqDialog.isShowing()) {
-				mOtherDeviceReqDialog.dismiss();
-			}
-			break;
+		    if (mOtherDeviceReqDialog != null && mOtherDeviceReqDialog.isShowing()) {
+			mOtherDeviceReqDialog.dismiss();
+		    }
+		    break;
 		}
 	}
-	
+    
 	protected static abstract class RunnableWithArgs implements Runnable {
-		int arg1;
+	    int arg1;
 	}
 
 	private class ReConnectScheduler {
@@ -615,7 +589,7 @@ public class DefaultSyncManager extends Handler {
 	}
 	
 	public void setLockedAddress(String address, boolean notify) {
-		Mgr.d("setLockedAddress:" + address);
+		Mgr.d("--==--=---setLockedAddress:" + address);
 		SharedPreferences sp = mContext.getSharedPreferences(FILE_NAME,
 				Context.MODE_PRIVATE);
 		String oldAddress = sp.getString(UNIQUE_ADDRESS, "");
@@ -656,6 +630,7 @@ public class DefaultSyncManager extends Handler {
 			Settings.System.putInt(mContext.getContentResolver(),
 					"glasssync_bond", validAddr ? 1 : 0);
 			Intent intent = new Intent("cn.ingenic.glasssync.bond_changed");
+			intent.putExtra("validAddr",validAddr);
 			mContext.sendBroadcast(intent);
 			Mgr.d("send bond status changed broadcast.");
 			
@@ -772,8 +747,8 @@ public class DefaultSyncManager extends Handler {
 
 	public void disconnect() {
 		if (!isConnect()) {
-			Mgr.w("already disConnected.");
-			return;
+		    Mgr.w("already disConnected.");
+		    return;
 		}
 		
 		mState = DISCONNECTING;

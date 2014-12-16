@@ -212,7 +212,8 @@
     <string name="loading">Is Bonding, please wait</string>
     <string name="load_message">\u0020 \u0020 \u0020 make sure Bluetooth is bonded in MobilePhone.</string>
     <string name="load_connect">\u0020 \u0020 \u0020 is bonding,waiting please.</string>
-    <string name="unbind">Bind failed (T ﹏ T)</string>
+    <string name="unbind">Pair failed (T ﹏ T)</string>
+    <string name="unconnect">Connect failed（T﹏T）</string>
     <string name="disbind">Has fallen unbound, Slide out application,\nClick the binding a new mobile phone.</string>
     <string name="bind">\u0020 \u0020 \u0020 \u0020Bonded Devices</string>
     <string name="long_click">(long press to unbind)</string>

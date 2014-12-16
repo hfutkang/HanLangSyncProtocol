@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import android.content.Context;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -13,22 +14,49 @@ import cn.ingenic.glasssync.Enviroment;
 import cn.ingenic.glasssync.LogTag;
 import cn.ingenic.glasssync.LogTag.Client;
 import cn.ingenic.glasssync.transport.BluetoothChannel;
+import cn.ingenic.glasssync.transport.transcompat.BluetoothCompat;
+import com.ingenic.spp.OnChannelListener;
 
 class BluetoothClientExt implements BluetoothChannelExt {
-	private BluetoothSocket mSocket;
+	private BluetoothSocket mSocket = null;
 	private final TransportStateMachineExt mStateMachine;
 	private volatile boolean mClosed = true;
-	private BluetoothSocket mTmp = null;
-	private OutputStream mOutput;
-	private final Handler mRetrive;
 
-        private long mLastRetriveSec;
-	private Object mSendLock = new Object();
+	private final Handler mRetrive;
+	private final Context mContext;
+	private Object mSocketLock = new Object();
+    private final BluetoothCompat mClientCompat;
+    private final OnChannelListener mConnListener;
+
+    private class ConnListener implements OnChannelListener {
+        public void onStateChanged(int state, String addr) {
+            if (state == OnChannelListener.STATE_CONNECTED) {
+		Client.e("OnChannelListener.STATE_CONNECTED");
+                notifyStateChange(TransportStateMachineExt.C_CONNECTED, mStateMachine);
+                doStartRead();
+                mClosed = false;
+            } else if (state == OnChannelListener.STATE_NONE) {
+		Client.e("OnChannelListener.STATE_NONE");
+            	sendClientCloseMsg();
+            }
+        }
+
+        public void onWrite(byte[] buf, int len, int err) {
+            //Do nothing.
+        }
+
+        public void onRead(byte[] buf, int err) {
+        }
+
+    }
 
 	BluetoothClientExt(TransportStateMachineExt stateMachine,
-			final Handler retrive) {
+			final Handler retrive,Context c) {
 		mStateMachine = stateMachine;
 		mRetrive = retrive;
+		mContext = c;
+        mConnListener = new ConnListener();
+        mClientCompat = BluetoothCompat.getClientCompat(mConnListener);
 	}
 	
 	static void notifyStateChange(int state,
@@ -41,13 +69,12 @@ class BluetoothClientExt implements BluetoothChannelExt {
 
 	private void sendClientCloseMsg() {
 		if (!mClosed) {
-			close();
 			notifyStateChange(
 					TransportStateMachineExt.C_IDLE, mStateMachine);
 		}
 	}
 
-        private final boolean is_ping(byte[] b){
+       /* private final boolean is_ping(byte[] b){
 	    if (b[0] == 'p' && b[1] == 'i' && b[2] == 'n' && b[3] == 'g'
 		&& b[4] == 'g' && b[5] == 'n' && b[6] == 'i' && b[7] == 'p'){
 		//Client.e("is_ping");
@@ -55,20 +82,22 @@ class BluetoothClientExt implements BluetoothChannelExt {
 	    }
 
 	    return false;
-	}
+	}*/
 
 	void start(final String address) {
 		if (!mClosed) {
 			Client.e("Client already running.");
-			//close();
 			return;
 		}
+        mClientCompat.connect(address);
+    }
+    private void doStartRead() {
 		
 		Thread thread = new Thread() {
 
 			@Override
 			public void run() {
-			    Client.e("client run in");
+			  /*  Client.e("client run in");
 				mClosed = false;
 				Client.e("client----mClosed"+mClosed);
 				BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
@@ -112,38 +141,32 @@ class BluetoothClientExt implements BluetoothChannelExt {
 						}
 					}
 					i++;
-				}
+				}*/
 				try {
-				    //Client.e("while " + mClosed);
 					while (!mClosed) {
-					    //Client.e("pkg");
-						Pkg pkg = BluetoothChannelExtTools.retrivePkg(input);
-						//Client.e("while " + pkg.getType());
-						if (pkg.getType() == Pkg.PKG){
-						    byte[] b = pkg.getData();
-						    //Client.e("pkg.getData() " + pkg.getData());
-						    //Client.e("retrive length:" + b.length);
-						    if (is_ping(b)){
+						Pkg pkg = BluetoothChannelExtTools.retrivePkg(mClientCompat, mRetrive);
+
+						if(pkg == null)
 							continue;
-						    }else if (pkg.getData().length > Pkg.BIG_LEN){
+						  /*  }else if (pkg.getData().length > Pkg.BIG_LEN){
 							Client.e("set mLastRetriveSec length:%d" + pkg.getData().length);
 							mLastRetriveSec = System.currentTimeMillis() / 1000l;
 						    }
-						}
+						}*/
 						Message msg = mRetrive.obtainMessage();
 						msg.obj = pkg;
 						msg.sendToTarget();
 					}
 				} catch (Exception e) {
 					Client.e("client exception:" + e.getMessage());
-					sendClientCloseMsg();
+					//sendClientCloseMsg();
 				}
 				Client.d("read thread quit.");
 			}
 
 		};
 		thread.start();
-
+/*
 		Thread thread1 = new Thread() {
 			@Override
 			public void run() {
@@ -174,34 +197,33 @@ class BluetoothClientExt implements BluetoothChannelExt {
 			}
 		};
 		thread1.start();
+*/
 	}
 
 	@Override
 	public void send(Pkg pkg) throws ProtocolException {
-		//BluetoothChannelExtTools.send(pkg, mOutput);
 		try {
-		    synchronized (mSendLock){
-		    	if(!mClosed){
-		    		BluetoothChannelExtTools.send(pkg, mOutput);
-		    	}
-		    }
-		} catch (IOException e) {
+			BluetoothChannelExtTools.send(pkg, mClientCompat);
+		} catch (Exception e) {
 			Client.e("send error:" + e.getMessage());
-			sendClientCloseMsg();
+			mRetrive.removeMessages(BluetoothChannelExtTools.MsgSendAnyData);
+			
 		}
 
 	}
 
 	public void close() {
-	    Client.e("Client close in");
 		if (!mClosed) {
-			try {
-				mClosed = true;
-				if (mSocket != null) {
-					mSocket.close();
+			mClientCompat.disconnect();
+            try {
+				synchronized (mSocketLock) {
+		Client.e("--close");
+					mClosed = true;
+					if (mSocket != null) {
+						mSocket.close();
+					}
+					mSocket = null;
 				}
-				mSocket = null;
-				mOutput = null;
 			} catch (IOException e) {
 				Client.e("client close error!");
 				LogTag.printExp(LogTag.CLIENT, e);

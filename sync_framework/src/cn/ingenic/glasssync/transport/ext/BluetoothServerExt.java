@@ -13,26 +13,44 @@ import cn.ingenic.glasssync.Enviroment;
 import cn.ingenic.glasssync.LogTag;
 import cn.ingenic.glasssync.LogTag.Server;
 import cn.ingenic.glasssync.transport.BluetoothChannel;
+import cn.ingenic.glasssync.transport.transcompat.BluetoothCompat;
+import com.ingenic.spp.OnChannelListener;
 
 class BluetoothServerExt implements BluetoothChannelExt {
-	private BluetoothSocket mClient;
-	private Object mClientLock = new Object();
+	private final BluetoothCompat mServerCompat;
+    private Object mClientLock = new Object();
 	private Object mClientCloseLock=new Object();
 	private volatile boolean mClosed = true;
-	private BluetoothServerSocket mServerSocket;
-	private OutputStream mOutput;
+	private BluetoothServerSocket mServerSocket = null;
 	private final TransportStateMachineExt mStateMachine;
 	private final Handler mRetrive;
-        private long mLastRetriveSec;
-	private Object mSendLock = new Object();
+    private final OnChannelListener mConnListener;
+  
+    private class ConnListener implements OnChannelListener {
+        public void onStateChanged(int state, String addr) {
+            if (state == OnChannelListener.STATE_CONNECTED) {
+                BluetoothClientExt.notifyStateChange(TransportStateMachineExt.S_CONNECTED, mStateMachine);
+                doStartRead();
+            } else if (state == OnChannelListener.STATE_NONE) {
+                sendClientCloseMsg();
+            }
+        }
+        public void onWrite(byte[] buf, int len, int err) {
+        }
+        public void onRead(byte[] buf, int err) {
+        }
+
+    }
 
 	public BluetoothServerExt(TransportStateMachineExt stateMachine,
 			final Handler retrive) {
 		mStateMachine = stateMachine;
 		mRetrive = retrive;
+        mConnListener = new ConnListener();
+        mServerCompat = BluetoothCompat.getServerCompat(mConnListener);
 	}
 
-        private final boolean is_ping(byte[] b){
+      /*  private final boolean is_ping(byte[] b){
 	    if (b[0] == 'p' && b[1] == 'i' && b[2] == 'n' && b[3] == 'g'
 		&& b[4] == 'g' && b[5] == 'n' && b[6] == 'i' && b[7] == 'p'){
 		Server.i("is_ping");
@@ -40,7 +58,7 @@ class BluetoothServerExt implements BluetoothChannelExt {
 	    }
 
 	    return false;
-	}
+	}*/
 
 	void start() {
 		if (!mClosed) {
@@ -48,22 +66,26 @@ class BluetoothServerExt implements BluetoothChannelExt {
 //			close();
 			return;
 		}
-		
+		mClosed = false;
+        mServerCompat.start();
+    }	
+	private void doStartRead() {
 		Thread thread = new Thread() {
 			@Override
 			public void run() {
 				Server.i("server started.");
-				mClosed = false;
-				mLastRetriveSec = 0;
+			/*	mClosed = false;
+				mLastRetriveSec = 0;*/
 				BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
 				Enviroment env = Enviroment.getDefault();
 				try {
-					mServerSocket = adapter.listenUsingRfcommWithServiceRecord(
+					/*mServerSocket = adapter.listenUsingRfcommWithServiceRecord(
 							"BluetoothServerExt",
 							env.getUUID(BluetoothChannel.CUSTOM, false));
 					Server.i("listen over, accepting..."+env.getUUID(BluetoothChannel.CUSTOM, false)+System.currentTimeMillis());
-					synchronized (mClientLock) {
-						Server.i("listen over, accepting..."+mServerSocket);
+					*/
+                    synchronized (mClientLock) {
+						/*Server.i("listen over, accepting..."+mServerSocket);
 						if (mServerSocket != null) {
 							mClient = mServerSocket.accept();
 							Server.i("listen over--mServerSocket.accept()");
@@ -83,26 +105,23 @@ class BluetoothServerExt implements BluetoothChannelExt {
 						.notifyStateChange(
 								TransportStateMachineExt.S_CONNECTED,
 								mStateMachine);
-						
+						*/
+                        if (mServerSocket != null)
 						mServerSocket.close();
 
 						while (!mClosed) {
-							Pkg pkg = BluetoothChannelExtTools.retrivePkg(input);
-						    
-							if (pkg.getType() == Pkg.PKG){
-							    byte[] b = pkg.getData();
-							    if (is_ping(b)){
-								//Server.i("retrive length:" + b.length);
+							Pkg pkg = BluetoothChannelExtTools.retrivePkg(mServerCompat, mRetrive);
+							if(pkg == null)
 								continue;
-							    }else if (pkg.getData().length > Pkg.BIG_LEN){
+							  /*  }else if (pkg.getData().length > Pkg.BIG_LEN){
 								Server.e("set mLastRetriveSec length:%d" + pkg.getData().length);
 								mLastRetriveSec = System.currentTimeMillis() / 1000l;
 							    }
 							}
-					
+					        */
 							if (pkg instanceof Neg) {
-							    Neg neg = (Neg) pkg;
-							    neg.setAddr(mClient.getRemoteDevice().getAddress());
+								Neg neg = (Neg) pkg;
+								neg.setAddr(mServerCompat.getAddr());
 							}
 							
 							Message msg = mRetrive.obtainMessage();
@@ -114,7 +133,7 @@ class BluetoothServerExt implements BluetoothChannelExt {
 				} catch (IOException e) {
 					Server.e("Exception occurs:" + e.getMessage());
 					LogTag.printExp(LogTag.SERVER, e);
-					sendClientCloseMsg();
+					//sendClientCloseMsg();
 				} catch (ProtocolException ep) {
 					Server.e("protocol exception:" + ep.getMessage());
 				}
@@ -122,7 +141,7 @@ class BluetoothServerExt implements BluetoothChannelExt {
 			}
 		};
 		thread.start();
-
+/*
 		Thread thread1 = new Thread() {
 			@Override
 			public void run() {
@@ -153,24 +172,21 @@ class BluetoothServerExt implements BluetoothChannelExt {
 			}
 		};
 		thread1.start();
+*/
 	}
 
 	public void send(Pkg pkg) throws ProtocolException {
 		try {
-		    synchronized (mSendLock){
-		    	if(!mClosed){
-		    		BluetoothChannelExtTools.send(pkg, mOutput);
-		    	}		
-		    }
-		} catch (IOException e) {
+			BluetoothChannelExtTools.send(pkg, mServerCompat);
+		} catch (Exception e) {
 			Server.e("send error:" + e.getMessage());
-			sendClientCloseMsg();
+			mRetrive.removeMessages(BluetoothChannelExtTools.MsgSendAnyData);
 		}
 	}
 
 	protected void sendClientCloseMsg() {
 		if (!mClosed) {
-			close();
+			//close();
 			BluetoothClientExt.notifyStateChange(
 					TransportStateMachineExt.S_IDLE, mStateMachine);
 		}
@@ -183,26 +199,9 @@ class BluetoothServerExt implements BluetoothChannelExt {
 
 		Server.d("shutdown the server");
 		mClosed = true;
-
-		/*
-		 * if use mClientLock, then this happens:
-		 *    mServerSocket.accept(); is block always, then mClientLock is hold always.
-		 *    then close() is never return.  Many error will occur.
-		 * */
-		synchronized (mClientCloseLock) {
-			if (mClient != null) {
-				try {
-					mClient.close();
-					mClient = null;
-					mOutput = null;
-				} catch (IOException e) {
-					Server.d("client close error:" + e.getMessage());
-					LogTag.printExp(LogTag.CLIENT, e);
-				}
-			}
-		}
-
-		if (mServerSocket != null) {
+        mServerCompat.stop();
+		
+        if (mServerSocket != null) {
 			try {
 				mServerSocket.close();
 				mServerSocket = null;

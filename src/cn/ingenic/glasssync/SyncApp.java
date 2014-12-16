@@ -39,7 +39,7 @@ public class SyncApp extends Application implements
 						.equals(intent.getAction())) {
 				boolean scan = mBluetoothAdapter
 						.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE);
-				mBluetoothAdapter.setDiscoverableTimeout(120);
+				mBluetoothAdapter.setDiscoverableTimeout(120*300);//10h
 				int discoverabletimeout = mBluetoothAdapter
 						.getDiscoverableTimeout();
 				Log.d(LogTag.APP, discoverabletimeout + "discoverabletimeout");

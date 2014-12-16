@@ -9,6 +9,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
+import cn.ingenic.glasssync.Enviroment;
+
 import cn.ingenic.glasssync.DefaultSyncManager;
 import cn.ingenic.glasssync.LogTag;
 import cn.ingenic.glasssync.transport.TransportManager;
@@ -33,6 +35,8 @@ class TransportStateMachineExt extends StateMachine {
 	static final int C_CONNECTED = STATE_BASE + 2;
 	static final int S_IDLE = STATE_BASE + 3;
 	static final int S_CONNECTED = STATE_BASE + 4;
+
+	private State mChannelDefaultState;
 
 	static String convert(Message msg) {
 		switch (msg.what) {
@@ -103,14 +107,25 @@ class TransportStateMachineExt extends StateMachine {
 		addState(mServerRespState, mServerState);
 		addState(mServerConnectedState, mServerState);
 
-		setInitialState(mServerState);
+		
 
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
 		context.registerReceiver(mBluetoothReceiver, filter);
+		
+		if (Enviroment.getDefault().isWatch()) {
+			mChannelDefaultState = mServerState;
+			mServer = new BluetoothServerExt(this, retrive);
+		} else {
+			mChannelDefaultState = mClientState;
+			mClient = new BluetoothClientExt(this, retrive, context);
 
-		mClient = new BluetoothClientExt(this, retrive);
-		mServer = new BluetoothServerExt(this, retrive);
+		}
+
+		setInitialState(mChannelDefaultState);
+
+		
+		
 	}
 
 	boolean sendRequest(Pkg pkg) throws ProtocolException {
@@ -177,20 +192,37 @@ class TransportStateMachineExt extends StateMachine {
 	private class ClientState extends State {
 
 		private int mmIdleReason = DefaultSyncManager.NON_REASON;
+		
+		private boolean mmIngoreIdleTransition = false;
+
+		void ingoreIdleTransition() {
+			mmIngoreIdleTransition = true;
+		}
+
 
 		@Override
 		public void enter() {
 			enterLog(this);
 			mIsClient = true;
+			BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+			if (mmIngoreIdleTransition) {
+				mmIngoreIdleTransition = false;
+				return;
+			}
+			if (BluetoothAdapter.STATE_ON == adapter.getState()) {
+//				mClientIdleState.setConnectingAddress(DefaultSyncManager.getDefault().getLockedAddress());
+				transitionTo(mClientIdleState);
+			}
+
 		}
 
 		@Override
 		public void exit() {
 			exitLog(this);
-			mTransportManager.notifyMgrState(false, mmIdleReason);
-			mIsClient = false;
-			mClient.close();
-			mmIdleReason = DefaultSyncManager.NON_REASON;
+//			mTransportManager.notifyMgrState(false, mmIdleReason);
+//			mIsClient = false;
+//			mClient.close();
+//			mmIdleReason = DefaultSyncManager.NON_REASON;
 		}
 
 		@Override
@@ -198,29 +230,40 @@ class TransportStateMachineExt extends StateMachine {
 			dumpMsg(msg, this);
 			switch (msg.what) {
 			case MSG_CONNECT:
-				d("Ingore connect req at Client role.");
+				//mClientIdleState.setConnectingAddress((String)msg.obj);
+				//transitionTo(mClientIdleState);
+//				DefaultSyncManager.getDefault().forceDisconnect();
 				return HANDLED;
 
 			case MSG_STATE_CHANGE:
 				int state = msg.arg1;
 				switch (state) {
 				case C_IDLE:
-					mmIdleReason = msg.arg2;
-					transitionTo(mServerState);
+//					mmIdleReason = msg.arg2;
+//					transitionTo(mClientState);
 					return HANDLED;
 				case S_CONNECTED:
 					if (DefaultSyncManager.isWatch()) {
-						mClient.close();
-						mServerState.ingoreIdleTransition();
-						transitionTo(mServerRespState);
+						//yangliu ???
+//						mClient.close();
+//						mServerState.ingoreIdleTransition();
+//						transitionTo(mServerRespState);
 					} else {
-						mServer.close();
+						//mServer.close();
 					}
 					return HANDLED;
 					// case S_IDLE:
 					// mServerChannelManager.prepare(ServerBTChannelManager.SETUP);
 					// return HANDLED;
+					
 				}
+			case MSG_BT_ON:
+				transitionTo(mClientIdleState);
+				sendMessage(MSG_CONNECT);
+				return HANDLED;
+			case MSG_BT_OFF:
+				d("in ClientState receiver BT_OFF do nothing !");
+				return HANDLED;
 
 			default:
 				dumpIngore(msg, this);
@@ -267,6 +310,9 @@ class TransportStateMachineExt extends StateMachine {
 			case MSG_BT_ON:
 				transitionTo(mServerIdleState);
 				return HANDLED;
+			case MSG_BT_OFF:
+				mServer.close();
+				return HANDLED;
 
 			default:
 				dumpIngore(msg, this);
@@ -282,7 +328,7 @@ class TransportStateMachineExt extends StateMachine {
 
 		@Override
 		public void enter() {
-			enterLog(this);		
+			enterLog(this);
 			try {
 				DefaultSyncManager mgr = DefaultSyncManager.getDefault();
 				d("Client"+mgr.hasLockedAddress());
@@ -314,17 +360,27 @@ class TransportStateMachineExt extends StateMachine {
 
 			case MSG_DISCONNECT:
 				mClient.close();
-				transitionTo(mServerState);
+				transitionTo(mClientState);
 				return HANDLED;
 
 			case MSG_STATE_CHANGE:
 				int state = msg.arg1;
 				switch (state) {
 				case C_IDLE:
-					transitionTo(mServerState);
+				    
+					transitionTo(mClientState);
 					return HANDLED;
 				}
 				return NOT_HANDLED;
+
+			case MSG_CONNECT:
+				v("more connect req comes, ingore it at ClientRequestingState.");
+
+				return HANDLED;
+			case MSG_BT_OFF:
+				mClient.close();
+				transitionTo(mClientState);
+				return HANDLED;
 
 			default:
 				dumpIngore(msg, this);
@@ -347,18 +403,18 @@ class TransportStateMachineExt extends StateMachine {
 		@Override
 		public void enter() {
 			enterLog(this);
-			if (TextUtils.isEmpty(mmConnectingAddress)) {
-				DefaultSyncManager mgr = DefaultSyncManager.getDefault();
-				mmConnectingAddress = mgr.getLockedAddress();
-			}
-
-			v("Connect address:" + mmConnectingAddress);
-			if (!BluetoothAdapter.checkBluetoothAddress(mmConnectingAddress)) {
-				throw new IllegalArgumentException("wrong address to connect:"
-						+ mmConnectingAddress);
-			}
-
-			mClient.start(mmConnectingAddress);
+//			if (TextUtils.isEmpty(mmConnectingAddress)) {
+//				DefaultSyncManager mgr = DefaultSyncManager.getDefault();
+//				mmConnectingAddress = mgr.getLockedAddress();
+//			}
+//
+//			v("Connect address:" + mmConnectingAddress);
+//			if (!BluetoothAdapter.checkBluetoothAddress(mmConnectingAddress)) {
+//				throw new IllegalArgumentException("wrong address to connect:"
+//						+ mmConnectingAddress);
+//			}
+//
+//			mClient.start(mmConnectingAddress);
 		}
 
 		@Override
@@ -368,9 +424,9 @@ class TransportStateMachineExt extends StateMachine {
 			case MSG_STATE_CHANGE:
 				int state = msg.arg1;
 				switch (state) {
-				 case C_IDLE:
-				 transitionTo(mServerState);
-				 return HANDLED;
+				// case C_IDLE:
+				// transitionTo(mServerState);
+				// return HANDLED;
 				case C_CONNECTED:
 					transitionTo(mClientReqState);
 					return HANDLED;
@@ -378,7 +434,31 @@ class TransportStateMachineExt extends StateMachine {
 				return NOT_HANDLED;
 
 			case MSG_CONNECT:
-				v("more connect req comes, ingore it at ClientIdleState.");
+			mmConnectingAddress=(String)msg.obj;
+				if (TextUtils.isEmpty(mmConnectingAddress)) {
+					DefaultSyncManager mgr = DefaultSyncManager.getDefault();
+					mmConnectingAddress = mgr.getLockedAddress();
+				}
+				v("Connect address:" + mmConnectingAddress);
+                if (mmConnectingAddress.equals("")){
+                    v("return address is: null");
+                    return HANDLED;
+                }
+				if (!BluetoothAdapter.checkBluetoothAddress(mmConnectingAddress)) {
+					throw new IllegalArgumentException("wrong address to connect:"
+							+ mmConnectingAddress);
+				}
+	
+				mClient.start(mmConnectingAddress);
+//				v("more connect req comes, ingore it at ClientIdleState.");
+				return HANDLED;
+			case MSG_DISCONNECT:
+				mClient.close();
+				d("in ClientState force disconnect !");
+				return HANDLED;
+			case MSG_BT_OFF:
+				mClient.close();
+				transitionTo(mClientState);
 				return HANDLED;
 
 			default:
@@ -417,20 +497,29 @@ class TransportStateMachineExt extends StateMachine {
 
 			case MSG_DISCONNECT:
 				mClient.close();
-				transitionTo(mServerState);
+				mTransportManager.notifyMgrState(false, DefaultSyncManager.NON_REASON);
+				transitionTo(mClientState);
 				return HANDLED;
 
 			case MSG_STATE_CHANGE:
 				int state = msg.arg1;
 				switch (state) {
 				case C_IDLE:
-					transitionTo(mServerState);
+//					mClient.close();
+					mTransportManager.notifyMgrState(false, DefaultSyncManager.NON_REASON);
+					transitionTo(mClientState);
+					
 					return HANDLED;
 				}
 
 				// case MSG_SEND:
 				// sendRequestInternal((ProjoList) msg.obj);
 				// return HANDLED;
+			case MSG_BT_OFF:
+				mClient.close();
+				transitionTo(mClientState);
+				mTransportManager.notifyMgrState(false, DefaultSyncManager.NON_REASON);
+				return HANDLED;
 
 			default:
 				dumpIngore(msg, this);
@@ -452,7 +541,7 @@ class TransportStateMachineExt extends StateMachine {
 		@Override
 		public boolean processMessage(Message msg) {
 			dumpMsg(msg, this);
-			//Enviroment env = Enviroment.getDefault();
+			// Enviroment env = Enviroment.getDefault();
 			switch (msg.what) {
 			case MSG_S_CONTINUE:
 				Neg neg = (Neg) msg.obj;
@@ -471,7 +560,7 @@ class TransportStateMachineExt extends StateMachine {
 				return HANDLED;
 
 			case MSG_DISCONNECT:
-				//env.processBondResponse(false);
+				// env.processBondResponse(false);
 				mServer.close();
 				transitionTo(mServerState);
 				return HANDLED;
@@ -480,11 +569,15 @@ class TransportStateMachineExt extends StateMachine {
 				int state = msg.arg1;
 				switch (state) {
 				case S_IDLE:
-					//env.processBondResponse(false);
+					// env.processBondResponse(false);
 					transitionTo(mServerState);
 					return HANDLED;
 				}
 				return NOT_HANDLED;
+			case MSG_BT_OFF:
+				mServer.close();
+				transitionTo(mServerState);
+				return HANDLED;
 
 			default:
 				dumpIngore(msg, this);
@@ -510,14 +603,15 @@ class TransportStateMachineExt extends StateMachine {
 			dumpMsg(msg, this);
 			switch (msg.what) {
 			case MSG_CONNECT:
-				String address = (String) msg.obj;
-				mServer.close();
-				mClientIdleState.setConnectingAddress(address);
-				transitionTo(mClientIdleState);
+//				String address = (String) msg.obj;
+//				mClientIdleState.setConnectingAddress(address);
+//				transitionTo(mClientIdleState);
+				i("server ignore connect common !!!!~~~~~~ ");
 				return HANDLED;
 
 			case MSG_BT_OFF:
 				mServer.close();
+				transitionTo(mServerState);
 				return HANDLED;
 
 			case MSG_STATE_CHANGE:
@@ -567,6 +661,7 @@ class TransportStateMachineExt extends StateMachine {
 
 			case MSG_DISCONNECT:
 				mServer.close();
+				mTransportManager.notifyMgrState(false, DefaultSyncManager.NON_REASON);
 				transitionTo(mServerState);
 				return HANDLED;
 
@@ -574,6 +669,7 @@ class TransportStateMachineExt extends StateMachine {
 				int state = msg.arg1;
 				switch (state) {
 				case S_IDLE:
+				    mTransportManager.notifyMgrState(false, DefaultSyncManager.NON_REASON);
 					transitionTo(mServerState);
 					return HANDLED;
 				}
@@ -582,6 +678,10 @@ class TransportStateMachineExt extends StateMachine {
 				// case MSG_SEND:
 				// sendRequestInternal((ProjoList) msg.obj);
 				// return HANDLED;
+			case MSG_BT_OFF:
+				mServer.close();
+				transitionTo(mServerState);
+				return HANDLED;
 
 			default:
 				dumpIngore(msg, this);
@@ -625,9 +725,9 @@ class TransportStateMachineExt extends StateMachine {
 		Log.w(LogTag.APP, TAG + msg);
 	}
 
-	/*private static void e(String msg) {
-		Log.e(LogTag.APP, TAG + msg);
-	}*/
+	/*
+	 * private static void e(String msg) { Log.e(LogTag.APP, TAG + msg); }
+	 */
 
 	private static void e(String msg, Throwable t) {
 		Log.e(LogTag.APP, msg, t);

@@ -200,7 +200,8 @@
 </string>
     <string name="into">单击进行二维码扫描</string>
     <string name="loading">正在玩命加载中，请您耐心等待\n\nLoading...</string>
-    <string name="unbind">绑定失败了（T﹏T）</string>
+    <string name="unbind">配对失败（T﹏T）</string>
+    <string name="unconnect">绑定失败（T﹏T）</string>
     <string name="disbind">已经解除绑定，下滑退出应用，\n单击绑定新的手机。</string>
     <string name="bind">已绑定的设备</string>
     <string name="long_click">（长按解除绑定）</string>
