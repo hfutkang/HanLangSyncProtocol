@@ -113,14 +113,6 @@ public class AvcEncode {
 	mMediaCodec.start();
     }
 
-    private byte[] getFramedataFromFb() {
-	if (DEBUG) Log.v(TAG, "getFramedataFromFb");
-	int frameSize = mWidth * mHeight * 3 / 2;
-	byte[] frameData = new byte[frameSize];
-	get_frameData(frameData);
-	if (DEBUG) Log.v(TAG, "frameData.length = " + frameData.length);
-	return frameData;
-    }
 
     public void getFrameData() throws Exception {
 	int frameSize = mWidth * mHeight * 3 / 2;
@@ -156,6 +148,7 @@ public class AvcEncode {
 			    frameSize = 0;
 			}
 
+			Log.v(TAG, "inFrameNum =" + inFrameNum);
                         mInputBuffers[inputBufIndex].clear();
                         mInputBuffers[inputBufIndex].put(frame);
 			mInputBuffers[inputBufIndex].rewind();
@@ -204,6 +197,9 @@ public class AvcEncode {
 			Log.v(TAG, "output send Data  costtime: " + elapsed22 + "ms");
 			Log.v(TAG, "output send Data  average costtime: " + time1/outFrameNum + "ms");
 		    }
+
+		    Thread.sleep(20);
+
                 } else if (outputBufIndex == MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED) {
                     mOutputBuffers = mMediaCodec.getOutputBuffers();
 		}

@@ -289,7 +289,7 @@ inline void ARGB8888_to_YUV420SP_CHANGED(
     uvdest -= 1;
 
     for (j = 0; j < height; j+=2) {
-        src = pSrc + j * width - 2;
+        src = pSrc + j * fb_width - 2;
         for (i = 0; i < width; i+=8) {
 	    S32LDI(xr1, src, 0x8);  //xr1:0xFFBGR:  xr1 and xr3 use for UV
 	    S32LDI(xr2, src, 0x8);  //xr2:0xFFBGR
@@ -393,15 +393,11 @@ static void get_framebuffer_data(JNIEnv* env, jobject thiz,jbyteArray data) {
   unsigned int pre_time2 = GetTimer();
 #endif
 
-#if 0
-  ARGB8888_to_YUV420SP_c(yuv_dst, uv_dst, rgb_src, fb_width, fb_height);
-#else
   if (changed_width == fb_width) {
     ARGB8888_to_YUV420SP(yuv_dst, uv_dst, rgb_src, fb_width, fb_height);
   }else{
-    ARGB8888_to_YUV420SP_CHANGED(yuv_dst, uv_dst, rgb_src, fb_width, fb_height);
+    ARGB8888_to_YUV420SP_CHANGED(yuv_dst, uv_dst, rgb_src, changed_width*2, changed_height*2);
   }
-#endif
 
 #ifdef TIME_COST_TEST
   unsigned int time2 = GetTimer() - pre_time1;
