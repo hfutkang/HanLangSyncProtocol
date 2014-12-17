@@ -12,7 +12,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.View.OnTouchListener;
 import android.widget.GestureDetector;
 import android.widget.GestureDetector.SimpleOnGestureListener;
-import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import cn.ingenic.glasssync.DefaultSyncManager;
 public class Welcome_Activity extends Activity implements OnTouchListener{
@@ -20,7 +20,7 @@ public class Welcome_Activity extends Activity implements OnTouchListener{
     private static final boolean DEBUG = true;
 
     public static BluetoothAdapter sBluetoothAdapter;
-    private LinearLayout mlayout_welcome;
+    private RelativeLayout mlayout_welcome;
     private GestureDetector mGestureDetector;
     private static final int ERROR_VIEW = 1;
     private static final int WELCOME_VIEW = 2;
@@ -48,7 +48,7 @@ public class Welcome_Activity extends Activity implements OnTouchListener{
 	    TextView tv = (TextView) findViewById(R.id.pre_info);
 	    tv.setVisibility(View.INVISIBLE);
 	    
-	    mlayout_welcome = (LinearLayout) findViewById(R.id.Layout_welcome);
+	    mlayout_welcome = (RelativeLayout) findViewById(R.id.Layout_welcome);
 	    mlayout_welcome.setOnTouchListener(this);
 	    mlayout_welcome.setVisibility(View.VISIBLE);			
 	    mCurrentView = WELCOME_VIEW;
