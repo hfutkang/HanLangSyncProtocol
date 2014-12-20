@@ -48,6 +48,7 @@ public class Load_Activity extends Activity implements OnTouchListener{
     private String[] strarray;
     private Context mContext;
     private boolean mCanTouch = false;
+    private boolean mRemoveBondFlag = false;
 
     private Handler mHandler = new Handler() {
 	    @Override
@@ -97,21 +98,11 @@ public class Load_Activity extends Activity implements OnTouchListener{
 	mBTAdapter = BluetoothAdapter.getDefaultAdapter();
 	mDevice = mBTAdapter.getRemoteDevice(mAddress);
 
-	Set<BluetoothDevice> device=mBTAdapter.getBondedDevices();
-	if(device.size()!=0){
-	    for(BluetoothDevice bluetoothDevice:device){
-		bluetoothDevice.removeBond();
-		if(DEBUG)Log.d(TAG, "bonddevice_name="+bluetoothDevice.getName());
-	    }
-	}
-
 	IntentFilter filter = new IntentFilter();
 	filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
 	filter.addAction(BluetoothDevice.ACTION_FOUND);
 	filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
 
-	filter.addAction("load_connect");
-	filter.addAction("load_message");
 	  //filter.addAction(BluetoothDevice.ACTION_PAIRING_REQUEST);
 	filter.addAction(DefaultSyncManager.RECEIVER_ACTION_STATE_CHANGE);
 	registerReceiver(mBluetoothReceiver, filter);
@@ -140,6 +131,18 @@ public class Load_Activity extends Activity implements OnTouchListener{
 		tv.setText(R.string.loading);
 		if(DEBUG)Log.d(TAG, mManger.getLockedAddress()+"mManger.getLockedAddress()");
 		
+		  //remove last bonded
+		Set<BluetoothDevice> devices=mBTAdapter.getBondedDevices();
+		if(devices!=null){
+		    for(BluetoothDevice device:devices){
+			if(device.getAddress().equals(mAddress)){
+			    if(DEBUG)Log.d(TAG, "-------need remove devies had boned last");
+			    device.removeBond();
+			    mRemoveBondFlag = true;
+			    return;
+			}
+		    }
+		}
 		  //start BOND
 		try {
 		    Log.e(TAG, "createBond start");
@@ -159,8 +162,6 @@ public class Load_Activity extends Activity implements OnTouchListener{
     private final BroadcastReceiver mBluetoothReceiver = new BroadcastReceiver() {
 	    @Override
 		public void onReceive(Context context, Intent intent) {
-		String load_connect="load_connect";
-		String load_message="load_message";
 		if(DEBUG) Log.e(TAG, "rcv " + intent.getAction());
 		if(BluetoothAdapter.ACTION_STATE_CHANGED.equals(intent.getAction())){
 		    Message msg = new Message();
@@ -197,6 +198,16 @@ public class Load_Activity extends Activity implements OnTouchListener{
 			break;    
 		    case BluetoothDevice.BOND_NONE:    
 			if(DEBUG) Log.d(TAG, "ACTION_BOND_STATE_CHANGED--bond none");    
+			if(mRemoveBondFlag){ 
+			    if(DEBUG) Log.d(TAG, "------can rebond");    
+			    mRemoveBondFlag = false;
+			    try {
+				mDevice.createBond();
+			    } catch (Exception e) {
+				e.printStackTrace();
+			    }
+			    break;
+			}
 			msg.what = MESSAGE_BOND_NONE;
 			mHandler.sendMessage(msg);
 			break;

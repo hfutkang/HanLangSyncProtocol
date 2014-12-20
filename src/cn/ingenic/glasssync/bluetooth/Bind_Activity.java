@@ -82,8 +82,9 @@ public class Bind_Activity extends Activity{
     }
 
     private void disableBond(){
+	if(DEBUG) Log.e(TAG, "-----disableBond address="+mManger.getLockedAddress());
 	mManger.setLockedAddress("");
-	mManger.disconnect();
+	// mManger.disconnect();//must not used
 
 
 	LinearLayout layout_bind = (LinearLayout) findViewById(R.id.layout_bind);
