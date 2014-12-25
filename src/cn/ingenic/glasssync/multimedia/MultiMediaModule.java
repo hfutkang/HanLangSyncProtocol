@@ -30,6 +30,8 @@ public class MultiMediaModule extends SyncModule {
     private static final String GSMMD_IMAGESYNC = "gsmmd_imgsync";
     private static final String GSMMD_VIDEOSYNC = "gsmmd_vidsync";
 
+    private static final String GSMMD_NULL = "gsmmd_null";
+
     private static final String GSMMD_NAME = "gsmmd_name";
 
     private static final String GSMMD_TYPE = "gsmmd_type";
@@ -114,6 +116,7 @@ public class MultiMediaModule extends SyncModule {
 
 	if(!f.exists()){ 
 	    Log.e(TAG,"file(" + pathname + ") is not exist!");
+	    sendDataIsNull();
 	    return;
 	}
 	Date date = new Date();
@@ -212,6 +215,19 @@ public class MultiMediaModule extends SyncModule {
 	}else{
 	    MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
 	    m.sync_videos();
+	}
+    }
+    
+    public void sendDataIsNull(){
+	SyncData data = new SyncData();
+
+	data.putString(GSMMD_CMD, GSMMD_NULL);
+
+	try {
+	    Log.e(TAG, "send NULL ");
+	    send(data);
+	} catch (SyncException e) {
+	    Log.e(TAG, "" + e);
 	}
     }
 

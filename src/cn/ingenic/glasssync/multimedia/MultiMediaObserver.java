@@ -115,7 +115,13 @@ public class MultiMediaObserver extends ContentObserver {
 	   
 	    Cursor cs = mContext.getContentResolver().query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, 
 							videoColu, where.toString(), whereVal, null);
-	    if  (cs == null) return;
+	    if (cs == null) return;
+	    if (cs.getCount() == 0){
+		MultiMediaManager m = MultiMediaManager.getInstance(mContext);
+		m.sendDataIsNull();
+		cs.close();
+		return;
+	    }
 	    cs.moveToFirst();
 	    try{
 		int pathidx = cs.getColumnIndexOrThrow(MediaStore.Video.Media.DATA);

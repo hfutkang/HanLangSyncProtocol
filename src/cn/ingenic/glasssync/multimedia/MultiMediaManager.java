@@ -156,6 +156,8 @@ public class MultiMediaManager {
 		syncType = type;
 		MultiMediaModule m = MultiMediaModule.getInstance(mContext);
 		m.sync_file(name, type);
+		mReqState = REQ_IDEL;
+		mPicWaitList.remove(name);
 	    }
 	}else if (type == MultiMediaModule.GSMMD_VIDEO) {
 	    Log.e(TAG, "replyAsk VIDEO");
@@ -172,6 +174,8 @@ public class MultiMediaManager {
 		syncType = type;
 		MultiMediaModule m = MultiMediaModule.getInstance(mContext);
 		m.sync_file(name, type);
+		mReqState = REQ_IDEL;
+		mVideoWaitList.remove(name);
 	    }
 	}else if (type == MultiMediaModule.GSMMD_IMG_THUMB) {
 	    Log.e(TAG, "replyAsk THUMB");
@@ -188,6 +192,8 @@ public class MultiMediaManager {
 		syncType = type;
 		MultiMediaModule m = MultiMediaModule.getInstance(mContext);
 		m.sync_file(name, type);
+		mReqState = REQ_IDEL;
+		mPicThumbWaitList.remove(name);
 	    }
 	}else if (type == MultiMediaModule.GSMMD_VID_THUMB) {
 	    Log.e(TAG, "replyAsk THUMB");
@@ -204,6 +210,8 @@ public class MultiMediaManager {
 		syncType = type;
 		MultiMediaModule m = MultiMediaModule.getInstance(mContext);
 		m.sync_file(name, type);
+		mReqState = REQ_IDEL;
+		mVideoThumbWaitList.remove(name);
 	    }
 	}else{
 	    Log.e(TAG, "Invalid type " + mReqState);
@@ -330,6 +338,10 @@ public class MultiMediaManager {
 	}
     }
 
+    public void sendDataIsNull(){
+	MultiMediaModule m = MultiMediaModule.getInstance(mContext);
+	m.sendDataIsNull();
+    }
 
     private void RequestHandler(Context c){
 	mReqHandle = new Handler();
