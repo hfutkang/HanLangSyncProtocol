@@ -63,6 +63,7 @@ static unsigned int GetTimer(void){
 static int init_rgb_tab = 0;
 int frameNum = 0;
 int fb_width, fb_height;
+int bits_per_pixel= 0;
 int changed_width, changed_height;
 unsigned int costtime = 0;
 unsigned int s, f;
@@ -113,6 +114,7 @@ int *getfb(void) {
 	if (ioctl(fb, FBIOGET_VSCREENINFO, &vinfo) == 0) {
 	    uint32_t bytespp;
 	    if (vinfoToPixelFormat(vinfo, &bytespp, &f) == NO_ERROR) {
+		bits_per_pixel = vinfo.bits_per_pixel;
 	        size_t offset = (vinfo.xoffset + vinfo.yoffset*vinfo.xres) * bytespp;
 		if (ioctl(fb, FBIOGET_FSCREENINFO, &finfo) == 0) {
 		  //ALOGE("%d %s(), finfo.line_length=%d", __LINE__, __FUNCTION__, finfo.line_length);
@@ -135,6 +137,112 @@ int *getfb(void) {
     }
     return new_rgbx_base;
 }
+
+void RGB565_to_YUV420SP_c(
+    unsigned char *y_dst,
+    unsigned char *uv_dst,
+    unsigned char *rgb_src,
+    int width,
+    int height)
+{
+    unsigned int i, j;
+    unsigned int tmp;
+
+    unsigned int R, G, B;
+    unsigned int Y, U, V;
+
+    unsigned short int *pSrc = (unsigned short int *)rgb_src;
+
+    unsigned char *pDstY = (unsigned char *)y_dst;
+    unsigned char *pDstUV = (unsigned char *)uv_dst;
+
+    unsigned int yIndex = 0;
+    unsigned int uvIndex = 0;
+
+    for (j = 0; j < height; j++) {
+        for (i = 0; i < width; i++) {
+            tmp = pSrc[j * width + i];
+
+            R = (tmp & 0x0000F800) >> 11;
+            R = R * 8;
+            G = (tmp & 0x000007E0) >> 5;
+            G = G * 4;
+            B = (tmp & 0x0000001F);
+            B = B * 8;
+
+            Y = ((66 * R) + (129 * G) + (25 * B) + 128);
+            Y = Y >> 8;
+            Y += 16;
+
+            pDstY[yIndex++] = (unsigned char)Y;
+
+            if ((j % 2) == 0 && (i % 2) == 0) {
+                U = ((-38 * R) - (74 * G) + (112 * B) + 128);
+                U = U >> 8;
+                U += 128;
+                V = ((112 * R) - (94 * G) - (18 * B) + 128);
+                V = V >> 8;
+                V += 128;
+
+                pDstUV[uvIndex++] = (unsigned char)U;
+                pDstUV[uvIndex++] = (unsigned char)V;
+            }
+        }
+    }
+}
+
+void RGB565_to_YUV420SP_CHANGED(
+    unsigned char *y_dst,
+    unsigned char *uv_dst,
+    unsigned char *rgb_src,
+    int width,
+    int height)
+{
+    unsigned int i, j;
+    unsigned int tmp;
+
+    unsigned int R, G, B;
+    unsigned int Y, U, V;
+
+    unsigned short int *pSrc = (unsigned short int *)rgb_src;
+    unsigned char *pDstY = (unsigned char *)y_dst;
+    unsigned char *pDstUV = (unsigned char *)uv_dst;
+
+    unsigned int yIndex = 0;
+    unsigned int uvIndex = 0;
+
+    for (j = 0; j < height; j+=2) {
+        for (i = 0; i < width; i+=2) {
+            tmp = pSrc[j * fb_width + i];
+
+            R = (tmp & 0x0000F800) >> 11;
+            R = R * 8;
+            G = (tmp & 0x000007E0) >> 5;
+            G = G * 4;
+            B = (tmp & 0x0000001F);
+            B = B * 8;
+
+            Y = ((66 * R) + (129 * G) + (25 * B) + 128);
+            Y = Y >> 8;
+            Y += 16;
+
+            pDstY[yIndex++] = (unsigned char)Y;
+
+            if ((j % 2) == 0 && (i % 2) == 0) {
+                U = ((-38 * R) - (74 * G) + (112 * B) + 128);
+                U = U >> 8;
+                U += 128;
+                V = ((112 * R) - (94 * G) - (18 * B) + 128);
+                V = V >> 8;
+                V += 128;
+
+                pDstUV[uvIndex++] = (unsigned char)U;
+                pDstUV[uvIndex++] = (unsigned char)V;
+            }
+        }
+    }
+}
+
 
 void ARGB8888_to_YUV420SP_c(
     unsigned char *y_dst,
@@ -393,10 +501,21 @@ static void get_framebuffer_data(JNIEnv* env, jobject thiz,jbyteArray data) {
   unsigned int pre_time2 = GetTimer();
 #endif
 
-  if (changed_width == fb_width) {
-    ARGB8888_to_YUV420SP(yuv_dst, uv_dst, rgb_src, fb_width, fb_height);
+  if (bits_per_pixel == 32) {
+      ALOGE("ARGB8888");
+      if (changed_width == fb_width) {
+	  ARGB8888_to_YUV420SP(yuv_dst, uv_dst, rgb_src, fb_width, fb_height);
+      }else{
+	  ARGB8888_to_YUV420SP_CHANGED(yuv_dst, uv_dst, rgb_src, changed_width*2, changed_height*2);
+      }
+  }else if (bits_per_pixel == 16){
+      if (changed_width == fb_width) {
+	  RGB565_to_YUV420SP_c(yuv_dst, uv_dst, rgb_src, fb_width, fb_height);
+      }else{
+	  RGB565_to_YUV420SP_CHANGED(yuv_dst, uv_dst, rgb_src, changed_width*2, changed_height*2);
+      }
   }else{
-    ARGB8888_to_YUV420SP_CHANGED(yuv_dst, uv_dst, rgb_src, changed_width*2, changed_height*2);
+      ALOGE("neither ARGB8888 or RGB565, unsupported");
   }
 
 #ifdef TIME_COST_TEST
@@ -468,14 +587,17 @@ static void get_picture_size(JNIEnv* env, jobject thiz) {
   if (fb_width > 400) {
     changed_width = fb_width / 2;
     changed_height = fb_height / 2;
+    if (changed_width % 16) changed_width = changed_width / 16 * 16;  
+    if (changed_height % 16) changed_height = changed_height / 16 * 16;  
   }else{
     changed_width = fb_width;
     changed_height = fb_height;
+    if (changed_width % 16) changed_width = changed_width / 16 * 16;  
+    if (changed_height % 16) changed_height = changed_height / 16 * 16;  
   }
 
-  close(fb);
 
-  
+  close(fb);
   if (init_rgb_tab == 0) {
     S32I2M(xr16, 0x7);
     init_rgb_tab = 1;
