@@ -18,19 +18,21 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.provider.CallLog.Calls;
 import android.text.TextUtils;
-
+import android.util.Log;
 import com.android.internal.telephony.CallerInfo;
 import cn.ingenic.glasssync.R;
 
+import java.util.ArrayList;
 public class MissedCallNotify {
 
 	static MissedCallNotify mInstance=null;
     static final int MISSED_CALL_NOTIFICATION = 1;
     static Context mContext;
     static NotificationManager mNotificationManager;
-	private static final int MISSEDCALL_TOKEN = -3;//dfdun add
-	private QueryHandler mQueryHandler = null;
-	private int mNumberMissedCalls = 0;
+    private static final int MISSEDCALL_TOKEN = -3;//dfdun add
+    private QueryHandler mQueryHandler = null;
+    private int mNumberMissedCalls = 0;
+    private ArrayList<NotificationInfo> mNoPickUp = new ArrayList<NotificationInfo>();
 	
 	public static MissedCallNotify getInstance(Context c){
 		if(mInstance == null){
@@ -56,8 +58,9 @@ public class MissedCallNotify {
                 + " and " + Calls.NEW + "=1", null, null);
     }
 	
-	private void notifyMissedCall(
-            String name, String number, String type, Drawable photo, Bitmap photoIcon, long date) {
+    private void notifyMissedCall(
+	String name, String number, String type, Drawable photo, 
+	Bitmap photoIcon, long date, int count) {
 
         // When the user clicks this notification, we go to the call log.
         final Intent callLogIntent =  new Intent(Intent.ACTION_VIEW, null);
@@ -82,23 +85,19 @@ public class MissedCallNotify {
             callName = mContext.getString(R.string.unknown);
         }
 
-        // display the first line of the notification:
-        // 1 missed call: call name
-        // more than 1 missed call: <number of calls> + "missed calls"
-        if (mNumberMissedCalls == 1) {
-            titleResId = R.string.notification_missedCallTitle;
-            expandedText = callName;
-        } else {
-            titleResId = R.string.notification_missedCallsTitle;
-            expandedText = mContext.getString(R.string.notification_missedCallsMsg,
-                    mNumberMissedCalls);
-        }
+        /* display the first line of the notification:
+	   1 missed call: call name
+	   more than 1 missed call: <number of calls> + "missed calls"*/
+
+        titleResId = R.string.notification_missedCallTitle;
+        expandedText = callName;
+
 
         Notification.Builder builder = new Notification.Builder(mContext);
         builder.setSmallIcon(android.R.drawable.stat_notify_missed_call)
                 .setTicker(mContext.getString(R.string.notification_missedCallTicker, callName))
                 .setWhen(date)
-                .setContentTitle(mContext.getText(titleResId))
+                .setContentTitle(mContext.getText(titleResId)+"("+count+")")
                 .setContentText(expandedText)
                 .setContentIntent(PendingIntent.getActivity(mContext, 0, callLogIntent, 0))
                 .setAutoCancel(true);
@@ -122,14 +121,7 @@ public class MissedCallNotify {
 //    }
 	
 	private class QueryHandler extends AsyncQueryHandler{
-		
-        private class NotificationInfo {
-            public String name;
-            public String number;
-            public String type;
-            public long date;
-        }
-		
+				
         public QueryHandler(ContentResolver cr) {
             super(cr);
         }
@@ -142,11 +134,27 @@ public class MissedCallNotify {
             switch (token) {
             case MISSEDCALL_TOKEN:      //dfdun add this case.
                 if (cursor != null) {
+		    		ArrayList<String> list = new ArrayList<String>();
                     while (cursor.moveToNext()) {
                         NotificationInfo n = getNotificationInfo (cursor);
                         n.name=cursor.getString(cursor.getColumnIndex(Calls.CACHED_NAME));
-                        notifyMissedCall(n.name, n.number, n.type, null, null, n.date);
+			//notifyMissedCall(n.name, n.number, n.type, null, null, n.date,);
+			if(!list.contains(n.name)){
+			    list.add(n.name);
+			    n.count = 1;
+			    mNoPickUp.add(n);
+			}else{
+			    ++ mNoPickUp.get(list.indexOf(n.name)).count;
+			}		
                     }
+		    for(int i = 0 ;i<mNoPickUp.size();i++ ){
+			Log.e("qqli","MissedCallNotify --"+mNoPickUp.get(i).name+"--"+mNoPickUp.size());
+			notifyMissedCall(mNoPickUp.get(i).name, mNoPickUp.get(i).number, 
+					 mNoPickUp.get(i).type, null, null, mNoPickUp.get(i).date,
+					 mNoPickUp.get(i).count);
+		    }
+		    list.clear();
+		    mNoPickUp.clear();
                 }
                 break;
             default:
@@ -167,5 +175,12 @@ public class MissedCallNotify {
             return n;
         }
 	}
-	
+		
+    public class NotificationInfo {
+	public String name;
+	public String number;
+	public String type;
+	public long date;
+	public int count;
+    }
 }
