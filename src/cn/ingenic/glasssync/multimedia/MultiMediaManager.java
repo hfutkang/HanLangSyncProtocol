@@ -8,7 +8,7 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import cn.ingenic.glasssync.multimedia.MultiMediaModule;
 import java.util.ArrayList;
-
+import android.os.Environment;
 public class MultiMediaManager {
     private static final String TAG = "MultiMediaManager";
 
@@ -258,31 +258,19 @@ public class MultiMediaManager {
 
     public void deleteFile(String fileName, int type){
 	Log.e(TAG, "deleteFile:" + fileName + " " + type);
+        String dirpath;
 	if (type == MultiMediaModule.GSMMD_PIC){
-	    if (mPicList.contains(fileName)){
-		MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
-		m.deleteFile(fileName, type);
-		mPicList.remove(fileName);
-	    }
+	    dirpath = "/IGlass/Pictures/";
 	}else if (type == MultiMediaModule.GSMMD_VIDEO){
-	    if (mVideoList.contains(fileName)){
-		MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
-		m.deleteFile(fileName, type);
-		mVideoList.remove(fileName);
-	    }
-	}else if (type == MultiMediaModule.GSMMD_IMG_THUMB){
-	    if (mPicThumbList.contains(fileName)){
-		MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
-		m.deleteFile(fileName, type);
-		mPicThumbList.remove(fileName);
-	    }
-	}else if (type == MultiMediaModule.GSMMD_VID_THUMB){
-	    if (mVideoThumbList.contains(fileName)){
-		MultiMediaObserver m = MultiMediaObserver.getInstance(mContext);
-		m.deleteFile(fileName, type);
-		mVideoThumbList.remove(fileName);
-	    }
+	    dirpath = "/IGlass/Video/";
+	}else if (type == MultiMediaModule.GSMMD_IMG_THUMB || type == MultiMediaModule.GSMMD_VID_THUMB){
+	    dirpath = "/DCIM/.thumbnails/";
+	}else{
+	    dirpath = "/IGlass/data/";
 	}
+        String deletePath=Environment.getExternalStorageDirectory()+dirpath+fileName;
+	if(mContext.getContentResolver().delete(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "_data=?",new String[] {deletePath})<=0);
+        Log.e(TAG, "deleteFile=====failed");
 	// to do delete end
 	MultiMediaModule m = MultiMediaModule.getInstance(mContext);
 	m.delete_finish(fileName, type);
