@@ -244,10 +244,10 @@ abstract class DiffDatasProcesser<T> {
 	}
 
 	void sendDiffDatas() throws MidException, SyncException {
-		if (mMidMgr.mModule.isConnected()) {
+		if (mMidMgr.mModule.isConnected()  && mMidMgr.mModule.getSyncEnable()) {
 			mMidMgr.mModule.send(createSendDatas());
 		} else {
-			logi("Do not send diff datas without connectivity, executeSync only.");
+			logi("Do not send diff datas without connectivity or syncEable is false, executeSync only.");
 			mMidMgr.executeSync();
 		}
 	}
