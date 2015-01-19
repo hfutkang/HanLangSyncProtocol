@@ -268,8 +268,8 @@ class SppChannelClient extends SppChannel{
             try {
                 Log.v(TAG, "close mmSocket"); 
                 mmSocket.close();
-            } catch (IOException e) {
-                Log.e(TAG, "close() of connect " + mSocketType + " socket failed", e);
+            } catch (Exception e) {
+                Log.e(TAG, "----close() of connect " + mSocketType + " socket failed", e);
             }
         }
     }

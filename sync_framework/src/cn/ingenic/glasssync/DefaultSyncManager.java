@@ -317,8 +317,9 @@ public class DefaultSyncManager extends Handler {
 			    Mgr.i("--MSG_CLEAR_ADDRESS comes disconnect");
 			    disconnect();
 			    setLockedAddress("");
-			    notifyDisconnected();
+			    //notifyDisconnected();
 			}
+			notifyDisconnected();
 			break;
 			
 		case MSG_SEND_FILE:
