@@ -28,7 +28,11 @@ LOCAL_REQUIRED_MODULES := libscreencap_jni
 
 include $(BUILD_PACKAGE)
 
-# This finds and builds the test apk as well, so a single make does both.
-
-include $(call all-makefiles-under,$(LOCAL_PATH))
+# prebuilt zxing
+include $(CLEAR_VARS)
 LOCAL_PREBUILT_STATIC_JAVA_LIBRARIES := zxing:libs/zxing.jar
+include $(BUILD_MULTI_PREBUILT)
+
+# This finds and builds the test apk as well, so a single make does both.
+include $(call all-makefiles-under,$(LOCAL_PATH))
+
