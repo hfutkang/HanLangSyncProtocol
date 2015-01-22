@@ -21,6 +21,14 @@ import android.widget.GestureDetector.SimpleOnGestureListener;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 // import android.widget.Toast;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
+import cn.ingenic.glasssync.devicemanager.DeviceModule;
+import cn.ingenic.glasssync.data.FeatureConfigCmd;
+import cn.ingenic.glasssync.data.Projo;
+import cn.ingenic.glasssync.Config;
+import cn.ingenic.glasssync.SystemModule;
 
 public class Bind_Activity extends Activity{
     private static final String TAG = "Bind_Activity";
@@ -77,8 +85,10 @@ public class Bind_Activity extends Activity{
 
     @Override
 	protected void onDestroy() {
-	unregisterReceiver(mBindStateReceiver);
 	super.onDestroy();
+	if(mBindStateReceiver == null)
+	    return;
+	unregisterReceiver(mBindStateReceiver);
     }
 
     private void disableBond(){
@@ -94,6 +104,8 @@ public class Bind_Activity extends Activity{
 	layout_disbind.setVisibility(View.VISIBLE);
 	mCurrentView = DISBOND_VIEW;
 	layout_disbind.setOnTouchListener(new myTouchListener());	
+	unregisterReceiver(mBindStateReceiver);
+	mBindStateReceiver = null;
     }
 
     private void gestureDetectorWorker(){
@@ -123,13 +135,15 @@ public class Bind_Activity extends Activity{
 		@Override
 		public boolean onLongPress(boolean fromPhone){
 		    if(DEBUG) Log.d(TAG,"---onLongPress");
+		    sendUnbind();
 		    disableBond();
 		    return true;
 		}		    
 	    });
     }
 
-    private final BroadcastReceiver mBindStateReceiver = new BroadcastReceiver() {
+    //just be used when mobile disbond actively
+    private BroadcastReceiver mBindStateReceiver = new BroadcastReceiver() {
     	    @Override
     		public void onReceive(Context context, Intent intent) {
     		if(intent.getAction().equals(ACTION_CONNECT)){
@@ -146,6 +160,20 @@ public class Bind_Activity extends Activity{
 	    return mGestureDetector.onTouchEvent(event);
 	}	
     }//
+
+    private void sendUnbind(){
+    	DefaultSyncManager manager = DefaultSyncManager.getDefault();
+    	Config config = new Config(SystemModule.SYSTEM);
+    	Map<String, Boolean> map = new HashMap<String, Boolean>();
+    	map.put(DeviceModule.FEATURE_UNBIND, true);
+    	Projo projo = new FeatureConfigCmd();
+    	projo.put(FeatureConfigCmd.FeatureConfigColumn.feature_map,map);
+    	ArrayList<Projo> datas = new ArrayList<Projo>();
+    	datas.add(projo);
+    	manager.request(config, datas);
+    	manager.featureStateChange(DeviceModule.FEATURE_UNBIND, true);
+		Log.d(TAG,"sendUnbind out");
+    }
 
 }
 

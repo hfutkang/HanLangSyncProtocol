@@ -116,19 +116,19 @@ public class SyncManagerExt extends DefaultSyncManager implements
 			return SUCCESS;
 		} else {
 			logd("requesting without connecvitity.");
-			connect();
-			push(new DelayedTask() {
+			// connect();
+			// push(new DelayedTask() {
 
-				@Override
-				public void execute(boolean connected) {
-					if (connected) {
-						mTransportManagerExt.send(serial);
-					} else {
-						sendCallbackMsg(callback, NO_CONNECTIVITY);
-					}
-				}
+			// 	@Override
+			// 	public void execute(boolean connected) {
+			// 		if (connected) {
+			// 			mTransportManagerExt.send(serial);
+			// 		} else {
+			// 			sendCallbackMsg(callback, NO_CONNECTIVITY);
+			// 		}
+			// 	}
 
-			});
+			// });
 			return DELAYED;
 		}
 	}

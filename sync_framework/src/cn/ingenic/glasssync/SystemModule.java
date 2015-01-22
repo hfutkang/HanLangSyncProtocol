@@ -5,9 +5,9 @@ import cn.ingenic.glasssync.RemoteChannelManagerService;
 import android.content.Context;
 import android.util.Log;
 
-class SystemModule extends Module {
+public class SystemModule extends Module {
 
-	static final String SYSTEM = "SYSTEM";
+	public static final String SYSTEM = "SYSTEM";
 
 	private static final String TAG = "M-SYS";
 	private static final boolean V = true;

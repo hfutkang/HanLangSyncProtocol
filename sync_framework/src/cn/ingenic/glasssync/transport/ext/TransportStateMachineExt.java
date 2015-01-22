@@ -10,7 +10,7 @@ import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 import cn.ingenic.glasssync.Enviroment;
-
+import android.content.SharedPreferences;
 import cn.ingenic.glasssync.DefaultSyncManager;
 import cn.ingenic.glasssync.LogTag;
 import cn.ingenic.glasssync.transport.TransportManager;
@@ -83,7 +83,7 @@ class TransportStateMachineExt extends StateMachine {
 		}
 	}
 
-	// private final Context mContext;
+	private final Context mContext;
 	private BluetoothClientExt mClient;
 	private BluetoothServerExt mServer;
 	private final TransportManager mTransportManager;
@@ -93,7 +93,7 @@ class TransportStateMachineExt extends StateMachine {
 	TransportStateMachineExt(Context context,
 			TransportManager transportManager, Handler retrive) {
 		super("TransprotStateMachine");
-		// mContext = context;
+		mContext = context;
 		mTransportManager = transportManager;
 		// mRetrive = retrive;
 
@@ -257,9 +257,14 @@ class TransportStateMachineExt extends StateMachine {
 					// return HANDLED;
 					
 				}
+			case MSG_DISCONNECT:
+			    d("--mClient = "+mClient);
+				if(mClient != null)
+				    mClient.close();
+				return HANDLED;
 			case MSG_BT_ON:
 				transitionTo(mClientIdleState);
-				sendMessage(MSG_CONNECT);
+				// sendMessage(MSG_CONNECT);
 				return HANDLED;
 			case MSG_BT_OFF:
 				d("in ClientState receiver BT_OFF do nothing !");
@@ -394,27 +399,23 @@ class TransportStateMachineExt extends StateMachine {
 
 	private class ClientIdleState extends State {
 
-		private String mmConnectingAddress;
-
-		void setConnectingAddress(String address) {
-			mmConnectingAddress = address;
-		}
+		// void setConnectingAddress(String address) {
+		// 	mmConnectingAddress = address;
+		// }
 
 		@Override
 		public void enter() {
 			enterLog(this);
-//			if (TextUtils.isEmpty(mmConnectingAddress)) {
-//				DefaultSyncManager mgr = DefaultSyncManager.getDefault();
-//				mmConnectingAddress = mgr.getLockedAddress();
-//			}
-//
-//			v("Connect address:" + mmConnectingAddress);
-//			if (!BluetoothAdapter.checkBluetoothAddress(mmConnectingAddress)) {
-//				throw new IllegalArgumentException("wrong address to connect:"
-//						+ mmConnectingAddress);
-//			}
-//
-//			mClient.start(mmConnectingAddress);
+			String address = null;
+			if (TextUtils.isEmpty(address)) {
+			    SharedPreferences sp = mContext.getSharedPreferences(DefaultSyncManager.FILE_NAME, Context.MODE_PRIVATE);		
+			    address = sp.getString(DefaultSyncManager.UNIQUE_ADDRESS, "");
+			}
+
+			v("Connect address:" + address);
+			if (BluetoothAdapter.checkBluetoothAddress(address)) {
+			    mClient.start(address);
+			}
 		}
 
 		@Override
@@ -434,7 +435,7 @@ class TransportStateMachineExt extends StateMachine {
 				return NOT_HANDLED;
 
 			case MSG_CONNECT:
-			mmConnectingAddress=(String)msg.obj;
+			    String mmConnectingAddress=(String)msg.obj;
 				if (TextUtils.isEmpty(mmConnectingAddress)) {
 					DefaultSyncManager mgr = DefaultSyncManager.getDefault();
 					mmConnectingAddress = mgr.getLockedAddress();

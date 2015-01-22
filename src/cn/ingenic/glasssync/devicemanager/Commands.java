@@ -39,6 +39,11 @@ public class Commands {
 	//bluetooth connection status 
 	public final static String ACTION_BLUETOOTH_STATUS="cn.ingenic.action.bluetooth_status";
 	public final static int CMD_GETBLUETOOTH_STATUS=8;
+
+    //glass unbind
+	public final static String ACTION_GLASS_UNBIND = "cn.ingenic.action.glass.unbind";
+	public final static int CMD_GLASS_UNBIND = 15;
+
 	//error code
 	public final static String ERROR_NOT_CONNECT = "error_not_connect";
 	
@@ -70,6 +75,9 @@ public class Commands {
 		case CMD_SYNC_CALL_LOG_REQUEST:
 			action = ACTION_CALL_LOG;
 			break;
+		case CMD_GLASS_UNBIND:
+			action = ACTION_GLASS_UNBIND;
+			break;
 		}
 		return action;
 	}
@@ -88,6 +96,9 @@ public class Commands {
 			break;
 		case CMD_GET_TIME:
 			feature = DeviceModule.FEATURE_TIME;
+			break;
+		case CMD_GLASS_UNBIND:
+			feature = DeviceModule.FEATURE_UNBIND;
 			break;
 		}
 		return feature;

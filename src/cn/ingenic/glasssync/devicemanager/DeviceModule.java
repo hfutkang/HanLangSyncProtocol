@@ -26,6 +26,7 @@ public class DeviceModule extends Module {
     public static final String FEATURE_WEATHER = "weather";
     public static final String FEATURE_BATTERY = "battery";
     public static final String FEATURE_TIME = "time";
+    public static final String FEATURE_UNBIND = "unbind";
 
     private static final String CLEAE_ACTION= "cn.ingenic.action.sync_clear";
     private static DeviceModule sInstance;
@@ -44,7 +45,7 @@ public class DeviceModule extends Module {
 	}
 
     private DeviceModule() {
-        super(MODULE, new String[]{FEATURE_CALLLOG, FEATURE_WEATHER, FEATURE_BATTERY, FEATURE_TIME});
+        super(MODULE, new String[]{FEATURE_CALLLOG, FEATURE_WEATHER, FEATURE_BATTERY, FEATURE_TIME, FEATURE_UNBIND});
     }
     
     public static DeviceModule getInstance(){
@@ -113,7 +114,9 @@ public class DeviceModule extends Module {
             }
             intent.putExtra("data", batteryInfo.toString());
             mContext.sendBroadcast(intent);
-        }
+        }else if (FEATURE_UNBIND.equals(feature) && enabled) {
+	        ConnectionManager.getInstance().device2Device(Commands.CMD_GLASS_UNBIND, Commands.ACTION_GLASS_UNBIND);
+	    }
 	}
 
 	@Override

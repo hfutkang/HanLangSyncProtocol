@@ -571,8 +571,8 @@ public class DefaultSyncManager extends Handler {
 	
 	private static final String PREF_FILE_NAME = "cn.ingenic.glasssync_preferences";
 	
-	private static final String FILE_NAME = "settings";
-	private static final String UNIQUE_ADDRESS = "unique_address";
+	public static final String FILE_NAME = "settings";
+	public static final String UNIQUE_ADDRESS = "unique_address";
 	public static boolean isWatch() {
 		return Enviroment.getDefault().isWatch();
 //		return "yes".equals(SystemProperties.get("watch_device", "no"));
@@ -718,42 +718,14 @@ public class DefaultSyncManager extends Handler {
 		mTransportManager.prepare(address);
 	}
 	
-        public void glass_accept(){
-	    Mgr.d("glass_accept");
-	    //mTransportManager.glass_accpet();
-        }
-
-        public void glass_connect(String address){
-	    Mgr.d("glass_connect");
-	    if (isConnect()) {
-		Mgr.w("already connected.");
-		return;
-	    }
-		
-	    if (address == null) {
-		address = getLockedAddress();
-		Mgr.d("getLockedAddress-----------glass_connect" + address);
-	    } else {
-		Mgr.d("glass connecting address:" + address);
-		mConnectingAddress = address;
-	    }
-		
-	    if (!BluetoothAdapter.checkBluetoothAddress(address)) {
-		throw new IllegalStateException("Invalid address.");
-	    }
-	    mState = CONNECTING;
-
-	    mTransportManager.prepare(address);
-        }
-
 	public void disconnect() {
-		if (!isConnect()) {
-		    Mgr.w("already disConnected.");
-		    return;
-		}
-		
-		mState = DISCONNECTING;
-        mTransportManager.prepare("");
+	    // if (!isConnect()) {
+	    //     Mgr.w("already disConnected.");
+	    //     return;
+	    // }
+	    Mgr.d("------force disconnect");
+	    mState = DISCONNECTING;
+	    mTransportManager.prepare("");
 	}
 	
 	public static boolean isConnect() {
