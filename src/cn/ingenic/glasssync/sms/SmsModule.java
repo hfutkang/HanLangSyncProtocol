@@ -3,8 +3,6 @@ package cn.ingenic.glasssync.sms;
 import cn.ingenic.glasssync.services.SyncData;
 import cn.ingenic.glasssync.services.SyncModule;
 import cn.ingenic.glasssync.services.mid.MidTableManager;
-// import cn.ingenic.glasssync.sms.nitification.NewSmsDialog;
-// import cn.ingenic.glasssync.sms.nitification.SmsNotification;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -58,14 +56,6 @@ public class SmsModule extends SyncModule {
 		    Log.d("SmsModule", "---onRetrive enabled="+enabled);
 		    setSyncEnable(enabled);
 		    if(enabled) getMidTableManager().onModuleConnectivityChange(true);	
-		}else if(ret == Command.NEW_SMS_COM){
-		    Intent intent = new Intent();  
-		    intent.setAction("action.new_sms.RECEIVER");  
-		    // Bundle b = new Bundle();
-		    // b.putParcelable("syncdata", data);
-		    // intent.putExtra("bundle", b);
-		    intent.putExtra("syncdata", data);
-		    mContext.sendBroadcast(intent);  
 		}
 	}
 

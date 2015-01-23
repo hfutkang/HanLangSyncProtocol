@@ -18,6 +18,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
 
+import android.content.Intent;
+import android.os.Bundle;
 public class SmsDestinationMidManager extends SimpleMidDestManager {
 
 	private Context mContext;
@@ -72,8 +74,30 @@ public class SmsDestinationMidManager extends SimpleMidDestManager {
 	protected ArrayList<ContentProviderOperation> applySyncDatas(
 			SyncData[] deletes, SyncData[] updates, SyncData[] inserts,
 			SyncData[] appends) throws MidException {
-		if (Sms.DEBUG){
-			if(inserts!=null)Log.i(Sms.TAG,"applySyncData insert size is :"+inserts.length);
+
+		    if(inserts!=null){
+			for(int i = 0;i<=inserts.length-1;i++){
+			    int type = inserts[i].getInt("type");
+			    int read = inserts[i].getInt("read");
+			    String body = inserts[i].getString("body");
+			    String address = inserts[i].getString("address");
+			    if(type == 1 && read == 0){
+				if (Sms.DEBUG){
+				    Log.i(Sms.TAG,"new sms come and sendBroadcast:action.new_sms.RECEIVER");
+				}
+				Intent intent = new Intent();
+				Bundle bundle = new Bundle();
+				intent.setAction("action.new_sms.RECEIVER");  
+				bundle.putString("address", address);
+				bundle.putString("body",body);
+				intent.putExtras(bundle);
+				mContext.sendBroadcast(intent);
+			    }
+			}
+			if (Sms.DEBUG){
+			Log.i(Sms.TAG,"applySyncData insert size is :"+inserts.length);
+			}
+		    
 		    if(deletes!=null)Log.i(Sms.TAG,"applySyncData deletes size is :"+deletes.length);
 		    if(updates!=null)Log.i(Sms.TAG,"applySyncData updates size is :"+updates.length);
 		    if(appends!=null)Log.i(Sms.TAG,"applySyncData appends size is :"+appends.length);
