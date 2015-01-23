@@ -1,10 +1,13 @@
 package cn.ingenic.glasssync.contact;
 
 import java.util.List;
+
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
@@ -68,6 +71,19 @@ public class ContactsLiteProvider extends MidDestContentProvider {
 		return mDatabase;
 	}
 	
+	// 发送数据库变化广播给语音识别广播接收器
+	private Intent sendBroadcastToVoice(Context context, int method, String selection, ContentValues values) {
+//		Log.d(TAG, "sendBroadcastToVoice method:"+method+" selection:"+selection+" values:"+values);
+		Intent intent = new Intent("cn.ingenic.glasssync.contact.DATA_CHANGE");             
+		intent.setComponent(new ComponentName("com.ingenic.glass.voicerecognizer", "com.ingenic.glass.voicerecognizer.assistant.contact.ContactSyncReceiver"));
+		intent.addCategory("com.ingenic.glass.voicerecognizer.assistant.contact.ContactSyncReceiver");
+		intent.putExtra("method", method);
+		intent.putExtra("selection", selection);
+		intent.putExtra("values", values);
+		context.sendBroadcast(intent);
+		return intent;
+	}
+	
 	@Override
 	public int deleteWithCustomUri(Uri uri, String selection, String[] selectionArgs) {
 		int match = findMatch(uri, "delete");
@@ -89,6 +105,8 @@ public class ContactsLiteProvider extends MidDestContentProvider {
 		Log.d("yangliu", "delete db :" + db + " table:" + table + " id:" + result);
 		if (result > 0) {
 			getContext().getContentResolver().notifyChange(uri, null);
+			
+			sendBroadcastToVoice(getContext(), 1 /*METHOD_DELETE*/, selection, null);
 		}
 		return result;
 	}
@@ -135,6 +153,7 @@ public class ContactsLiteProvider extends MidDestContentProvider {
         
         Uri resultUri = ContentUris.withAppendedId(uri, id);
         resolver.notifyChange(resultUri, null);
+        sendBroadcastToVoice(getContext(), 0 /*METHOD_INSER*/, null, values);
         return resultUri;
 	}
 
@@ -180,6 +199,7 @@ public class ContactsLiteProvider extends MidDestContentProvider {
 		int result = db.update(table, values, selection, selectionArgs);
 		if (result > 0) {
 			getContext().getContentResolver().notifyChange(uri, null);
+			sendBroadcastToVoice(getContext(), 2 /*METHOD_UPDATE*/, selection, values);
 		}
 		return result;
 	}
