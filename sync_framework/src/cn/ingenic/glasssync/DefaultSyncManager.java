@@ -697,7 +697,7 @@ public class DefaultSyncManager extends Handler {
 	}
 	
 	private String mConnectingAddress;
-	void connect(String address) {
+	public void connect(String address) {
 		if (isConnect()) {
 			Mgr.w("already connected.");
 			return;
