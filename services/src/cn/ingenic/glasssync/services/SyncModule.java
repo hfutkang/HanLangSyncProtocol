@@ -74,7 +74,7 @@ public abstract class SyncModule {
 		@Override
 		public void onConnectivityStateChange(boolean connected)
 				throws RemoteException {
-			if (V) {
+			if (true) {
 				Log.v(TAG, "ModuleCallback onConnectivityStateChange(" + connected + ") be called for " + mName);
 			}
 			
@@ -229,6 +229,7 @@ public abstract class SyncModule {
 	private AtomicLong mSort = new AtomicLong(SyncData.INIT_SORT);
 	private Map<Long, Message> mCallbackMap = new HashMap<Long, Message>();
 	private final ModuleCallback mCallback = new ModuleCallback();
+    private ISyncServiceListener mISyncServiceListener;
 	private final ServiceConnection mServiceConnection = new ServiceConnection() {
 
 		@Override
@@ -250,6 +251,8 @@ public abstract class SyncModule {
 				} catch (Exception e) {
 					Log.e(TAG, "Exception:", e);
 				}
+				if(mISyncServiceListener != null)
+				    mISyncServiceListener.ISyncServiceReady();
 			}
 		}
 
@@ -510,4 +513,12 @@ public abstract class SyncModule {
 	protected void onChannelDestroy(ParcelUuid uuid) {
 	}
 
+    public interface ISyncServiceListener {
+	
+	public void ISyncServiceReady();
+    }
+    
+    public void setISyncServiceListener(ISyncServiceListener l){
+	mISyncServiceListener = l;
+    }
 }

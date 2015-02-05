@@ -25,6 +25,7 @@ import cn.ingenic.glasssync.blmanager.GlassSyncBLManager;
 import cn.ingenic.glasssync.screen.screenshare.ScreenModule;
 import cn.ingenic.glasssync.contact.ContactsLiteModule;
 import cn.ingenic.glasssync.sms.SmsModule;
+import cn.ingenic.glasssync.bluetoothPan.PanProfile;
 
 
 public class SyncApp extends Application implements
@@ -74,6 +75,7 @@ public class SyncApp extends Application implements
             Log.i(LogTag.APP, "SystemModule is registed.");
         }
 
+		    PanProfile pan = PanProfile.getInstance(this); 
 	    GlassSyncNotifyModule mGsnm = new GlassSyncNotifyModule(this);
 	    GlassSyncWifiModule mGswm = GlassSyncWifiModule.getInstance(this);
 	    MultiMediaManager mMMM = MultiMediaManager.getInstance(this);
