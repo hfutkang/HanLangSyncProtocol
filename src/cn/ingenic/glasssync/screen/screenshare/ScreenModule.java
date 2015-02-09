@@ -12,7 +12,6 @@ import cn.ingenic.glasssync.services.SyncData;
 import cn.ingenic.glasssync.services.SyncModule;
 import cn.ingenic.glasssync.services.SyncException;
 
-import cn.ingenic.glasssync.R;
 import cn.ingenic.glasssync.screen.screenshare.AvcEncode;
 
 public class ScreenModule extends SyncModule {
@@ -30,7 +29,6 @@ public class ScreenModule extends SyncModule {
     private  static final String GET_SCREEN_CMD = "get_screen_cmd";    
     private static final String SEND_FRAME = "video_stream";
     private static final String END_FRAME = "end_stream";
-    private static final String SEND_FRAME_NUM = "video_frame_num";
     private static final String FRAME_WIDTH = "video_width";
     private static final String FRAME_HEIGHT = "video_height";
     private static final String FRAME_LENGTH = "first_frame_length";
@@ -38,8 +36,8 @@ public class ScreenModule extends SyncModule {
     private static final int TRANSPORT_DATA_READY = 0;
     private static final int TRANSPORT_DATA_IN = 1;
     private static final int TRANSPORT_DATA_FINISH = 2;
-    private static final int TRANSPORT_DATA_NUM = 3;
 
+    public boolean mBTState = true;
     public boolean isTransData = false;
 
     private ScreenModule(Context context){
@@ -54,24 +52,35 @@ public class ScreenModule extends SyncModule {
 	return sInstance;
     }
 
+
     @Override
     protected void onCreate() {
     }
 
     @Override
+    protected void onConnectionStateChanged(boolean connect) {
+	Log.v(TAG, "onConnectionStateChanged connect = " + connect);
+	mBTState = connect; 
+    }
+
+
+    @Override
     protected void onRetrive(SyncData data) {
-	Log.v(TAG, "---onRetrive");
+	if (DEBUG) Log.v(TAG, "---onRetrive");
 	int choose = 0;
 	choose = data.getInt(SCREEN_SHARE);
 	if (DEBUG) Log.v(TAG, "choose = " + choose);
 
 	isTransData = data.getBoolean(TRANSPORT_SCREEN_CMD, false);
-	if (DEBUG) Log.v(TAG, "isTransData = " + isTransData);
+        Log.v(TAG, "isTransData = " + isTransData);
 
 	if (isTransData) {
 	    try {
 		if (DEBUG) Log.v(TAG,"begin start data");
-		mAvcEncode = new AvcEncode(mContext);
+		if (mAvcEncode == null) {
+		    Log.v(TAG, "need new one mAvcEncode");
+		    mAvcEncode = new AvcEncode(mContext);
+		}
 		mAvcEncode.setPictureSize();
 		mAvcEncode.configureMediaCodecEncoder();
 		startTransData();
@@ -79,6 +88,9 @@ public class ScreenModule extends SyncModule {
 		e.printStackTrace();
 	    }
 	}else{
+	    if (mAvcEncode != null)  {
+		mAvcEncode = null;
+	    }	
 	    if (DEBUG) Log.v(TAG, "do not send screen data");
 	}
     }
@@ -109,12 +121,18 @@ public class ScreenModule extends SyncModule {
 	    }catch(Exception e){
 		e.printStackTrace();
 	    }
+
+	    if (mAvcEncode != null)  {
+		mAvcEncode = null;
+	    }	
+
 	}
     }
 
     
     public boolean getFinishTag() {
-	return isTransData;
+	if (DEBUG) Log.v(TAG, "isTransData = " + isTransData + " mBTState =" + mBTState);
+	return (isTransData && mBTState);
     }
 
     public void sendData(byte[] frame, int length) {

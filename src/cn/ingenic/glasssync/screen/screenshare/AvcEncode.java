@@ -2,33 +2,23 @@ package cn.ingenic.glasssync.screen.screenshare;
 
 import android.content.Context;
 import android.os.RemoteException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.BufferedOutputStream;
 import java.nio.ByteBuffer;
 import android.util.Log;
 
-import cn.ingenic.glasssync.R;    
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
-import java.io.InputStream;
-
 import cn.ingenic.glasssync.screen.screenshare.ScreenModule;
 
 public class AvcEncode {
     private static String TAG = "AvcEncode";
     private static final boolean DEBUG = false;
-    private static final boolean TEST = false;
     private static final boolean MTIMER = false;
     private static final String MIME_TYPE = "video/avc"; // H.264 AVC encoding
-    private static final String ENCODER_NAME = "OMX.google.h264.encoder";
     private static final int BIT_RATE = 2000000;            // 2Mbps
     private static final int FRAME_RATE = 25; // 30fps
     private static final int IFRAME_INTERVAL = 10; // 1 seconds between I-frames
     private static final int TIMEOUT_USEC = 5000;//5000; // Timeout value 10ms.
-    private static final int FRAME_NUM = 200; 
 
     private int mWidth, mHeight;
     private int outFrameNum, inFrameNum;
@@ -37,7 +27,6 @@ public class AvcEncode {
     private Context mContext;
     private MediaCodec mMediaCodec;
     private MediaFormat mMediaFormat;
-    private BufferedOutputStream mOutputStream;
     private ScreenModule mScreenModule;
     private boolean isTransFinish = false;
     
@@ -54,8 +43,6 @@ public class AvcEncode {
 	this.mContext = context;
 	this.inFrameNum = 0;
 	this.outFrameNum = 0;
-	this.time =0;
-	this.time1 = 0;
 	mScreenModule = ScreenModule.getInstance(context);
 	Log.v(TAG, "new AvcEncode");
     }
@@ -64,7 +51,7 @@ public class AvcEncode {
 	get_picture();
 	mWidth = get_width();
 	mHeight = get_height();
-	if (DEBUG) Log.v(TAG, "mWidth = " + mWidth + " mHeight = " + mHeight);
+	Log.v(TAG, "mWidth = " + mWidth + " mHeight = " + mHeight);
     }
 
 
@@ -82,32 +69,17 @@ public class AvcEncode {
 
     public void configureMediaCodecEncoder() {
 	if (DEBUG) Log.v(TAG, "configureMediaCodecEncoder"); 
-	if (TEST) {
-	    String path = "/data/data/raw.264";
-	    File file = new File(path);
-	    try {
-		if (!file.exists()) {
-		    if (DEBUG) Log.v(TAG, "create new one file");
-		    file.createNewFile();
-		}
-	    }catch(Exception e){
-		e.printStackTrace();
-	    }
-	    
-	    try {
-		mOutputStream = new BufferedOutputStream(new FileOutputStream(file));
-	    }catch(Exception e){
-		e.printStackTrace();
-	    }
-	}
-	//mMediaCodec = MediaCodec.createByCodecName(ENCODER_NAME);
 	mMediaCodec = MediaCodec.createEncoderByType(MIME_TYPE);
 	if (mMediaCodec == null) {
 	    if (DEBUG) Log.v(TAG, "MediaCodec create failed");
 	}
 	
-        mMediaFormat = createMediaFormat();
-	mMediaCodec.configure(mMediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+	try {
+	    mMediaFormat = createMediaFormat();
+	    mMediaCodec.configure(mMediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+	}catch (IllegalStateException e) {
+	    Log.v(TAG, "failed configuration.");
+        }
 
 	if (DEBUG) Log.v(TAG, "before start");
 	mMediaCodec.start();
@@ -126,6 +98,11 @@ public class AvcEncode {
 	byte[] buffer1 = null;
 	byte[] buffer2 = null;
 
+	if (MTIMER) {
+	    time = 0;
+	    time1 = 0;
+	}
+
 	try {
             boolean sawInputEOS = false;
             boolean sawOutputEOS = false;
@@ -143,12 +120,11 @@ public class AvcEncode {
 
 			isTransFinish = mScreenModule.getFinishTag();
 			if (!isTransFinish) {
-			    if (DEBUG) Log.v(TAG, "+++InputEOS");
+			    Log.v(TAG, "InputEOS");
 			    sawInputEOS = true;
 			    frameSize = 0;
 			}
 
-			Log.v(TAG, "inFrameNum =" + inFrameNum);
                         mInputBuffers[inputBufIndex].clear();
                         mInputBuffers[inputBufIndex].put(frame);
 			mInputBuffers[inputBufIndex].rewind();
@@ -206,17 +182,19 @@ public class AvcEncode {
             }
 
 	    mScreenModule.finishData(true);
-            mMediaCodec.stop();
-            mMediaCodec.release();
+	    release();
+
 	}finally {
-	    if (TEST) {
-		if (mOutputStream != null) {
-		    mOutputStream.flush();
-		    mOutputStream.close();
-		}
-	    }
+	    Log.v(TAG, "Encode end");
 	}
-	if (DEBUG) Log.v(TAG, "Encode end");
+    }
+
+    public void release() {
+	if (mMediaCodec != null)  {
+	    mMediaCodec.stop();
+	    mMediaCodec.release();
+	    mMediaCodec = null;
+	}
     }
 
 }
