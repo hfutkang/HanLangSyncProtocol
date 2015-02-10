@@ -87,6 +87,7 @@
         <activity
             android:name=".phone.InCall"
             android:launchMode="singleInstance"
+	    android:screenOrientation="landscape"
             android:theme="@android:style/Theme.Wallpaper.NoTitleBar" >
         </activity>
 
@@ -102,6 +103,7 @@
         <!-- for OTA update -->
         <activity
             android:name=".updater.NoticesActivity"
+	    android:screenOrientation="landscape"
             android:theme="@android:style/Theme.Dialog" >
         </activity>
 
@@ -135,7 +137,8 @@
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             android:windowSoftInputMode="stateAlwaysHidden" >
         </activity>
-        <activity android:name=".bluetooth.Welcome_Activity" >
+        <activity android:name=".bluetooth.Welcome_Activity" 
+		  android:screenOrientation="landscape" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -144,13 +147,15 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".bluetooth.Load_Activity" />
-	<activity android:name=".bluetooth.Bind_Activity" />        
+        <activity android:name=".bluetooth.Load_Activity" 
+		  android:screenOrientation="landscape" />
+	<activity android:name=".bluetooth.Bind_Activity" 
+		  android:screenOrientation="landscape" />        
         <!-- kli occupy! -->
 
         <activity
             android:name=".devicemanager.AddDeviceAdminActivity"
-            android:screenOrientation="portrait" >
+            android:screenOrientation="landscape" >
         </activity>
 
         <receiver
