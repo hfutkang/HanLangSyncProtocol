@@ -369,6 +369,16 @@ public abstract class SyncModule {
 	protected void onModeChanged(int mode) {
 	}
 
+    	public boolean sendCMD(SyncData data)
+			throws SyncException {
+	    try {
+		return getISyncService().sendCMD(mName,data);
+	    } catch (RemoteException e) {
+		Log.e(TAG, "SyncException:", e);
+		throw new SyncException("RemoteException occurs");
+	    }
+	}
+
 	public boolean sendFile(File file, String name, int length)
 			throws SyncException, FileNotFoundException {
 		try {

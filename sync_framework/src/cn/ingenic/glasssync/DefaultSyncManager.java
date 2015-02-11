@@ -801,7 +801,11 @@ public class DefaultSyncManager extends Handler {
 //			Mgr.w("can not createChannel without connecvitity.");
 //		}
 	}
-	
+
+        public boolean sendCMD(String module, SyncData data){
+	      //implement in SyncManagerExt.java
+	    return false;
+	}	
 	public boolean sendFile(String module, String name, int length, InputStream in) {
 		Config config = new Config(SystemModule.SYSTEM);
 		ArrayList<Projo> datas = new ArrayList<Projo>();

@@ -56,6 +56,18 @@ public class SyncSerializableTools {
 		return new DefaultSyncSerializable(des, data.getSerialDatas());
 	}
 
+	public static SyncSerializable cmd2Serial(String module, SyncData data) {
+		if (module == null || data == null) {
+			logw("Null module or data in data2Serial.");
+			return null;
+		}
+		SyncData.Config c = data.getConfig();
+		SyncDescriptor des = new SyncDescriptor(TransportManagerExt.CMD,
+				false, false, c == null ? false : c.mmIsMid, false, module,
+				null, c == null ? null : c.mmCallback);
+		return new DefaultSyncSerializable(des, data.getSerialDatas());
+	}
+
 	@Deprecated
 	public static SyncSerializable projoList2Serial(ProjoList p) {
 		if (p == null) {

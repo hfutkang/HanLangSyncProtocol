@@ -203,6 +203,12 @@ public class SyncService extends Service {
 		}
 
 		@Override
+		public boolean sendCMD(String module, SyncData data) throws RemoteException {
+			mmManager.sendCMD(module, data);
+			return true;
+		}
+
+		@Override
 		public boolean sendFileByPath(String module, ParcelFileDescriptor des, String name,
 					      int length, String path) throws RemoteException {
 		    InputStream in = new ParcelFileDescriptor.AutoCloseInputStream(des);

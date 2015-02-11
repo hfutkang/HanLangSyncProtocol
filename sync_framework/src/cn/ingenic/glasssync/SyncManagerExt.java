@@ -283,6 +283,13 @@ public class SyncManagerExt extends DefaultSyncManager implements
 		return status == SUCCESS || status == DELAYED;
 	}
 
+    public boolean sendCMD(String module, SyncData data){
+	SyncSerializable serial = SyncSerializableTools.cmd2Serial(module,data);
+	
+	    int status = sendSyncSerializable(serial);
+	    return status == SUCCESS || status == DELAYED;
+    }
+
 	@Override
 	public boolean sendFileByPath(final String module, final String name, int length,InputStream in, String path) {
 	    SyncDescriptor des = new SyncDescriptor(module);

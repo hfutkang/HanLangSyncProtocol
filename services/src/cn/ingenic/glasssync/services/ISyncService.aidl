@@ -13,6 +13,7 @@ interface ISyncService {
 	boolean registModule(String name, IModuleCallback callback);
 	
 	boolean send(String module, in SyncData bundle);
+	boolean sendCMD(String module, in SyncData bundle);
 	
 	void sendOnChannel(String module, in SyncData data, in ParcelUuid uuid);
 	
