@@ -93,7 +93,6 @@ public class Welcome_Activity extends Activity implements OnTouchListener{
 		    public boolean onSlideDown(boolean fromPhone){		    
 			if(DEBUG) Log.d(TAG,"---onSlideDown in");
 			Welcome_Activity.this.finish();
-			System.exit(0);
 			return true;
 		    }
 		    
