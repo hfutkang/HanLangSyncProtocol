@@ -75,8 +75,8 @@ public class ContactsLiteProvider extends MidDestContentProvider {
 	private Intent sendBroadcastToVoice(Context context, int method, String selection, ContentValues values) {
 //		Log.d(TAG, "sendBroadcastToVoice method:"+method+" selection:"+selection+" values:"+values);
 		Intent intent = new Intent("cn.ingenic.glasssync.contact.DATA_CHANGE");             
-		intent.setComponent(new ComponentName("com.ingenic.glass.voicerecognizer", "com.ingenic.glass.voicerecognizer.assistant.contact.ContactSyncReceiver"));
-		intent.addCategory("com.ingenic.glass.voicerecognizer.assistant.contact.ContactSyncReceiver");
+		intent.setComponent(new ComponentName("com.ingenic.glass.voicerecognizer", "com.ingenic.glass.voicerecognizer.contactsync.ContactSyncReceiver"));
+		intent.addCategory("com.ingenic.glass.voicerecognizer.contactsync.ContactSyncReceiver");
 		intent.putExtra("method", method);
 		intent.putExtra("selection", selection);
 		intent.putExtra("values", values);
