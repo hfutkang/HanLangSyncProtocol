@@ -122,13 +122,6 @@
             android:targetActivity="cn.ingenic.glasssync.camera.CameraClient" >
         </activity-alias>
 
-        <!-- call log -->
-
-        <receiver android:name=".calllog.RemoveMissedCallsReceiver" >
-            <intent-filter>
-                <action android:name="cn.ingenic.sync.remove_missed_calls" />
-            </intent-filter>
-        </receiver>
         <!-- bluetooth -->
         <activity
             android:name=".bluetooth.CaptureActivity"

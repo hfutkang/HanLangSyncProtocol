@@ -94,6 +94,9 @@ public class DeviceModule extends Module {
         intent.setAction(Commands.ACTION_BLUETOOTH_STATUS);
         intent.putExtra("data", connected);
         mContext.sendBroadcast(intent);
+	    if(!connected) {
+			mCallLogManager.cancelMissedCalls();
+	    }
 	}
 
 	@Override

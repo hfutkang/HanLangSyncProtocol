@@ -227,4 +227,8 @@ public class CallLogManager {
 			MissedCallNotify.getInstance(mContext).queryAndNotifyMissedCall();
 		}
 	}
+
+        public void cancelMissedCalls() {
+	    	MissedCallNotify.getInstance(mContext).cancelMissedCallNotification();
+        }
 }

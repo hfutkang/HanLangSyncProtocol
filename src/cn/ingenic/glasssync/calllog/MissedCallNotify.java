@@ -25,6 +25,7 @@ import cn.ingenic.glasssync.R;
 import java.util.ArrayList;
 public class MissedCallNotify {
 
+    private static final String MISSEDCALL_TAG = "missed_call";
 	static MissedCallNotify mInstance=null;
     static final int MISSED_CALL_NOTIFICATION = 1;
     static Context mContext;
@@ -48,7 +49,7 @@ public class MissedCallNotify {
 	
 	void cancelMissedCallNotification(){
 		mNumberMissedCalls = 0;
-		mNotificationManager.cancel(MISSED_CALL_NOTIFICATION);
+		mNotificationManager.cancel(MISSEDCALL_TAG, MISSED_CALL_NOTIFICATION);
 	}
 	
     void queryAndNotifyMissedCall(){
@@ -106,7 +107,7 @@ public class MissedCallNotify {
 
         Notification notification = builder.getNotification();
         configureLedNotification(notification);
-        mNotificationManager.notify(MISSED_CALL_NOTIFICATION, notification);
+        mNotificationManager.notify(MISSEDCALL_TAG, MISSED_CALL_NOTIFICATION, notification);
     }
 	
     private static void configureLedNotification(Notification note) {

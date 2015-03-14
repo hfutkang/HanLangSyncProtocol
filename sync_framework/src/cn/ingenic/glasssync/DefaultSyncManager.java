@@ -54,7 +54,7 @@ public class DefaultSyncManager extends Handler {
 	
 //	private static final int MSG_BASE = 0;
 //	public static final int MSG_STOP_TRANSACTION = MSG_BASE + 1;
-
+    private static final String UNBONDED_TAG = "unbonded";
 	public static final int SUCCESS = 0;
 	public static final int NO_CONNECTIVITY = SUCCESS - 1;
 	public static final int FEATURE_DISABLED = SUCCESS - 2;
@@ -643,9 +643,9 @@ public class DefaultSyncManager extends Handler {
 				noti.icon = R.drawable.no_bond_device;
 				noti.vibrate = new long[]{0, 500, 500, 500};
 				noti.setLatestEventInfo(mContext,mContext.getString(R.string.unbond_st),null,null);
-				mgr.notify(NOTI_UNBOND_ST, noti);
+				mgr.notify(UNBONDED_TAG, NOTI_UNBOND_ST, noti);
 			} else {
-				mgr.cancel(NOTI_UNBOND_ST);
+			    mgr.cancel(UNBONDED_TAG, NOTI_UNBOND_ST);
 			}
 		} else {
 			if (validAddr) {

@@ -71,4 +71,14 @@ public class SmsModule extends SyncModule {
 	public void setmAddress(String mAddress) {
 		this.mAddress = mAddress;
 	}
+
+    @Override
+	protected void onConnectionStateChanged(boolean connect) {
+	    if(!connect) {
+			Log.d(SMS_NAME, "send remove_sms_msg broadcast.");
+			Intent intent = new Intent("cn.ingenic.sync.remove_sms_msg");
+			mContext.sendBroadcast(intent);
+	    }
+	}
+
 }
