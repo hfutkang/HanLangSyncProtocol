@@ -46,7 +46,11 @@
 
 using namespace android;
 
-//#define TIME_COST_TEST
+#define JZFB_GET_BUFFER            0x40044720
+#define JZFB_LOCK_BUFFER           0x11
+#define JZFB_UNLOCK_BUFFER         0x22
+
+#define TIME_COST_TEST
 #include <sys/time.h>
 #ifdef TIME_COST_TEST
 // Returns current time in microseconds
@@ -114,7 +118,6 @@ int *getfb(void) {
 		ALOGE("bits_per_pixel = %d,bytespp=%d",bits_per_pixel,bytespp);
 	        size_t offset = (vinfo.xoffset + vinfo.yoffset*vinfo.xres) * bytespp;
 		if (ioctl(fb, FBIOGET_FSCREENINFO, &finfo) == 0) {
-		  //ALOGE("%d %s(), finfo.line_length=%d", __LINE__, __FUNCTION__, finfo.line_length);
 		    s = finfo.line_length/bytespp;
 		    frame_size = vinfo.yres*s*bytespp;
 		}else {
@@ -122,7 +125,18 @@ int *getfb(void) {
 		    frame_size = vinfo.xres*vinfo.yres*bytespp;
 		}
 
-		offset = (vinfo.xoffset + vinfo.yoffset*s) * bytespp;
+		int is_use_yoffset = 0;
+		unsigned int index = JZFB_LOCK_BUFFER;
+		if (ioctl(fb, JZFB_GET_BUFFER, &index) == 0) {
+		}else{
+		    is_use_yoffset = 1;
+		}
+
+		if (is_use_yoffset) {
+		    offset = (vinfo.xoffset + vinfo.yoffset*s) * bytespp;
+		}else{
+		    offset = (vinfo.xoffset + index*vinfo.yres*s) * bytespp;
+		}
 		mapsize = offset + frame_size;
 		mapbase = mmap(0, mapsize, PROT_READ, MAP_PRIVATE, fb, 0);
 		if (mapbase != MAP_FAILED) {
@@ -132,8 +146,17 @@ int *getfb(void) {
 	}
         close(fb);
     }
+#ifdef TIME_COST_TESTN
+    int *address_base = (int *)malloc(fb_width * fb_height * 2 + 64);
+    unsigned int time = GetTimer();
+    memcpy(address_base, new_rgbx_base, frame_size);
+    unsigned int time1 = GetTimer() - time;
+    ALOGE("memcpy Time = %u us", time1);
+    free(address_base);
+#endif
     return new_rgbx_base;
 }
+
 
 void RGB565_to_YUV420SP_c (
     unsigned char *y_dst,
@@ -562,7 +585,7 @@ static void get_framebuffer_data(JNIEnv* env, jobject thiz,jbyteArray data) {
     }
 
 
-#ifdef TIME_COST_TEST
+#ifdef TIME_COST_TESTN
     unsigned int pre_time1 = GetTimer();
 #endif
 
@@ -619,8 +642,19 @@ static void get_framebuffer_data(JNIEnv* env, jobject thiz,jbyteArray data) {
         ALOGE("neither ARGB8888 or RGB565, unsupported");
     }
 
-#ifdef TIME_COST_TEST
-    unsigned int time2 = GetTimer() - pre_time1;
+    const char* fbpath = "/dev/graphics/fb0";
+    int fb = open(fbpath, O_RDONLY);
+    if (fb > 0) {
+        unsigned int index = JZFB_UNLOCK_BUFFER;
+	if (ioctl(fb, JZFB_GET_BUFFER, &index) == 0) {
+	}else{
+	    ALOGE("unlock buffer failed");
+	}
+    }
+    close(fb);
+
+#ifdef TIME_COST_TESTN
+    unsigned int time2 = GetTimer() - pre_time2;
     frameNum++;
     costtime += time2;
     ALOGE("rgbtoyuv costTime = %u us", time2);
@@ -685,6 +719,9 @@ static void get_picture_size(JNIEnv* env, jobject thiz) {
     }
 
     ALOGE("fb_width = %d,fb_height=%d",fb_width,fb_height);
+
+    //  address_base = (int *)malloc(fb_width * fb_height * 2 + 64);
+
     if (fb_width > 400) {
         changed_width = fb_width / 2;
 	changed_height = fb_height / 2;
