@@ -185,7 +185,7 @@ public class CallLogManager {
 					}
 					JSONObject jobj = addArray.getJSONObject(i);
 					resolver.insert(Calls.CONTENT_URI,
-							CallLogUtils.json2ContentValues(jobj));
+							CallLogUtils.json2ContentValues(mContext,jobj));
 				}
 				klilog.i("load new2read, size =" + news);
 				for (int i = 0; i < news; i++) {
@@ -224,7 +224,6 @@ public class CallLogManager {
 			Message msg = mHandler.obtainMessage(MSG_LOAD_FINISH);
 			msg.arg1 = result;
 			msg.sendToTarget();
-			MissedCallNotify.getInstance(mContext).queryAndNotifyMissedCall();
 		}
 	}
 

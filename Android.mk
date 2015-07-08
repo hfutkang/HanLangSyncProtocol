@@ -16,7 +16,7 @@ LOCAL_RESOURCE_DIR := $(addprefix $(LOCAL_PATH)/, $(res_dirs))
 LOCAL_PACKAGE_NAME := GlassSync
 LOCAL_STATIC_JAVA_LIBRARIES := sync_framework \
 	com.android.vcard \
-	zxing
+	zxing VoiceRecognizerAPI
 LOCAL_AAPT_FLAGS := --auto-add-overlay
 #LOCAL_PROGUARD_ENABLED := disabled
 # Builds against the public SDK

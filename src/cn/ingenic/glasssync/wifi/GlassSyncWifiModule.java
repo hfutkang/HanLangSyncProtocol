@@ -11,8 +11,15 @@ import cn.ingenic.glasssync.services.SyncException;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiConfiguration;
 import android.content.BroadcastReceiver;
+import android.net.wifi.WifiConfiguration.KeyMgmt;
+import android.net.wifi.WifiConfiguration.AuthAlgorithm;
+import android.net.ConnectivityManager;
+import android.content.IntentFilter;
+import android.content.BroadcastReceiver;
+import android.net.NetworkInfo;
 import java.util.List;
-
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiInfo;
 public class GlassSyncWifiModule extends SyncModule {
     private static final String TAG = "GlassSyncWifiModule";
     private static final String LETAG = "GSWFMD";
@@ -27,86 +34,119 @@ public class GlassSyncWifiModule extends SyncModule {
     private static final String GSWFMD_CMD = "gswfmd_cmd";
     private static final String GSWFMD_RQWF = "gswfmd_rqwf";
     private static final String GSWFMD_SDWF = "gswfmd_sdwf";
-
+    private static final String GSWFMD_RESULT = "gswfmd_result";
     private Context mContext;
     private static GlassSyncWifiModule sInstance;
-    // private WifiModuleReceiver nReceiver;
+    private final IntentFilter mIntentFilter;
+    private String mSsid;
 
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+	    @Override
+		public void onReceive(Context context, Intent intent) {
+		NetworkInfo networkInfo = (NetworkInfo)
+		    intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
+
+		WifiManager wifiService = (WifiManager)mContext.getSystemService(mContext.WIFI_SERVICE); 
+		String wifiSSID = wifiService.getConnectionInfo().getSSID();
+		wifiSSID = wifiSSID.substring(1, wifiSSID.length()-1);
+		if(!wifiSSID.equals(mSsid)){
+		    return;
+		}
+		if(networkInfo.getState() == NetworkInfo.State.CONNECTED){
+		    sendResult(true);
+		}else if(networkInfo.getState() == NetworkInfo.State.DISCONNECTED){
+		    sendResult(false);
+		}
+	    }
+	};
     private GlassSyncWifiModule(Context context){
 	super(LETAG, context);
 	mContext = context;
+	mIntentFilter = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+	mContext.registerReceiver(mReceiver, mIntentFilter);
     }
 
     public static GlassSyncWifiModule getInstance(Context c) {
-	if (null == sInstance)
+	if (null == sInstance){
 	    sInstance = new GlassSyncWifiModule(c);
+	}
 	return sInstance;
     }
 
     @Override
-    protected void onCreate() {
+	protected void onCreate() {
     }
 
     private void process_wifi(SyncData data){
-	Log.e(TAG, "process_wifi");
+	mSsid = data.getString(GSWFMD_SSID);
+	String pwd = data.getString(GSWFMD_PSD);
 
-	String ssid = data.getString(GSWFMD_SSID);
-	String pswd = data.getString(GSWFMD_PSD);
-	String prot = data.getString(GSWFMD_PROP);
-	String mgmt = data.getString(GSWFMD_MGMT);
-	String group = data.getString(GSWFMD_GRP);
-	int connect = data.getInt(GSWFMD_CONN);
-
-	Log.e(TAG, "ssid:" + ssid + " pswd:" + pswd + " prot:" + prot + " mgnt:" + mgmt + " group:" + group + " connect:" + connect);
-
-	WifiManager wifi_service = (WifiManager)mContext.getSystemService(mContext.WIFI_SERVICE); 
+	WifiManager wifiManager = (WifiManager)mContext.getSystemService(mContext.WIFI_SERVICE); 
 	WifiConfiguration newwfcfg = new WifiConfiguration();
 
-	if (wifi_service.isWifiEnabled() == false){
-	    Log.e(TAG, "enable the wifi");
-	    wifi_service.setWifiEnabled(true);
+	if (wifiManager.isWifiEnabled() == false){
+	    wifiManager.setWifiEnabled(true);
 	}
 
-	newwfcfg.SSID = "\"" + ssid + "\"";
+	newwfcfg.SSID = "\"" + mSsid + "\"";
+ 
+	final List<ScanResult> results = wifiManager.getScanResults();
+	if(results != null){
+	    for(ScanResult result : results){
+		if (result.SSID == null || result.SSID.length() == 0
+		    || result.capabilities.contains("[IBSS]")) {
+		    continue;
+		}
+		if(result.SSID.equals(mSsid)){
+		    newwfcfg = checkWifi(result,newwfcfg,pwd);
+		    wifiManager.disconnect();
+		    wifiManager.connect(newwfcfg, null);
+		}
 
-	if (mgmt.contains("WPA_PSK")){
-	    newwfcfg.preSharedKey = "\"" + pswd + "\""; 
-            //newwfcfg.hiddenSSID = true;
-	    if (connect == 0)
-		newwfcfg.status = WifiConfiguration.Status.ENABLED;
-	    else
-		newwfcfg.status = WifiConfiguration.Status.CURRENT;
-
-	    // if (group.contains("CCMP")){
-	    // 	newwfcfg.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
-	    // 	newwfcfg.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
-	    // }
-	    // if (group.contains("TKIP")){
-	    // 	newwfcfg.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
-	    // 	newwfcfg.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
-	    // }
-
-	    newwfcfg.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
-
-	    // if (prot.contains("RSN"))
-	    // 	newwfcfg.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
-	    // if (prot.contains("WPA"))
-	    // 	newwfcfg.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
+	    }
 	}
-
-	int network_id = wifi_service.addNetwork(newwfcfg);
-
-	if (connect == 1){
-	    wifi_service.enableNetwork(network_id, true);
+    }
+    private WifiConfiguration checkWifi(ScanResult result,WifiConfiguration config,String pwd){
+        if (result.capabilities.contains("WEP")) {
+	    config.allowedKeyManagement.set(KeyMgmt.NONE);
+	    config.allowedAuthAlgorithms.set(AuthAlgorithm.OPEN);
+	    config.allowedAuthAlgorithms.set(AuthAlgorithm.SHARED);
+	    int length = pwd.length();
+	    if ((length == 10 || length == 26 || length == 58)
+		&& pwd.matches("[0-9A-Fa-f]*")) {
+		config.wepKeys[0] = pwd;
+	    } else {
+		config.wepKeys[0] = '"' + pwd + '"';
+	    }
+        } else if (result.capabilities.contains("PSK")) {
+	    config.allowedKeyManagement.set(KeyMgmt.WPA_PSK);
+	    if (pwd.matches("[0-9A-Fa-f]{64}")) {
+		config.preSharedKey = pwd;
+	    } else {
+		config.preSharedKey = '"' + pwd + '"';
+	    }
+        } else if (result.capabilities.contains("EAP")) {
+        }else{
+	    config.allowedKeyManagement.set(KeyMgmt.NONE);
 	}
+	return config;
     }
 
     @Override
-    protected void onRetrive(SyncData data) {
-	Log.e(TAG, "onRetrive");
-
+	protected void onRetrive(SyncData data) {
 	String cmd = data.getString(GSWFMD_CMD);
 	if (cmd.equals(GSWFMD_SDWF)){
 	    process_wifi(data);
 	}
-    }}
+    }
+    private void sendResult(boolean result){
+
+	SyncData data = new SyncData();
+	data.putString(GSWFMD_CMD,GSWFMD_SDWF);
+	data.putBoolean(GSWFMD_RESULT, result);
+	try{
+	    send(data);
+	}catch(SyncException e) {
+	}
+    }
+}

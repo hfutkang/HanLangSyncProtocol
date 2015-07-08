@@ -179,6 +179,8 @@
     <string name="notification_missedCallsTitle">未接电话</string>
     <string name="notification_missedCallsMsg"><xliff:g id="num_missed_calls">%s</xliff:g>个未接电话</string>
     <string name="notification_missedCallTicker">来自 <xliff:g id="missed_call_from">%s</xliff:g>的未接电话</string>
+    <string name="call_back">回拨</string>
+    <string name="send_message">发送短信</string>
 	<!-- Email -->
 	<string name="email_update_notification">邮件有更新，请及时查收。</string>
 	
@@ -200,16 +202,16 @@
 </string>
     <string name="into">单击进行二维码扫描</string>
     <string name="loading">正在玩命加载中，请您耐心等待\n\nLoading...</string>
-    <string name="unbind">配对失败（T﹏T）</string>
-    <string name="unconnect">绑定失败（T﹏T）</string>
-    <string name="disbind">已经解除绑定，下滑退出应用，\n单击绑定新的手机。</string>
+    <string name="unbind">配对失败!</string>
+    <string name="unconnect">绑定失败!</string>
+    <string name="disbind">已经解除绑定，\n单击绑定新的手机。</string>
     <string name="bind">已绑定的设备</string>
     <string name="long_click">（长按解除绑定）</string>
     <string name="mobile">Lenovo \u0020 \u0020A790E</string>
-    <string name="toast_message">点击屏幕重新绑定或者通过下滑退出应用</string>
+    <string name="toast_message">点击屏幕重新绑定</string>
     <string name="load_message">\u0020 \u0020 \u0020 请在手机端确认绑定信息.</string>
     <string name="load_connect">\u0020 \u0020 \u0020 正在连接手机，请稍后</string>
     <string name="pairing_request_title">蓝牙配对请求</string>
-    <string name="pairing_request_button">点击确定，下滑取消</string>
+    <string name="pairing_request_button">点击确定</string>
     <string name="pairing_info">要与以下设备进行配对：</string>
 </resources>

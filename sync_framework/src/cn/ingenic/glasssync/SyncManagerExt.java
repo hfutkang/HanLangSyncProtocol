@@ -290,6 +290,10 @@ public class SyncManagerExt extends DefaultSyncManager implements
 	    return status == SUCCESS || status == DELAYED;
     }
 
+    public int getWaitingListSize(int type){
+	return mTransportManagerExt.getPkgEncodeSize(type);
+    }
+
 	@Override
 	public boolean sendFileByPath(final String module, final String name, int length,InputStream in, String path) {
 	    SyncDescriptor des = new SyncDescriptor(module);

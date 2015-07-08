@@ -46,6 +46,8 @@
 
 using namespace android;
 
+//#define MACRO_USE_FOR_NON_COLDWAVE
+
 #define JZFB_GET_BUFFER            0x40044720
 #define JZFB_LOCK_BUFFER           0x11
 #define JZFB_UNLOCK_BUFFER         0x22
@@ -67,6 +69,8 @@ int frameNum = 0;
 int fb_width, fb_height;
 int bits_per_pixel= 0;
 int changed_width, changed_height;
+int is_shrink = 0;
+int is_multi16 = 0;
 unsigned int costtime = 0;
 unsigned int s, f;
 
@@ -225,6 +229,13 @@ void RGB565_to_YUV420SP_CHANGED (
 
     dest -= 1;
     uvdest -= 1;
+    S32I2M(xr15,0x42424242);
+    S32I2M(xr14, 0x80808080);
+    S32I2M(xr13,0x81818181);
+    S32I2M(xr12,0x19191919);
+    S32I2M(xr11,0x01010101);
+    S32I2M(xr10, 0x26264A4A); //U 74,74,38,38
+    S32I2M(xr9, 0x01017070); //U 1,1 112,112
 
     for (j = 0; j < height; j+=2) {
         src = pSrc + j * fb_width - 2;
@@ -282,7 +293,6 @@ void RGB565_to_YUV420SP_CHANGED (
 	}
     }
 }
-
 
 void ARGB8888_to_YUV420SP_c(
     unsigned char *y_dst,
@@ -347,6 +357,14 @@ void RGB565_to_YUV420SP(
 
     dest -= 1;
     uvdest -= 1;
+
+    S32I2M(xr15,0x42424242);
+    S32I2M(xr14, 0x80808080);
+    S32I2M(xr13,0x81818181);
+    S32I2M(xr12,0x19191919);
+    S32I2M(xr11,0x01010101);
+    S32I2M(xr10, 0x26264A4A); //U 74,74,38,38
+    S32I2M(xr9, 0x01017070); //U 1,1 112,112
 
     for (j = 0; j < height; j++) {
         src = pSrc + j * fb_width - 1;
@@ -425,13 +443,172 @@ inline void ARGB8888_to_YUV420SP(
     dest -= 1;
     uvdest -= 1;
 
+    S32I2M(xr15,0x42424242);
+    S32I2M(xr14, 0x80808080);
+    S32I2M(xr13,0x81818181);
+    S32I2M(xr12,0x19191919);
+    S32I2M(xr11,0x01010101);
+    S32I2M(xr10, 0x26264A4A); //U 74,74,38,38
+    S32I2M(xr9, 0x01017070); //U 1,1 112,112
+
     for (j = 0; j < height; j++) {
-        src = pSrc + j * width - 1;
+        src = pSrc + j * fb_width - 1;
+        for (i = 0; i < width; i+=4) {
+	    S32LDI(xr1, src, 0x4);  //xr1:0xFFRGB
+	    S32LDI(xr2, src, 0x4);  //xr2:0xFFRGB
+	    S32LDI(xr3, src, 0x4);  //xr3:0xFFRGB
+	    S32LDI(xr4, src, 0x4);  //xr4:0xFFRGB
+
+	    S32SFL(xr5,xr2,xr1,xr6,0);  //xr5:FFFFR2R1  //xr6:G2G1B2B1
+	    S32SFL(xr7,xr4,xr3,xr8,0);  //xr7:FFFFR4R3  //xr8:G4G3B4B3
+
+	    S32SFL(xr0,xr7,xr5,xr3,3);  //xr0:FFFFFFFF  xr3:R4R3R2R1
+	    S32SFL(xr7,xr8,xr6,xr5,3);  //xr7:G4G3G2G1  xr5:B4B3B2B1
+	    
+	    Q8MUL(xr1,xr3,xr15,xr2);  //xr1:R4*66, R2*66 , xr2:R3*66, R1*66
+	    Q8MAC_AA(xr1,xr13,xr7,xr2); //xr1:R4*66+G4*129,R2*66+G2*129  xr2: R3*66+G3*129,R1*66+G1*129
+	    Q8MAC_AA(xr1,xr5,xr12,xr2); //xr1:R4*66+G4*129+B4*25,R2*66+G2*129+B2*25  xr2: R3*66+G3*129+B3*25,R1*66+G1*129+B1*25
+	    Q8MAC_AA(xr1,xr11,xr14,xr2); //xr1:R4*66+G4*129+B4*25+80,R2*66+G2*129+B2*25+80  xr2: R3*66+G3*129+B3*25+80,R1*66+G1*129+B1*25+80
+
+	    S32I2M(xr6, 0x00100010); //U 1,1 112,112
+	    Q16SAR(xr1,xr1,xr2,xr2,8); //>>8
+	    Q16ACCM_AA(xr1,xr6,xr6,xr2); //Y+16
+
+	    S32SFL(xr0,xr1,xr2,xr1,1);
+	    S32SDI(xr1, dest, 0x4);
+
+	    if ((j % 2) == 0) {
+	        S32I2M(xr8, 0x12125E5E); //V 18, 18, 94,94
+		S32SFL(xr0,xr3,xr7,xr3,1);  //xr3:R3R1G3G1
+		S32SFL(xr0,xr14,xr5,xr5,1);  //xr9:8080B3B1
+		
+		Q8MUL(xr1,xr5,xr9,xr2); //xr1:80*1,80*1, xr2:B3*112,B1*112
+		Q8MAC_SS(xr1,xr3,xr10,xr2); //xr1:80-R3*38,80-R1*38, xr2:B3*112-G3*74,B1*112-G1*74
+		
+		S32SFL(xr5,xr5,xr3,xr3,3);  //xr5:8080R3R1, xr3:B3B1G3G1
+		Q8MUL(xr4,xr5,xr9,xr6); //xr4:80*1,80*1,xr5:R3*112, R1*112
+		Q8MAC_SS(xr4,xr3,xr8,xr6); //xr4:80*1-B3*18,80*1-B1*18, xr5:R3*112-G3*94, R1*112-G1*94
+		Q16ACCM_AA(xr1,xr2,xr6,xr4); //xr1:80-R3*38+B3*112-G3*74(U2),80-R1*38+B1*112-G1*74(U1)  //xr4:80-B3*18+R3*112-G3*94,80-B1*18+R1*112-G1*94 
+		Q16SAR(xr1,xr1,xr4,xr4,8); //>>8
+		Q16ACCM_AA(xr1,xr14,xr14,xr4); //UV+128
+		S32SFL(xr0,xr4,xr1,xr1,2);
+		S32SDI(xr1, uvdest,4);
+	    }
+	}
+    }
+}
+
+inline void ARGB8888_to_YUV420SP_CHANGED(
+    unsigned char *y_dst,
+    unsigned char *uv_dst,
+    unsigned char *rgb_src,
+    unsigned int width,
+    unsigned int height)
+{
+    unsigned int i, j;
+    unsigned int *src;
+
+    unsigned int *pSrc = (unsigned int *)rgb_src;
+    unsigned char *pDstY = (unsigned char *)y_dst;
+    unsigned char *pDstUV = (unsigned char *)uv_dst;
+    unsigned int *dest = (unsigned int *)pDstY;
+    unsigned int *uvdest = (unsigned int *)pDstUV;
+
+
+    dest -= 1;
+    uvdest -= 1;
+
+    S32I2M(xr15,0x42424242);
+    S32I2M(xr14, 0x80808080);
+    S32I2M(xr13,0x81818181);
+    S32I2M(xr12,0x19191919);
+    S32I2M(xr11,0x01010101);
+    S32I2M(xr10, 0x26264A4A); //U 74,74,38,38
+    S32I2M(xr9, 0x01017070); //U 1,1 112,112
+
+    for (j = 0; j < height; j+=2) {
+        src = pSrc + j * fb_width - 2;
+        for (i = 0; i < width; i+=8) {
+	    S32LDI(xr1, src, 0x8);  //xr1:0xFFRGB
+	    S32LDI(xr2, src, 0x8);  //xr2:0xFFRGB
+	    S32LDI(xr3, src, 0x8);  //xr3:0xFFRGB
+	    S32LDI(xr4, src, 0x8);  //xr4:0xFFRGB
+
+	    S32SFL(xr5,xr2,xr1,xr6,0);  //xr5:FFFFR2R1  //xr6:G2G1B2B1
+	    S32SFL(xr7,xr4,xr3,xr8,0);  //xr7:FFFFR4R3  //xr8:G4G3B4B3
+
+	    S32SFL(xr0,xr7,xr5,xr3,3);  //xr0:FFFFFFFF  xr3:R4R3R2R1
+	    S32SFL(xr7,xr8,xr6,xr5,3);  //xr7:G4G3G2G1  xr5:B4B3B2B1
+	    
+	    Q8MUL(xr1,xr3,xr15,xr2);  //xr1:R4*66, R2*66 , xr2:R3*66, R1*66
+	    Q8MAC_AA(xr1,xr13,xr7,xr2); //xr1:R4*66+G4*129,R2*66+G2*129  xr2: R3*66+G3*129,R1*66+G1*129
+	    Q8MAC_AA(xr1,xr5,xr12,xr2); //xr1:R4*66+G4*129+B4*25,R2*66+G2*129+B2*25  xr2: R3*66+G3*129+B3*25,R1*66+G1*129+B1*25
+	    Q8MAC_AA(xr1,xr11,xr14,xr2); //xr1:R4*66+G4*129+B4*25+80,R2*66+G2*129+B2*25+80  xr2: R3*66+G3*129+B3*25+80,R1*66+G1*129+B1*25+80
+
+	    S32I2M(xr6, 0x00100010); //U 1,1 112,112
+	    Q16SAR(xr1,xr1,xr2,xr2,8); //>>8
+	    Q16ACCM_AA(xr1,xr6,xr6,xr2); //Y+16
+
+	    S32SFL(xr0,xr1,xr2,xr1,1);
+	    S32SDI(xr1, dest, 0x4);
+
+	    if ((j % 2) == 0) {
+	        S32I2M(xr8, 0x12125E5E); //V 18, 18, 94,94
+		S32SFL(xr0,xr3,xr7,xr3,1);  //xr3:R3R1G3G1
+		S32SFL(xr0,xr14,xr5,xr5,1);  //xr9:8080B3B1
+		
+		Q8MUL(xr1,xr5,xr9,xr2); //xr1:80*1,80*1, xr2:B3*112,B1*112
+		Q8MAC_SS(xr1,xr3,xr10,xr2); //xr1:80-R3*38,80-R1*38, xr2:B3*112-G3*74,B1*112-G1*74
+		
+		S32SFL(xr5,xr5,xr3,xr3,3);  //xr5:8080R3R1, xr3:B3B1G3G1
+		Q8MUL(xr4,xr5,xr9,xr6); //xr4:80*1,80*1,xr5:R3*112, R1*112
+		Q8MAC_SS(xr4,xr3,xr8,xr6); //xr4:80*1-B3*18,80*1-B1*18, xr5:R3*112-G3*94, R1*112-G1*94
+		Q16ACCM_AA(xr1,xr2,xr6,xr4); //xr1:80-R3*38+B3*112-G3*74(U2),80-R1*38+B1*112-G1*74(U1)  //xr4:80-B3*18+R3*112-G3*94,80-B1*18+R1*112-G1*94 
+		Q16SAR(xr1,xr1,xr4,xr4,8); //>>8
+		Q16ACCM_AA(xr1,xr14,xr14,xr4); //UV+128
+		S32SFL(xr0,xr4,xr1,xr1,2);
+		S32SDI(xr1, uvdest,4);
+	    }
+	}
+    }
+}
+
+
+
+inline void ABGR8888_to_YUV420SP(
+    unsigned char *y_dst,
+    unsigned char *uv_dst,
+    unsigned char *rgb_src,
+    unsigned int width,
+    unsigned int height)
+{
+    unsigned int i, j;
+    unsigned int *src;
+
+    unsigned int *pSrc = (unsigned int *)rgb_src;
+    unsigned char *pDstY = (unsigned char *)y_dst;
+    unsigned char *pDstUV = (unsigned char *)uv_dst;
+    unsigned int *dest = (unsigned int *)pDstY;
+    unsigned int *uvdest = (unsigned int *)pDstUV;
+
+
+    dest -= 1;
+    uvdest -= 1;
+    S32I2M(xr15, 0x19814201); //Y bgr80
+    S32I2M(xr12, 0x704A2601); //U bgr80
+    S32I2M(xr11, 0x125E7001); //V bgr80
+    S32I2M(xr14, 0x80000000);
+    S32I2M(xr13, 0x00100010); //for Y
+
+
+    for (j = 0; j < height; j++) {
+        src = pSrc + j * fb_width - 1;
         for (i = 0; i < width; i+=4) {
 	    S32LDI(xr1, src, 0x4);  //xr1:0xFFBGR:  xr1 and xr3 use for UV
 	    S32LDI(xr2, src, 0x4);  //xr2:0xFFBGR
 	    S32LDI(xr3, src, 0x4);  //xr3:0xFFBGR
 	    S32LDI(xr4, src, 0x4);  //xr4:0xFFBGR
+
 	    S32ALN(xr1, xr1, xr14, 1);  //xr1:BGR80  
 	    S32ALN(xr2, xr2, xr14, 1);  //xr2:BGR80
 	    S32ALN(xr3, xr3, xr14, 1);  //xr3:BGR80
@@ -489,7 +666,8 @@ inline void ARGB8888_to_YUV420SP(
     }
 }
 
-inline void ARGB8888_to_YUV420SP_CHANGED(
+
+inline void ABGR8888_to_YUV420SP_CHANGED(
     unsigned char *y_dst,
     unsigned char *uv_dst,
     unsigned char *rgb_src,
@@ -508,6 +686,12 @@ inline void ARGB8888_to_YUV420SP_CHANGED(
 
     dest -= 1;
     uvdest -= 1;
+
+    S32I2M(xr15, 0x19814201); //Y bgr80
+    S32I2M(xr12, 0x704A2601); //U bgr80
+    S32I2M(xr11, 0x125E7001); //V bgr80
+    S32I2M(xr14, 0x80000000);
+    S32I2M(xr13, 0x00100010); //for Y
 
     for (j = 0; j < height; j+=2) {
         src = pSrc + j * fb_width - 2;
@@ -584,7 +768,6 @@ static void get_framebuffer_data(JNIEnv* env, jobject thiz,jbyteArray data) {
 	return;
     }
 
-
 #ifdef TIME_COST_TESTN
     unsigned int pre_time1 = GetTimer();
 #endif
@@ -615,28 +798,36 @@ static void get_framebuffer_data(JNIEnv* env, jobject thiz,jbyteArray data) {
 #endif
 
     if (bits_per_pixel == 32) {
-        S32I2M(xr15, 0x19814201); //Y bgr80
-	S32I2M(xr12, 0x704A2601); //U bgr80
-	S32I2M(xr11, 0x125E7001); //V bgr80
-	S32I2M(xr14, 0x80000000);
-	S32I2M(xr13, 0x00100010); //for Y
-	if (changed_width == fb_width) {
-	    ARGB8888_to_YUV420SP(yuv_dst, uv_dst, rgb_src, fb_width, fb_height);
-	}else{
+#ifdef MACRO_USE_FOR_NON_COLDWAVE
+	if (is_shrink) {
 	    ARGB8888_to_YUV420SP_CHANGED(yuv_dst, uv_dst, rgb_src, changed_width*2, changed_height*2);
-	}
-    }else if (bits_per_pixel == 16){
-        S32I2M(xr15,0x42424242);
-	S32I2M(xr14, 0x80808080);
-	S32I2M(xr13,0x81818181);
-	S32I2M(xr12,0x19191919);
-	S32I2M(xr11,0x01010101);
-	S32I2M(xr10, 0x26264A4A); //U 74,74,38,38
-	S32I2M(xr9, 0x01017070); //U 1,1 112,112
-	if (changed_width == fb_width) {
-	    RGB565_to_YUV420SP(yuv_dst, uv_dst, rgb_src, fb_width, fb_height);
 	}else{
+	    if (is_multi16 == 0){
+	        ARGB8888_to_YUV420SP(yuv_dst, uv_dst, rgb_src, fb_width, fb_height);
+	    }else{
+	        ARGB8888_to_YUV420SP(yuv_dst, uv_dst, rgb_src, changed_width, changed_height);
+	    }
+	}
+#else
+	if (is_shrink) {
+	    ABGR8888_to_YUV420SP_CHANGED(yuv_dst, uv_dst, rgb_src, changed_width*2, changed_height*2);
+	}else{
+	    if (is_multi16 == 0){
+	        ABGR8888_to_YUV420SP(yuv_dst, uv_dst, rgb_src, fb_width, fb_height);
+	    }else{
+	        ABGR8888_to_YUV420SP(yuv_dst, uv_dst, rgb_src, changed_width, changed_height);
+	  }
+	}
+#endif
+    }else if (bits_per_pixel == 16){
+	if (is_shrink) {
 	    RGB565_to_YUV420SP_CHANGED(yuv_dst, uv_dst, rgb_src, changed_width*2, changed_height*2);
+	}else{
+	  if (is_multi16 == 0){
+	    RGB565_to_YUV420SP(yuv_dst, uv_dst, rgb_src, fb_width, fb_height);
+	  }else{
+	    RGB565_to_YUV420SP(yuv_dst, uv_dst, rgb_src, changed_width, changed_height);
+	  }
 	}
     }else{
         ALOGE("neither ARGB8888 or RGB565, unsupported");
@@ -687,6 +878,8 @@ static void get_picture_size(JNIEnv* env, jobject thiz) {
     unsigned int f1, bytespp;
     const char* fbpath = "/dev/graphics/fb0";
     frameNum = 0;
+    is_shrink = 0;
+    is_multi16 = 0;
     int fb = open(fbpath, O_RDONLY);
 
     costtime = 0;
@@ -720,20 +913,30 @@ static void get_picture_size(JNIEnv* env, jobject thiz) {
 
     ALOGE("fb_width = %d,fb_height=%d",fb_width,fb_height);
 
-    //  address_base = (int *)malloc(fb_width * fb_height * 2 + 64);
-
-    if (fb_width > 400) {
+    if (fb_width >= 640) {
         changed_width = fb_width / 2;
 	changed_height = fb_height / 2;
-	if (changed_width % 16) changed_width = changed_width / 16 * 16;  
-	if (changed_height % 16) changed_height = changed_height / 16 * 16;  
+	is_shrink = 1;
+	if (changed_width % 16) {
+	    is_multi16 = 1;
+	    changed_width = changed_width / 16 * 16;  
+	}
+	if (changed_height % 16) {
+	    is_multi16 = 1;
+	    changed_height = changed_height / 16 * 16;  
+	}
     }else{
         changed_width = fb_width;
 	changed_height = fb_height;
-	if (changed_width % 16) changed_width = changed_width / 16 * 16;  
-	if (changed_height % 16) changed_height = changed_height / 16 * 16;  
+	if (changed_width % 16) {
+	    is_multi16 = 1;
+	    changed_width = changed_width / 16 * 16;  
+	}
+	if (changed_height % 16) {
+	    is_multi16 = 1;
+	    changed_height = changed_height / 16 * 16;  
+	}
     }
-
 
     close(fb);
     if (init_rgb_tab == 0) {

@@ -49,7 +49,7 @@ import android.util.Log;
 abstract class SppChannel {
     // Debugging
     private static  String TAG = "SppChannel";
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
     private static final boolean mReadSync = false;  
     private static final boolean mSendAck = false;
 
@@ -321,7 +321,7 @@ abstract class SppChannel {
 
         @Override
         public void handleMessage(Message msg) {
-            Log.v(TAG, "----handleMessage msg: "+mMsgList.get(msg.what));
+            if(DBG)Log.v(TAG, "----handleMessage msg: "+mMsgList.get(msg.what));
             switch (msg.what) {
                 case MESSAGE_WRITE:
                     byte[] writeBuf = (byte[]) msg.obj;

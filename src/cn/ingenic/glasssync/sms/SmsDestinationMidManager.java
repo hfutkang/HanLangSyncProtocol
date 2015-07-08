@@ -11,25 +11,57 @@ import cn.ingenic.glasssync.services.mid.Column;
 import cn.ingenic.glasssync.services.mid.DefaultColumn;
 import cn.ingenic.glasssync.services.mid.MidException;
 import cn.ingenic.glasssync.services.mid.SimpleMidDestManager;
-
+import cn.ingenic.glasssync.DefaultSyncManager;
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
-
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.Intent;
 import android.os.Bundle;
+import android.content.IntentFilter;
+import java.util.Date;
+import android.database.ContentObserver;
+import android.provider.Settings;
+import android.net.Uri;
+import android.os.Handler;
+
 public class SmsDestinationMidManager extends SimpleMidDestManager {
 
 	private Context mContext;
 	private List<Column> mColumnList;
 	private Map<Long, ThreadEntry> mThreadMap;
 	private Map<Long, SmsEntry> mSmsMap;
-
+        private Long mBondTime;
+	private SharedPreferences mSharedPreferences;
+	private Editor mEditor;
+        private String BOND_TIME = "bond_time";
+        private ContentObserver mContentObserver = new ContentObserver(new Handler()){
+		@Override
+		    public void onChange(boolean selfChange) {
+		    super.onChange(selfChange);
+		    try{
+			int state = Settings.System.getInt(mContext.getContentResolver(),"glasssync_bond");
+			if(state == 1){
+			    mBondTime  = new Date().getTime();
+			    mEditor = mSharedPreferences.edit();
+			    mEditor.putLong(BOND_TIME, mBondTime);
+			    mEditor.commit();
+			}
+		    }catch(Settings.SettingNotFoundException exception){
+			Log.e(Sms.TAG,"----SettingNotFoundException");
+		    }
+		}
+	    };
 	public SmsDestinationMidManager(Context ctx, SyncModule module) {
 		super(ctx, module);
 		this.mContext = ctx;
+		mSharedPreferences = mContext.getSharedPreferences("bondTime",mContext.MODE_PRIVATE);
+		mBondTime = mSharedPreferences.getLong(BOND_TIME, 0);
+		Uri bindStateUri = Settings.System.getUriFor("glasssync_bond");
+		mContext.getContentResolver().registerContentObserver(bindStateUri,false,mContentObserver);
 	}
 
 	@Override
@@ -74,14 +106,14 @@ public class SmsDestinationMidManager extends SimpleMidDestManager {
 	protected ArrayList<ContentProviderOperation> applySyncDatas(
 			SyncData[] deletes, SyncData[] updates, SyncData[] inserts,
 			SyncData[] appends) throws MidException {
-
 		    if(inserts!=null){
 			for(int i = 0;i<=inserts.length-1;i++){
 			    int type = inserts[i].getInt("type");
 			    int read = inserts[i].getInt("read");
 			    String body = inserts[i].getString("body");
 			    String address = inserts[i].getString("address");
-			    if(type == 1 && read == 0){
+			    Long date = inserts[i].getLong("date");
+			    if(type == 1 && read == 0 && mBondTime <= date){
 				if (Sms.DEBUG){
 				    Log.i(Sms.TAG,"new sms come and sendBroadcast:action.new_sms.RECEIVER");
 				}

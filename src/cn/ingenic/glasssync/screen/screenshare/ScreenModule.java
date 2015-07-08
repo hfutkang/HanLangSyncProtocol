@@ -11,7 +11,7 @@ import android.bluetooth.BluetoothAdapter;
 import cn.ingenic.glasssync.services.SyncData;
 import cn.ingenic.glasssync.services.SyncModule;
 import cn.ingenic.glasssync.services.SyncException;
-
+import cn.ingenic.glasssync.transport.ext.TransportManagerExt;
 import cn.ingenic.glasssync.screen.screenshare.AvcEncode;
 
 public class ScreenModule extends SyncModule {
@@ -144,7 +144,8 @@ public class ScreenModule extends SyncModule {
 	data.putByteArray(SEND_FRAME, frame);
 
 	try{
-	    send(data);
+	    if(getWaitingListSize(TransportManagerExt.DATA) < 5)
+		send(data);
 	}catch (SyncException e){
 	    Log.e(TAG, "---send frame data failed:" + e);
 	    Toast.makeText(mContext,  "蓝牙传送失败！", Toast.LENGTH_LONG).show();
@@ -160,7 +161,7 @@ public class ScreenModule extends SyncModule {
 	data.putInt(FRAME_WIDTH, width);
 	data.putInt(FRAME_HEIGHT, height);
 	try {
-	    send(data);
+	    sendCMD(data);
 	} catch (SyncException e) {
 	    Log.e(TAG, "---send cmd failed:" + e);
 	}
@@ -175,7 +176,7 @@ public class ScreenModule extends SyncModule {
 	try {
 	    if (DEBUG)
 		Log.e(TAG, "---send data " + bool);
-	    send(data);
+	    sendCMD(data);
 	} catch (SyncException e) {
 	    Log.e(TAG, "---send finish signal failed:" + e);
 	}

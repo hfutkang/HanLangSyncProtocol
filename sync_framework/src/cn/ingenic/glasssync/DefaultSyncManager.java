@@ -630,10 +630,6 @@ public class DefaultSyncManager extends Handler {
 		if (Enviroment.getDefault().isWatch()) {
 			Settings.System.putInt(mContext.getContentResolver(),
 					"glasssync_bond", validAddr ? 1 : 0);
-			Intent intent = new Intent("cn.ingenic.glasssync.bond_changed");
-			intent.putExtra("validAddr",validAddr);
-			mContext.sendBroadcast(intent);
-			Mgr.d("send bond status changed broadcast.");
 			
 			NotificationManager mgr = (NotificationManager) mContext
 					.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -806,6 +802,12 @@ public class DefaultSyncManager extends Handler {
 	      //implement in SyncManagerExt.java
 	    return false;
 	}	
+
+        public int getWaitingListSize(int type){
+	      //implement in SyncManagerExt.java
+	    return 0;
+	}
+
 	public boolean sendFile(String module, String name, int length, InputStream in) {
 		Config config = new Config(SystemModule.SYSTEM);
 		ArrayList<Projo> datas = new ArrayList<Projo>();

@@ -10,7 +10,7 @@ import android.util.Log;
 
 public class BluetoothCompat {
     private static String TAG = "BluetoothCompat";
-    private static final boolean DBG = true;
+    private static final boolean DBG = false;
 
     private static final int MESSAGE_READ_ERROR = 0;
     private static BluetoothCompat sClientCompat;

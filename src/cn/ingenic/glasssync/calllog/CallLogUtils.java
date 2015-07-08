@@ -2,14 +2,14 @@ package cn.ingenic.glasssync.calllog;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
+import android.content.Context;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.provider.CallLog.Calls;
 
 public class CallLogUtils {
 	
-	public static ContentValues json2ContentValues(JSONObject obj){
+    public static ContentValues json2ContentValues(Context ctx,JSONObject obj){
 		ContentValues cv = new ContentValues();
 		try {
 			putIntIntoContentValue(cv, obj, Calls._ID);
@@ -19,12 +19,20 @@ public class CallLogUtils {
 			putIntIntoContentValue(cv, obj, Calls.TYPE);
 			putIntIntoContentValue(cv, obj, Calls.NEW);
 			putStringIntoContentValue(cv, obj, Calls.CACHED_NAME);
+			if(obj.getInt(Calls.NEW) == 1 && obj.getInt(Calls.TYPE) == 3){
+			    notifyMissCall(ctx,obj);
+			}
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
 		return cv;
 	}
-	
+    private static  void notifyMissCall(Context ctx,JSONObject obj) throws JSONException{
+	String name =obj.getString(Calls.CACHED_NAME);
+	String number = obj.getString(Calls.NUMBER);
+	Long date = obj.getLong(Calls.DATE);
+	MissedCallNotify.getInstance(ctx).notifyMissedCall(name,number,date);
+    }
 	private static void putIntIntoContentValue(ContentValues cv,
 			JSONObject obj, String name) throws JSONException{
 		cv.put(name, obj.getInt(name));

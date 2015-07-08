@@ -113,6 +113,9 @@ public class Load_Activity extends Activity implements OnTouchListener{
 
 	if (mBTAdapter.isEnabled()) {
 	    startBondWorker();
+	}else{
+	    TextView tv = (TextView) findViewById(R.id.tv_load);
+	    tv.setText(R.string.err_nofind_bluetooth);
 	}
     }
     

@@ -20,16 +20,12 @@ public class MultiMediaManager {
     static int CNT = 0;
 
 
-    private ArrayList<String> mPicThumbList = new ArrayList<String>();
     private ArrayList<String> mPicThumbWaitList = new ArrayList<String>();
 
-    private ArrayList<String> mVideoThumbList = new ArrayList<String>();
     private ArrayList<String> mVideoThumbWaitList = new ArrayList<String>();
 
-    private ArrayList<String> mPicList = new ArrayList<String>();
     private ArrayList<String> mPicWaitList = new ArrayList<String>();
 
-    private ArrayList<String> mVideoList = new ArrayList<String>();
     private ArrayList<String> mVideoWaitList = new ArrayList<String>();
 
     private ArrayList<String> mPicThumbFailList = new ArrayList<String>();
@@ -86,45 +82,21 @@ public class MultiMediaManager {
 
     public void addWaitList(String name, int type){
 	if (type == MultiMediaModule.GSMMD_PIC){
-	    if (mPicList.contains(name)){
-		Log.e(TAG, "addWaitList exist " + name);
-		return;
-	    }
 
-	    if (!mPicWaitList.contains(name)){
 		Log.e(TAG, "Add to wait list " + name);
 		mPicWaitList.add(name);
-	    }
 	}else if (type == MultiMediaModule.GSMMD_VIDEO){
-	    if (mVideoList.contains(name)){
-		Log.e(TAG, "addWaitList exist " + name);
-		return;
-	    }
 
-	    if (!mVideoWaitList.contains(name)){
 		Log.e(TAG, "Add to wait list " + name);
 		mVideoWaitList.add(name);
-	    }
 	}else if (type == MultiMediaModule.GSMMD_IMG_THUMB){
-	    if (mPicThumbList.contains(name)){
-		Log.e(TAG, "addWaitList exist " + name);
-		return;
-	    }
 
-	    if (!mPicThumbWaitList.contains(name)){
 		Log.e(TAG, "Add to wait list " + name);
 		mPicThumbWaitList.add(name);
-	    }
 	}else if (type == MultiMediaModule.GSMMD_VID_THUMB){
-	    if (mVideoThumbList.contains(name)){
-		Log.e(TAG, "addWaitList exist " + name);
-		return;
-	    }
 
-	    if (!mVideoThumbWaitList.contains(name)){
 		Log.e(TAG, "Add to wait list " + name);
 		mVideoThumbWaitList.add(name);
-	    }
 	}
     }
 
@@ -145,9 +117,6 @@ public class MultiMediaManager {
 	    Log.e(TAG, "replyAsk PIC");
 	    if (act == MultiMediaModule.GSMMD_EXIST){
 		Log.e(TAG, "replyAsk EXIST");
-		if (!mPicList.contains(name)){
-		    mPicList.add(name);
-		}
 		mPicWaitList.remove(name);
 		mReqState = REQ_IDEL;
 	    }else{
@@ -163,9 +132,6 @@ public class MultiMediaManager {
 	    Log.e(TAG, "replyAsk VIDEO");
 	    if (act == MultiMediaModule.GSMMD_EXIST){
 		Log.e(TAG, "replyAsk EXIST");
-		if (!mVideoList.contains(name)){
-		    mVideoList.add(name);
-		}
 		mVideoWaitList.remove(name);
 		mReqState = REQ_IDEL;
 	    }else{
@@ -181,9 +147,6 @@ public class MultiMediaManager {
 	    Log.e(TAG, "replyAsk THUMB");
 	    if (act == MultiMediaModule.GSMMD_EXIST){
 		Log.e(TAG, "replyAsk EXIST");
-		if (!mPicThumbList.contains(name)){
-		    mPicThumbList.add(name);
-		}
 		mPicThumbWaitList.remove(name);
 		mReqState = REQ_IDEL;
 	    }else{
@@ -199,9 +162,6 @@ public class MultiMediaManager {
 	    Log.e(TAG, "replyAsk THUMB");
 	    if (act == MultiMediaModule.GSMMD_EXIST){
 		Log.e(TAG, "replyAsk EXIST");
-		if (!mVideoThumbList.contains(name)){
-		    mVideoThumbList.add(name);
-		}
 		mVideoThumbWaitList.remove(name);
 		mReqState = REQ_IDEL;
 	    }else{
@@ -226,30 +186,18 @@ public class MultiMediaManager {
 		if (askName != null)
 		    mPicWaitList.remove(askName);
 	
-		if (!mPicList.contains(askName)){
-		    mPicList.add(askName);
-		}
 	    }else if (syncType == MultiMediaModule.GSMMD_VIDEO){
 		if (askName != null)
 		    mVideoWaitList.remove(askName);
 	
-		if (!mVideoList.contains(askName)){
-		    mVideoList.add(askName);
-		}	    
 	    }else if (syncType == MultiMediaModule.GSMMD_IMG_THUMB){
 		if (askName != null)
 		    mPicThumbWaitList.remove(askName);
 	
-		if (!mPicThumbList.contains(askName)){
-		    mPicThumbList.add(askName);
-		}	    
 	    }else if (syncType == MultiMediaModule.GSMMD_VID_THUMB){
 		if (askName != null)
 		    mVideoThumbWaitList.remove(askName);
 	
-		if (!mVideoThumbList.contains(askName)){
-		    mVideoThumbList.add(askName);
-		}	    
 	    }
 	}
 
@@ -297,7 +245,7 @@ public class MultiMediaManager {
 
     public void reply_ffail(String fileName, int type){
 	if (type == MultiMediaModule.GSMMD_PIC){
-	    mPicFailList.remove(askName);
+	    mPicFailList.remove(fileName);
 	}else if (type == MultiMediaModule.GSMMD_VIDEO){
 	    mVideoFailList.remove(fileName);
 	}else if (type == MultiMediaModule.GSMMD_IMG_THUMB){

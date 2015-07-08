@@ -76,7 +76,9 @@ public class TransportManagerExt extends TransportManager {
 //			}
 //		}
 	}
-
+	public int getPkgEncodeSize(int type) {
+	    return mPkgEncode.size(type);
+	}
 	public void setRetriveCallback(OnRetriveCallback callback) {
 		mCallback = callback;
 	}

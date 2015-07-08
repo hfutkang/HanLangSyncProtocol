@@ -379,6 +379,10 @@ class PkgEncodingWorkspace {
 		mIsQuit = false;
 	}
 
+        int size(int type){
+	    return mReqMap.get(type).size();
+	}
+
 	void clear() {
 		synchronized (mReqMap) {
 			for (int type : mTypeList) {
@@ -427,17 +431,17 @@ class PkgEncodingWorkspace {
 	}
 
 	private static final String PRE = "<PEWP>";
-
+	private static final boolean DBG = false;
 	private static final void logv(String msg) {
-		Log.v(ProLogTag.TAG, PRE + msg);
+	    if(DBG)Log.v(ProLogTag.TAG, PRE + msg);
 	}
 
 	private static final void logd(String msg) {
-		Log.d(ProLogTag.TAG, PRE + msg);
+		if(DBG)Log.d(ProLogTag.TAG, PRE + msg);
 	}
 
 	private static final void logi(String msg) {
-		Log.i(ProLogTag.TAG, PRE + msg);
+		if(DBG)Log.i(ProLogTag.TAG, PRE + msg);
 	}
 
 	private static final void loge(String msg) {

@@ -66,12 +66,12 @@ public class MultiMediaObserver extends ContentObserver {
 	public void onChange(boolean selfChange, Uri uri) {  
 	Log.e(TAG, "onChange " + uri);
 
-	MultiMediaModule mmm = MultiMediaModule.getInstance(mContext);
-	if (mmm.getImageSync()){
-	    sync_images();
-	}else if (mmm.getVideoSync()){
-	    sync_videos();
-	}
+	// MultiMediaModule mmm = MultiMediaModule.getInstance(mContext);
+	// if (mmm.getImageSync()){
+	//     sync_images();
+	// }else if (mmm.getVideoSync()){
+	//     sync_videos();
+	// }
     }
 
     public void sync_images(){

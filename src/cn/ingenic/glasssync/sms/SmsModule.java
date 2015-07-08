@@ -4,8 +4,6 @@ import cn.ingenic.glasssync.services.SyncData;
 import cn.ingenic.glasssync.services.SyncModule;
 import cn.ingenic.glasssync.services.mid.MidTableManager;
 import android.content.Context;
-import android.content.Intent;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -71,14 +69,4 @@ public class SmsModule extends SyncModule {
 	public void setmAddress(String mAddress) {
 		this.mAddress = mAddress;
 	}
-
-    @Override
-	protected void onConnectionStateChanged(boolean connect) {
-	    if(!connect) {
-			Log.d(SMS_NAME, "send remove_sms_msg broadcast.");
-			Intent intent = new Intent("cn.ingenic.sync.remove_sms_msg");
-			mContext.sendBroadcast(intent);
-	    }
-	}
-
 }

@@ -9,7 +9,7 @@
         android:id="@+id/Layout_pairing"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/color_background"
+        android:background="@color/activity_bg"
         android:orientation="vertical"
         android:weightSum="3" >
 
@@ -19,7 +19,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="@string/pairing_request_title"
-            android:textColor="@color/color_white"
+            android:textColor="@color/textColor"
             android:textSize="@dimen/big_font_size" />
 
         <LinearLayout
@@ -34,14 +34,14 @@
                 android:layout_height="wrap_content"
                 android:text="@string/pairing_info"
                 android:gravity="center"
-                android:textColor="@color/color_white"
+                android:textColor="@color/textColor"
                 android:textSize="@dimen/big_font_size" />
 
             <TextView
                 android:id="@+id/device_info"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/color_white"
+                android:textColor="@color/textColor"
                 android:gravity="center"
                 android:textSize="@dimen/big_font_size" />
         </LinearLayout>
@@ -52,7 +52,7 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="@string/pairing_request_button"
-            android:textColor="@color/color_white"
+            android:textColor="@color/textColor"
             android:textSize="@dimen/big_font_size" />
     </LinearLayout>
 

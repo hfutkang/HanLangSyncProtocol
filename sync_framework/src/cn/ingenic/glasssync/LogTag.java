@@ -14,7 +14,7 @@ public class LogTag {
 	
 	private static final String Sync_EXP = "SyncException";
 	
-	public static final boolean V = true;
+	public static final boolean V = false;
 	
 	public static void printExp(String tag, Throwable t) {
 		if (Log.isLoggable(Sync_EXP, Log.VERBOSE)) {
@@ -24,15 +24,15 @@ public class LogTag {
 	
 	public static class Mgr {
 		public static void d(String msg) {
-			Log.d(APP, MGR + msg);
+		    if(V) Log.d(APP, MGR + msg);
 		}
 		
 		public static void i(String msg) {
-			Log.i(APP, MGR + msg);
+			if(V) Log.i(APP, MGR + msg);
 		}
 		
 		public static void w(String msg) {
-			Log.w(APP, MGR + msg);
+			if(V) Log.w(APP, MGR + msg);
 		}
 		
 		public static void e(String msg) {
@@ -42,25 +42,25 @@ public class LogTag {
 	
 	public static class Tran {
 		public static void d(String msg) {
-			Log.d(APP, TRAN + msg);
+			if(V) Log.d(APP, TRAN + msg);
 		}
 	}
 	
 	public static class Transport {
 		public static void i(String msg) {
-			Log.i(APP, TRANSPORT + msg);
+			if(V) Log.i(APP, TRANSPORT + msg);
 		}
 		
 		public static void d(String msg) {
-			Log.d(APP, TRANSPORT + msg);
+			if(V) Log.d(APP, TRANSPORT + msg);
 		}
 		
 		public static void w(String msg) {
-			Log.w(APP, TRANSPORT + msg);
+			if(V) Log.w(APP, TRANSPORT + msg);
 		}
 		
 		public static void v(String msg) {
-			Log.v(APP, TRANSPORT + msg);
+			if(V) Log.v(APP, TRANSPORT + msg);
 		}
 		
 		public static void e(String msg) {
@@ -70,11 +70,11 @@ public class LogTag {
 	
 	public static class Cache {
 		public static void d(String msg) {
-			Log.d(APP, CACHE + msg);
+			if(V) Log.d(APP, CACHE + msg);
 		}
 		
 		public static void w(String msg) {
-			Log.w(APP, CACHE + msg);
+			if(V) Log.w(APP, CACHE + msg);
 		}
 		
 		public static void e(String msg) {
@@ -82,21 +82,21 @@ public class LogTag {
 		}
 		
 		public static void i(String msg) {
-			Log.i(APP, CACHE + msg);
+			if(V) Log.i(APP, CACHE + msg);
 		}
 	}
 	
 	public static class Client {
 		public static void v(String msg) {
-			Log.v(APP, CLIENT + msg);
+			if(V) Log.v(APP, CLIENT + msg);
 		}
 		
 		public static void d(String msg) {
-			Log.d(APP, CLIENT + msg);
+			if(V) Log.d(APP, CLIENT + msg);
 		}
 		
 		public static void w(String msg) {
-			Log.w(APP, CLIENT + msg);
+			if(V) Log.w(APP, CLIENT + msg);
 		}
 		
 		public static void e(String msg) {
@@ -106,15 +106,15 @@ public class LogTag {
 	
 	public static class Server {
 		public static void d(String msg) {
-			Log.d(APP, SERVER + msg);
+			if(V) Log.d(APP, SERVER + msg);
 		}
 		
 		public static void w(String msg) {
-			Log.w(APP, SERVER + msg);
+			if(V) Log.w(APP, SERVER + msg);
 		}
 		
 		public static void i(String msg) {
-			Log.i(APP, SERVER + msg);
+			if(V) Log.i(APP, SERVER + msg);
 		}
 		
 		public static void e(String msg) {

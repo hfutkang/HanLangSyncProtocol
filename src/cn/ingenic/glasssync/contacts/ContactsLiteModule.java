@@ -2,14 +2,11 @@ package cn.ingenic.glasssync.contact;
 
 
 import android.content.Context;
-import android.os.IBinder;
 import android.util.Log;
-
 import cn.ingenic.glasssync.services.SyncModule;
 import cn.ingenic.glasssync.services.mid.MidTableManager;
 import cn.ingenic.glasssync.services.SyncData;
 import cn.ingenic.glasssync.services.SyncException;
-import android.util.Log;
 
 public class ContactsLiteModule extends SyncModule {
 	//TODO this name should in a common library, maybe sync_framework

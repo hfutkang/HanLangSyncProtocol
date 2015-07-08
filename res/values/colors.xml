@@ -39,6 +39,7 @@
   <color name="viewfinder_frame">#ff000000</color>
   <color name="viewfinder_laser">#ffff0000</color>
   <color name="viewfinder_mask">#60000000</color>
-  <color name="color_background">#ff09bfff</color>
-  <color name="color_white">#ffffff</color>
+  <color name="activity_bg">@android:color/background_two</color>
+  <color name="textColor">@android:color/text</color>
+  <color name="missCallAction_background">#87CEFF</color>	
 </resources>

@@ -3,14 +3,14 @@
 	      android:id="@+id/root"
 	      android:layout_width="match_parent"
 	      android:layout_height="match_parent"
-	      android:background="@color/color_background" >
+	      android:background="@color/activity_bg" >
 
   <TextView
       android:id="@+id/tv_load"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
       android:gravity="center"
-      android:textColor="@color/color_white"
+      android:textColor="@color/textColor"
       android:textSize="@dimen/big_font_size" />
 
 </LinearLayout>

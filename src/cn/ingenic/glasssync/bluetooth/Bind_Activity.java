@@ -2,6 +2,7 @@ package cn.ingenic.glasssync.bluetooth;
 
 import java.util.Set;
 import cn.ingenic.glasssync.DefaultSyncManager;
+import cn.ingenic.glasssync.blmanager.GlassSyncBLManager;
 import cn.ingenic.glasssync.R;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -21,20 +22,12 @@ import android.widget.GestureDetector.SimpleOnGestureListener;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 // import android.widget.Toast;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.ArrayList;
-import cn.ingenic.glasssync.devicemanager.DeviceModule;
-import cn.ingenic.glasssync.data.FeatureConfigCmd;
-import cn.ingenic.glasssync.data.Projo;
-import cn.ingenic.glasssync.Config;
-import cn.ingenic.glasssync.SystemModule;
 
 public class Bind_Activity extends Activity{
     private static final String TAG = "Bind_Activity";
     private static final boolean DEBUG = true;
 
-    private static final String ACTION_CONNECT = "cn.ingenic.glasssync.bond_changed";
+
     private DefaultSyncManager mManger;
     private BluetoothDevice mDevice;
     private Context mContext;
@@ -45,6 +38,7 @@ public class Bind_Activity extends Activity{
 
     private int mCurrentView = 1;
     private BluetoothAdapter mBluetoothAdapter ;
+    private TouchListener myTouchListener = new TouchListener();
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
 	super.onCreate(savedInstanceState);
@@ -52,16 +46,13 @@ public class Bind_Activity extends Activity{
 	
 	setContentView(R.layout.activity_bind);
 	mManger = DefaultSyncManager.getDefault();
-	
-	LinearLayout layout_bind = (LinearLayout) findViewById(R.id.layout_bind);
-	layout_bind.setOnTouchListener(new myTouchListener());
-	
+	mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 	SysApplication.getInstance().addActivity(this); 
 	mContext = this;
 
 	  /*listen broadcast from DefaultSyncManager*/
 	IntentFilter filter = new IntentFilter();
-	filter.addAction(ACTION_CONNECT);
+	filter.addAction(DefaultSyncManager.RECEIVER_ACTION_STATE_CHANGE);
 	registerReceiver(mBindStateReceiver, filter);
 	
     }
@@ -69,17 +60,7 @@ public class Bind_Activity extends Activity{
     @Override
 	protected void onStart() {
 	super.onStart();
-	mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-	String bindAddress = mManger.getLockedAddress();
-	mDevice = mBluetoothAdapter.getRemoteDevice(bindAddress);
-	String bindName = mDevice.getName();
-
-	int tag = getIntent().getIntExtra("Tag", 1);
-	
-	TextView tv = (TextView)findViewById(R.id.tv_mobile);
-	if(DEBUG) Log.e(TAG, "onStart in tag="+tag +"--bindAddress="+bindAddress+"--bindName="+bindName);
-	tv.setText(bindName);
-
+	enableBond();
 	gestureDetectorWorker();
     } 
 
@@ -91,11 +72,31 @@ public class Bind_Activity extends Activity{
 	unregisterReceiver(mBindStateReceiver);
     }
 
+    private void enableBond(){
+
+	LinearLayout layout_bind = (LinearLayout) findViewById(R.id.layout_bind);
+	layout_bind.setVisibility(View.VISIBLE);
+
+	TextView layout_disbind = (TextView) findViewById(R.id.layout_disbind);
+	layout_disbind.setVisibility(View.GONE);
+
+	String bindAddress = mManger.getLockedAddress();
+	mDevice = mBluetoothAdapter.getRemoteDevice(bindAddress);
+	String bindName = mDevice.getName();
+	
+	TextView tv = (TextView)findViewById(R.id.tv_mobile);
+	if(DEBUG) Log.e(TAG, "--bindAddress="+bindAddress+"--bindName="+bindName);
+	tv.setText(bindName);
+
+	mCurrentView = BOND_VIEW;
+	layout_bind.setOnTouchListener(myTouchListener);	
+	// unregisterReceiver(mBindStateReceiver);
+	// mBindStateReceiver = null;
+    }
     private void disableBond(){
 	if(DEBUG) Log.e(TAG, "-----disableBond address="+mManger.getLockedAddress());
 	mManger.setLockedAddress("");
-	// mManger.disconnect();//must not used
-
+	  // mManger.disconnect();//must not used
 
 	LinearLayout layout_bind = (LinearLayout) findViewById(R.id.layout_bind);
 	layout_bind.setVisibility(View.GONE);
@@ -103,9 +104,7 @@ public class Bind_Activity extends Activity{
 	TextView layout_disbind = (TextView) findViewById(R.id.layout_disbind);
 	layout_disbind.setVisibility(View.VISIBLE);
 	mCurrentView = DISBOND_VIEW;
-	layout_disbind.setOnTouchListener(new myTouchListener());	
-	unregisterReceiver(mBindStateReceiver);
-	mBindStateReceiver = null;
+	layout_disbind.setOnTouchListener(myTouchListener);	
     }
 
     private void gestureDetectorWorker(){
@@ -135,8 +134,10 @@ public class Bind_Activity extends Activity{
 		@Override
 		public boolean onLongPress(boolean fromPhone){
 		    if(DEBUG) Log.d(TAG,"---onLongPress");
-		    sendUnbind();
-		    disableBond();
+		    if(mCurrentView == BOND_VIEW){
+			GlassSyncBLManager.sendUnbind2Mobile();
+			disableBond();
+		    }
 		    return true;
 		}		    
 	    });
@@ -146,35 +147,24 @@ public class Bind_Activity extends Activity{
     private BroadcastReceiver mBindStateReceiver = new BroadcastReceiver() {
     	    @Override
     		public void onReceive(Context context, Intent intent) {
-    		if(intent.getAction().equals(ACTION_CONNECT)){
-    		    if(intent.getBooleanExtra("validAddr",false) == true)
-    			return;
-    		    disableBond();
+    		if(intent.getAction().equals(DefaultSyncManager.RECEIVER_ACTION_STATE_CHANGE)){
+		    int state = intent.getIntExtra(DefaultSyncManager.EXTRA_STATE,DefaultSyncManager.IDLE);
+		    boolean isConnect = (state == DefaultSyncManager.CONNECTED) ? true : false;
+		    if(DEBUG) Log.d(TAG,"----state="+state+"--isConnect="+isConnect);
+		    if(isConnect)
+			enableBond();
+		    else
+			disableBond();
     		}
     	    }
     	};
 
-    class myTouchListener implements OnTouchListener {
+    class TouchListener implements OnTouchListener {
 	@Override
 	    public boolean onTouch(View v, MotionEvent event) {
 	    return mGestureDetector.onTouchEvent(event);
 	}	
     }//
-
-    private void sendUnbind(){
-    	DefaultSyncManager manager = DefaultSyncManager.getDefault();
-    	Config config = new Config(SystemModule.SYSTEM);
-    	Map<String, Boolean> map = new HashMap<String, Boolean>();
-    	map.put(DeviceModule.FEATURE_UNBIND, true);
-    	Projo projo = new FeatureConfigCmd();
-    	projo.put(FeatureConfigCmd.FeatureConfigColumn.feature_map,map);
-    	ArrayList<Projo> datas = new ArrayList<Projo>();
-    	datas.add(projo);
-    	manager.request(config, datas);
-    	manager.featureStateChange(DeviceModule.FEATURE_UNBIND, true);
-		Log.d(TAG,"sendUnbind out");
-    }
-
 }
 
 

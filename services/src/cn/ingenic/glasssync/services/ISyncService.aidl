@@ -21,6 +21,7 @@ interface ISyncService {
 
 	boolean sendFileByPath(String module, in ParcelFileDescriptor des, String name, int length, String path);
 	
+	int getWaitingListSize(int type);
 	void createChannel(String module, in ParcelUuid uuid);
 	
 	void destroyChannel(String module, in ParcelUuid uuid);

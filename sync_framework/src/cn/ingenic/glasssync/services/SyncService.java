@@ -209,6 +209,11 @@ public class SyncService extends Service {
 		}
 
 		@Override
+		public int getWaitingListSize(int type) {
+			return mmManager.getWaitingListSize(type);
+		}
+
+		@Override
 		public boolean sendFileByPath(String module, ParcelFileDescriptor des, String name,
 					      int length, String path) throws RemoteException {
 		    InputStream in = new ParcelFileDescriptor.AutoCloseInputStream(des);

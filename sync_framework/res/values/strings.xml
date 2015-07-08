@@ -2,7 +2,7 @@
 
     <string name="app_name">SyncApp</string>
     <string name="service_msg">Sync service is running</string>
-	<string name="fail_addr_mismatch">Remote device already clear bond state with me</string>
+	<string name="fail_addr_mismatch">Glass has bonded other Device.Try again after Disbond</string>
 	<string name="fail_ver_mismatch">Sync Protocol version mismatch</string>
 	<string name="fail_unknow">Unknow error</string>
 	

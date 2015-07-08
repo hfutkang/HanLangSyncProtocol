@@ -9,10 +9,10 @@
         android:id="@+id/pre_info"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/color_background"
+        android:background="@color/activity_bg"
         android:gravity="center"
         android:text="@string/pre_info"
-        android:textColor="@color/color_white"
+        android:textColor="@color/textColor"
         android:textSize="@dimen/big_font_size" />
 
     <!--  -->
@@ -21,7 +21,7 @@
         android:id="@+id/Layout_welcome"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/color_background" >
+        android:background="@color/activity_bg" >
 
         <TextView
             android:id="@+id/welcome_content"
@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:paddingLeft="3px"
             android:text="@string/welcome_content"
-            android:textColor="@color/color_white"
+            android:textColor="@color/textColor"
             android:layout_centerInParent="true"
             android:textSize="@dimen/normal_font_size" />
 
@@ -42,7 +42,7 @@
 			android:layout_marginTop="10dp"
             android:paddingRight="3px"
             android:text="@string/into"
-            android:textColor="@color/color_white"
+            android:textColor="@color/textColor"
             android:textSize="@dimen/small_font_size" />
     </RelativeLayout>
    

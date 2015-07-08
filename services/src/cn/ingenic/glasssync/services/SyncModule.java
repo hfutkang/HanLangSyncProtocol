@@ -379,6 +379,15 @@ public abstract class SyncModule {
 	    }
 	}
 
+    	public int getWaitingListSize(int type) throws SyncException {
+	    try {
+		return getISyncService().getWaitingListSize(type);
+	    } catch (RemoteException e) {
+		Log.e(TAG, "SyncException:", e);
+		throw new SyncException("RemoteException occurs");
+	    }
+	}
+
 	public boolean sendFile(File file, String name, int length)
 			throws SyncException, FileNotFoundException {
 		try {

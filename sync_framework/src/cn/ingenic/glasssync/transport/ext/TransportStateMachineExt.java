@@ -140,7 +140,6 @@ class TransportStateMachineExt extends StateMachine {
 	}
 
 	private BluetoothChannelExt getAvaliableChannel() {
-	    Log.e("SDF", "mIsClient:" + mIsClient);
 		return mIsClient ? mClient : mServer;
 	}
 

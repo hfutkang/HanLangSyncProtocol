@@ -1,19 +1,24 @@
 package cn.ingenic.glasssync.blmanager;
 
-import java.util.Set;
 import cn.ingenic.glasssync.R;
+
+import java.util.Set;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
+
 import android.util.Log;
-import android.content.Context;
 import android.os.Handler;
-import android.util.Log;
 import android.os.Message;
-import android.net.Uri;
-import android.provider.MediaStore;
+import android.os.SystemProperties;
+
+import android.content.Context;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.Environment;
+
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothAdapter;
 
 import android.view.WindowManager;
 import android.view.LayoutInflater;
@@ -25,9 +30,15 @@ import android.widget.GestureDetector;
 import android.widget.GestureDetector.SimpleOnGestureListener;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+
 import android.media.MediaPlayer;
 
-import android.bluetooth.BluetoothAdapter;
+import cn.ingenic.glasssync.DefaultSyncManager;
+import cn.ingenic.glasssync.devicemanager.DeviceModule;
+import cn.ingenic.glasssync.data.FeatureConfigCmd;
+import cn.ingenic.glasssync.data.Projo;
+import cn.ingenic.glasssync.Config;
+import cn.ingenic.glasssync.SystemModule;
 
 public class GlassSyncBLManager {
     private static final String TAG = "GlassSyncBLManager";
@@ -43,10 +54,14 @@ public class GlassSyncBLManager {
     public static final int PAIRING_REQUEST_MESSAGE = 1;
     public static final int TIMEOUT_MESSAGE = 2;
     public static final int DISBOND_REQUEST_MESSAGE = 3;
-
+    public static final int BLUETOOTH_DISCOVERABLE_MESSAGE = 4;
+    public static final int BLUETOOTH_DISCOVERABLE_IS_TIME = 5;
+	
     public static final int TIMEOUT_DELAY = 20000;//20s
-    private static final String ACTION_CONNECT = "cn.ingenic.glasssync.bond_changed";
+    private static final String ACTION_CANCEL_BOND = "cn.ingenic.glasssync.CANCEL_BOND";
 
+    private boolean mBTDiscoverableTimeCome = false;
+	
     private Handler mHandler = new Handler() {
 	    @Override
 		public void handleMessage(Message msg) {
@@ -85,6 +100,18 @@ public class GlassSyncBLManager {
 			}
 		    }
 		    Log.d(TAG,"------removeBond end");
+		    break;
+		case BLUETOOTH_DISCOVERABLE_MESSAGE:
+		    //Log.d(TAG,"------BLUETOOTH_DISCOVERABLE_MESSAGE");
+		    enableBluetoothVisible();
+		    break;
+		case BLUETOOTH_DISCOVERABLE_IS_TIME:
+		    Log.d(TAG,"------BLUETOOTH_DISCOVERABLE_IS_TIME");
+		    mBTDiscoverableTimeCome = true;
+		    if(DefaultSyncManager.getDefault().getLockedAddress().equals(""))
+		       enableBluetoothVisible();
+		    else
+		       disableBluetoothVisible();
 		    break;
 		default:
 		    throw new RuntimeException("Unknown message " + msg); //never
@@ -131,7 +158,7 @@ public class GlassSyncBLManager {
     }
 
     private GlassSyncBLManager(Context context){
-	Log.e(TAG, "GlassSyncBLManager");
+	if(DEBUG) Log.d(TAG, "GlassSyncBLManager");
 	mContext = context;
 	mWindowParams = new WindowManager.LayoutParams();
 	mWindowParams.type = WindowManager.LayoutParams.TYPE_PHONE;	    
@@ -141,6 +168,16 @@ public class GlassSyncBLManager {
 	mWindowManager = (WindowManager)mContext.getSystemService(Context.WINDOW_SERVICE);
 	
 	init_receiver(context);
+
+	boolean enable = SystemProperties.getBoolean("ro.bluetooth.open.enable", false);
+	if(enable){
+	      //make sure bluetooth is open
+	    BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+	    if (!adapter.isEnabled()) {
+		if(DEBUG) Log.d(TAG, "----open bl");
+		adapter.enable();
+	    }
+	}
     }
 
     private void init_receiver(Context c){
@@ -148,13 +185,12 @@ public class GlassSyncBLManager {
 	nReceiver.setHandler(mHandler);
         IntentFilter filter = new IntentFilter();
         filter.addAction(BluetoothDevice.ACTION_PAIRING_REQUEST);
-
 	filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-	filter.addAction(BluetoothDevice.ACTION_FOUND);
-	filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
 
 	/*listen broadcast from DefaultSyncManager*/
 	// filter.addAction(ACTION_CONNECT);
+	filter.addAction(DefaultSyncManager.RECEIVER_ACTION_STATE_CHANGE);
+	filter.addAction(ACTION_CANCEL_BOND);
         c.registerReceiver(nReceiver,filter);
     }
 
@@ -179,24 +215,22 @@ public class GlassSyncBLManager {
 		      //coldwave
 		    BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 		    device.setPairingConfirmation(true);
-		}else{
-		      //iglass
-		    Message m = mHandler.obtainMessage(PAIRING_REQUEST_MESSAGE);
-		    m.obj = intent;
-		    mHandler.sendMessageDelayed(m,0);
-		    mHandler.sendEmptyMessageDelayed(TIMEOUT_MESSAGE, TIMEOUT_DELAY);		    
-		}
-	    }else if(intent.getAction().equals(ACTION_CONNECT)){
-		if(intent.getBooleanExtra("validAddr",false) == false){
-		    Message m = mHandler.obtainMessage(DISBOND_REQUEST_MESSAGE);
-		    mHandler.sendMessageDelayed(m,0);
-		}
+		}// else{
+		//       //iglass
+		//     Message m = mHandler.obtainMessage(PAIRING_REQUEST_MESSAGE);
+		//     m.obj = intent;
+		//     mHandler.sendMessageDelayed(m,0);
+		//     mHandler.sendEmptyMessageDelayed(TIMEOUT_MESSAGE, TIMEOUT_DELAY);		    
+		// }
 
 	    }else if(BluetoothAdapter.ACTION_STATE_CHANGED.equals(intent.getAction())){
 		Message msg = new Message();
 		switch (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)) {    
 		case BluetoothAdapter.STATE_ON:    
 		    if(DEBUG) Log.d(TAG, "BluetoothAdapter.STATE_ON");    
+		    // if(DefaultSyncManager.getDefault().getLockedAddress().equals(""))
+			enableBluetoothVisible(120);
+
 		    break;    
 		case BluetoothAdapter.STATE_OFF:    
 		    if(DEBUG) Log.d(TAG, "BluetoothAdapter.STATE_OFF");    
@@ -204,28 +238,60 @@ public class GlassSyncBLManager {
 		default:    
 		    break;    
 		}    
-	    }else if (BluetoothDevice.ACTION_FOUND.equals(intent.getAction())) {
-		    if(DEBUG) Log.e(TAG, "ACTION_FOUND");
-	    } else if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(intent.getAction())) {
-		if(DEBUG) Log.e(TAG, "ACTION_BOND_STATE_CHANGED");
-		BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-		if (device != null)
-		    if(DEBUG)Log.d(TAG, "Name : " + device.getName() + " Address:"+ device.getAddress());
-		switch (device.getBondState()) {    
-		case BluetoothDevice.BOND_BONDING:    
-		    if(DEBUG) Log.d(TAG, "ACTION_BOND_STATE_CHANGED--bonding");    
-			break;    
-		case BluetoothDevice.BOND_BONDED:    
-		    if(DEBUG) Log.d(TAG, "ACTION_BOND_STATE_CHANGED--bonded");    
-		    break;    
-		case BluetoothDevice.BOND_NONE:    
-		    if(DEBUG) Log.d(TAG, "ACTION_BOND_STATE_CHANGED--bond none");    
-		    break;
-		default:    
-		    break;    
-		}        
+	    }else if(intent.getAction().equals(DefaultSyncManager.RECEIVER_ACTION_STATE_CHANGE)){
+		int state = intent.getIntExtra(DefaultSyncManager.EXTRA_STATE,DefaultSyncManager.IDLE);
+		boolean isConnect = (state == DefaultSyncManager.CONNECTED) ? true : false;
+		if(DEBUG) Log.d(TAG,"----state="+state+"--isConnect="+isConnect);
+		if(isConnect && mBTDiscoverableTimeCome){
+		    disableBluetoothVisible();
+		}else
+		    enableBluetoothVisible();
+	    }else if (ACTION_CANCEL_BOND.equals(intent.getAction())) {
+		if(DEBUG) Log.d(TAG, "cn.ingenic.glasssync.CANCEL_BOND");    
+		sendUnbind2Mobile();
+		DefaultSyncManager.getDefault().setLockedAddress("");
+		enableBluetoothVisible();
 	    }
         }//
     }
 
+    private void enableBluetoothVisible(int secs){
+    	if(DEBUG) Log.d(TAG, "enableBluetoothVisible secs="+secs);    
+    	BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+    	boolean scan = adapter.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE);
+    	adapter.setDiscoverableTimeout(secs);
+    	Message m = mHandler.obtainMessage(BLUETOOTH_DISCOVERABLE_IS_TIME);
+    		if(DEBUG) Log.d(TAG, "----send msg");    
+    	mHandler.sendMessageDelayed(m,secs*1000);
+    }
+
+    private static final int BLUETOOTH_DSCOVERABLE_TIME = 60*600; //60s *600 = 10h
+    private void enableBluetoothVisible(){
+	if(DEBUG) Log.d(TAG, "enableBluetoothVisible");    
+	BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+	boolean scan = adapter.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE);
+	adapter.setDiscoverableTimeout(BLUETOOTH_DSCOVERABLE_TIME);
+	Message m = mHandler.obtainMessage(BLUETOOTH_DISCOVERABLE_MESSAGE);
+	mHandler.sendMessageDelayed(m,BLUETOOTH_DSCOVERABLE_TIME*1000);
+    }
+
+    private void disableBluetoothVisible(){
+	if(DEBUG) Log.d(TAG, "disableBluetoothVisible");    
+	mHandler.removeMessages(BLUETOOTH_DISCOVERABLE_MESSAGE);
+	BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+	adapter.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE);
+    }
+
+    public static void sendUnbind2Mobile(){
+    	DefaultSyncManager manager = DefaultSyncManager.getDefault();
+    	Config config = new Config(SystemModule.SYSTEM);
+    	Map<String, Boolean> map = new HashMap<String, Boolean>();
+    	map.put(DeviceModule.FEATURE_UNBIND, true);
+    	Projo projo = new FeatureConfigCmd();
+    	projo.put(FeatureConfigCmd.FeatureConfigColumn.feature_map,map);
+    	ArrayList<Projo> datas = new ArrayList<Projo>();
+    	datas.add(projo);
+    	manager.request(config, datas);
+    	manager.featureStateChange(DeviceModule.FEATURE_UNBIND, true);
+    }
 }

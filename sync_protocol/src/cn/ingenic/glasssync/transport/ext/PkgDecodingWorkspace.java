@@ -269,6 +269,7 @@ public class PkgDecodingWorkspace {
 				logd("CurPri changed to:" + pri + " from:" + mCurPri);
 				mCurPri = pri;
 			} else if (pri > mCurPri) {
+				mCurPri = pri;
 				loge("Received a lower pri Cfg, something wrong meight happen in Send role.");
 			}
 		} else {

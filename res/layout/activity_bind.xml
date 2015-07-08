@@ -2,7 +2,7 @@
 	      android:id="@+id/main"
 	      android:layout_width="match_parent"
 	      android:layout_height="match_parent"
-	      android:background="@color/color_background">
+	      android:background="@color/activity_bg">
 
   <!-- Bluetooth remove bond -->
    <TextView
@@ -11,7 +11,7 @@
        android:layout_height="match_parent"
        android:gravity="center"
        android:text="@string/disbind"
-       android:textColor="@color/color_white"
+       android:textColor="@color/textColor"
        android:textSize="@dimen/normal_font_size" 
        android:visibility="gone"/>
 
@@ -20,7 +20,7 @@
       android:id="@+id/layout_bind"
       android:layout_width="match_parent"
       android:layout_height="match_parent"
-      android:background="@color/color_background"
+      android:background="@color/activity_bg"
       android:clickable="true"
       android:orientation="vertical" >
     
@@ -31,7 +31,7 @@
       android:gravity="center_vertical"
       android:paddingLeft="5px"
       android:text="@string/bind"
-      android:textColor="@color/color_white"
+      android:textColor="@color/textColor"
       android:textSize="@dimen/normal_font_size" />
   
   <TextView
@@ -40,7 +40,7 @@
       android:layout_width="match_parent"
       android:layout_height="0dp"
       android:gravity="center"
-      android:textColor="@color/color_white"
+      android:textColor="@color/textColor"
       android:textSize="@dimen/bigbig_font_size" />
   
   <TextView
@@ -50,7 +50,7 @@
       android:gravity="right"
       android:paddingRight="3px"
       android:text="@string/long_click"
-      android:textColor="@color/color_white"
+      android:textColor="@color/textColor"
       android:textSize="@dimen/normal_font_size" />
   
   <!-- <LinearLayout -->

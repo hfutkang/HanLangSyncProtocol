@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_label">Connect the phone</string>
+    <string name="app_label">PhoneConnect</string>
 	<string name="bond">bind</string>
 	<string name="bond_message">bind the device %1$s ?</string>
 	<string name="open_bt">open bluetooth</string>
@@ -35,7 +35,7 @@
     <string name="ring">ring</string>
     <string name="offhook">offhook</string>
     <string name="disconnecting">disconnecting</string>
-    
+    <!-- <string name="call">call</string> -->
 	<!-- for ota update -->
     <string name="app_name">test</string>
     <string name="current_version">current version:</string>
@@ -189,7 +189,8 @@
     <string name="notification_missedCallsTitle"> missed calls</string>
     <string name="notification_missedCallsMsg"><xliff:g id="num_missed_calls">%s</xliff:g> missed calls</string>
     <string name="notification_missedCallTicker">Missed call from <xliff:g id="missed_call_from">%s</xliff:g></string>
-
+    <string name="call_back">Callback</string>
+    <string name="send_message">Send message</string>
 	<!-- Email -->
 	<string name="email_update_notification">Email has Update.</string>
 	
@@ -212,17 +213,17 @@
     <string name="loading">Is Bonding, please wait</string>
     <string name="load_message">\u0020 \u0020 \u0020 make sure Bluetooth is bonded in MobilePhone.</string>
     <string name="load_connect">\u0020 \u0020 \u0020 is bonding,waiting please.</string>
-    <string name="unbind">Pair failed (T ﹏ T)</string>
-    <string name="unconnect">Connect failed（T﹏T）</string>
-    <string name="disbind">Has fallen unbound, Slide out application,\nClick the binding a new mobile phone.</string>
+    <string name="unbind">Pair failed!</string>
+    <string name="unconnect">Connect failed!</string>
+    <string name="disbind">Has fallen unbound,\nClick the binding a new mobile phone.</string>
     <string name="bind">\u0020 \u0020 \u0020 \u0020Bonded Devices</string>
     <string name="long_click">(long press to unbind)</string>
     <string name="mobile">Lenovo \u0020 \u0020A790E</string>
-    <string name="toast_message">Click on the screen to bind or slipped through the exit application</string>
+    <string name="toast_message">Click on the screen to bind</string>
    <string name="bind_message">\u0020 \u0020 \u0020Please confirm the binding information in the mobile terminal.</string>
     <string name="bind_connect">\u0020 \u0020 \u0020 Is connect mobile phone, please later</string>
     <string name="pairing_request_title">Bluetooth pairing request</string>
-    <string name="pairing_request_button">Click ok,Decline to cancel</string>
+    <string name="pairing_request_button">Click ok</string>
     <string name="pairing_info">To be paired with the following equipment:</string>
 
 </resources>
