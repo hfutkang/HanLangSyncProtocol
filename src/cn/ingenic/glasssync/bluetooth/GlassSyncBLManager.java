@@ -55,13 +55,10 @@ public class GlassSyncBLManager {
     public static final int TIMEOUT_MESSAGE = 2;
     public static final int DISBOND_REQUEST_MESSAGE = 3;
     public static final int BLUETOOTH_DISCOVERABLE_MESSAGE = 4;
-    public static final int BLUETOOTH_DISCOVERABLE_IS_TIME = 5;
-	
+
     public static final int TIMEOUT_DELAY = 20000;//20s
     private static final String ACTION_CANCEL_BOND = "cn.ingenic.glasssync.CANCEL_BOND";
 
-    private boolean mBTDiscoverableTimeCome = false;
-	
     private Handler mHandler = new Handler() {
 	    @Override
 		public void handleMessage(Message msg) {
@@ -104,14 +101,6 @@ public class GlassSyncBLManager {
 		case BLUETOOTH_DISCOVERABLE_MESSAGE:
 		    //Log.d(TAG,"------BLUETOOTH_DISCOVERABLE_MESSAGE");
 		    enableBluetoothVisible();
-		    break;
-		case BLUETOOTH_DISCOVERABLE_IS_TIME:
-		    Log.d(TAG,"------BLUETOOTH_DISCOVERABLE_IS_TIME");
-		    mBTDiscoverableTimeCome = true;
-		    if(DefaultSyncManager.getDefault().getLockedAddress().equals(""))
-		       enableBluetoothVisible();
-		    else
-		       disableBluetoothVisible();
 		    break;
 		default:
 		    throw new RuntimeException("Unknown message " + msg); //never
@@ -228,8 +217,8 @@ public class GlassSyncBLManager {
 		switch (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)) {    
 		case BluetoothAdapter.STATE_ON:    
 		    if(DEBUG) Log.d(TAG, "BluetoothAdapter.STATE_ON");    
-		    // if(DefaultSyncManager.getDefault().getLockedAddress().equals(""))
-			enableBluetoothVisible(120);
+		    if(DefaultSyncManager.getDefault().getLockedAddress().equals(""))
+			enableBluetoothVisible();
 
 		    break;    
 		case BluetoothAdapter.STATE_OFF:    
@@ -242,9 +231,9 @@ public class GlassSyncBLManager {
 		int state = intent.getIntExtra(DefaultSyncManager.EXTRA_STATE,DefaultSyncManager.IDLE);
 		boolean isConnect = (state == DefaultSyncManager.CONNECTED) ? true : false;
 		if(DEBUG) Log.d(TAG,"----state="+state+"--isConnect="+isConnect);
-		if(isConnect && mBTDiscoverableTimeCome){
+		if(isConnect)
 		    disableBluetoothVisible();
-		}else
+		else
 		    enableBluetoothVisible();
 	    }else if (ACTION_CANCEL_BOND.equals(intent.getAction())) {
 		if(DEBUG) Log.d(TAG, "cn.ingenic.glasssync.CANCEL_BOND");    
@@ -253,16 +242,6 @@ public class GlassSyncBLManager {
 		enableBluetoothVisible();
 	    }
         }//
-    }
-
-    private void enableBluetoothVisible(int secs){
-    	if(DEBUG) Log.d(TAG, "enableBluetoothVisible secs="+secs);    
-    	BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-    	boolean scan = adapter.setScanMode(BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE);
-    	adapter.setDiscoverableTimeout(secs);
-    	Message m = mHandler.obtainMessage(BLUETOOTH_DISCOVERABLE_IS_TIME);
-    		if(DEBUG) Log.d(TAG, "----send msg");    
-    	mHandler.sendMessageDelayed(m,secs*1000);
     }
 
     private static final int BLUETOOTH_DSCOVERABLE_TIME = 60*600; //60s *600 = 10h
