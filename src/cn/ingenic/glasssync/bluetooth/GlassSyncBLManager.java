@@ -40,6 +40,8 @@ import cn.ingenic.glasssync.data.Projo;
 import cn.ingenic.glasssync.Config;
 import cn.ingenic.glasssync.SystemModule;
 
+import com.ingenic.glass.voicerecognizer.api.VoiceRecognizer;
+
 public class GlassSyncBLManager {
     private static final String TAG = "GlassSyncBLManager";
     public static final boolean DEBUG = true;
@@ -58,7 +60,10 @@ public class GlassSyncBLManager {
 
     public static final int TIMEOUT_DELAY = 20000;//20s
     private static final String ACTION_CANCEL_BOND = "cn.ingenic.glasssync.CANCEL_BOND";
-	private String lastBondAddress = null;
+    private String lastBondAddress = null;
+
+    private VoiceRecognizer mVoiceRecognizer = null;
+
     private Handler mHandler = new Handler() {
 	    @Override
 		public void handleMessage(Message msg) {
@@ -167,6 +172,9 @@ public class GlassSyncBLManager {
 		adapter.enable();
 	    }
 	}
+
+	mVoiceRecognizer = new VoiceRecognizer(VoiceRecognizer.REC_TYPE_COMMAND, null);
+	mVoiceRecognizer.setAppName("GlassSyncBLManager");
     }
 
     private void init_receiver(Context c){
@@ -233,14 +241,18 @@ public class GlassSyncBLManager {
 		if(DEBUG) Log.d(TAG,"----state="+state+"--isConnect="+isConnect);
 		if(isConnect){
 			if(lastBondAddress == null){
+				Log.d(TAG,"bond ok"+lastBondAddress);
 			   //Bonded ok
 			   lastBondAddress = DefaultSyncManager.getDefault().getLockedAddress();
+			   mVoiceRecognizer.playTTS(mContext.getString(R.string.tts_bond_ok));
 			}
 		    disableBluetoothVisible();
 		}else if(DefaultSyncManager.getDefault().getLockedAddress().equals("")){
+			Log.d(TAG,"unbond ok"+lastBondAddress);
 		    //DisBond ok
 		    lastBondAddress = null;
 		    enableBluetoothVisible();
+		    mVoiceRecognizer.playTTS(mContext.getString(R.string.tts_unbond_ok));
 		}
 	    }else if (ACTION_CANCEL_BOND.equals(intent.getAction())) {
 		if(DEBUG) Log.d(TAG, "cn.ingenic.glasssync.CANCEL_BOND");    

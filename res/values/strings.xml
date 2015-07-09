@@ -226,5 +226,8 @@
     <string name="pairing_request_button">Click ok</string>
     <string name="pairing_info">To be paired with the following equipment:</string>
 
+    <!-- tts -->
+    <string name="tts_bond_ok">bond ok</string>
+    <string name="tts_unbond_ok">unbond ok</string>
 </resources>
 

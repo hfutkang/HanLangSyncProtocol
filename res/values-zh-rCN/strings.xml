@@ -214,4 +214,8 @@
     <string name="pairing_request_title">蓝牙配对请求</string>
     <string name="pairing_request_button">点击确定</string>
     <string name="pairing_info">要与以下设备进行配对：</string>
+
+    <!-- tts -->
+    <string name="tts_bond_ok">与手机连接成功</string>
+    <string name="tts_unbond_ok">与手机解除连接</string>
 </resources>
