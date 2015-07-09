@@ -58,7 +58,7 @@ public class GlassSyncBLManager {
 
     public static final int TIMEOUT_DELAY = 20000;//20s
     private static final String ACTION_CANCEL_BOND = "cn.ingenic.glasssync.CANCEL_BOND";
-
+	private String lastBondAddress = null;
     private Handler mHandler = new Handler() {
 	    @Override
 		public void handleMessage(Message msg) {
@@ -231,10 +231,17 @@ public class GlassSyncBLManager {
 		int state = intent.getIntExtra(DefaultSyncManager.EXTRA_STATE,DefaultSyncManager.IDLE);
 		boolean isConnect = (state == DefaultSyncManager.CONNECTED) ? true : false;
 		if(DEBUG) Log.d(TAG,"----state="+state+"--isConnect="+isConnect);
-		if(isConnect)
+		if(isConnect){
+			if(lastBondAddress == null){
+			   //Bonded ok
+			   lastBondAddress = DefaultSyncManager.getDefault().getLockedAddress();
+			}
 		    disableBluetoothVisible();
-		else
+		}else if(DefaultSyncManager.getDefault().getLockedAddress().equals("")){
+		    //DisBond ok
+		    lastBondAddress = null;
 		    enableBluetoothVisible();
+		}
 	    }else if (ACTION_CANCEL_BOND.equals(intent.getAction())) {
 		if(DEBUG) Log.d(TAG, "cn.ingenic.glasssync.CANCEL_BOND");    
 		sendUnbind2Mobile();
