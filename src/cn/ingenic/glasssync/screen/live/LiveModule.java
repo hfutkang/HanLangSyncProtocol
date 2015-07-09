@@ -7,6 +7,8 @@ import java.util.List;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.UserHandle;
+import android.net.Uri;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningTaskInfo;
 import android.content.Context;
@@ -39,9 +41,12 @@ public class LiveModule extends SyncModule {
     public static final String NEED_OPEN_PACKET_NAME = "com.ingenic.glass.camera";
     public static final String NEED_OPEN_PACKET_CLASS_NAME = "com.ingenic.glass.camera.live.CameraLive";
 
+    private static final String LIVE_QUIT = "com.ingenic.glass.camera.live.LIVE_QUIT";
+
     public static final String LIVE_NAME = "live_module";
     public static final String LIVE_SHARE = "live_share";
     public static final String LIVE_TRANSPORT_CMD = "live_transport_cmd";
+    public static final String LIVE_QUIT_CMD = "live_quit_cmd";
     public static final String LIVE_RTSP_URL = "live_rtsp_url";
 
     public static final String LIVE_WIFI_CONNECTED = "live_wifi_connected";
@@ -60,6 +65,7 @@ public class LiveModule extends SyncModule {
     private Context mContext;
     private static LiveModule sInstance;
     private boolean isTransData = false;
+    private boolean isLiveQuit = false;
     private String mIPAddress = null;
     private Handler mDelayHandler;
 
@@ -117,9 +123,14 @@ public class LiveModule extends SyncModule {
 	    	return;
 	    }
 
-	    	ComponentName componentName = new ComponentName(NEED_OPEN_PACKET_NAME, NEED_OPEN_PACKET_CLASS_NAME);
-	    	startApp(componentName, null);
+	    ComponentName componentName = new ComponentName(NEED_OPEN_PACKET_NAME, NEED_OPEN_PACKET_CLASS_NAME);
+	    startApp(componentName, null);
 	}
+
+	isLiveQuit = data.getBoolean(LIVE_QUIT_CMD, false);
+	Log.e(TAG, "isLiveQuit = " + isLiveQuit);
+	if (isLiveQuit)
+		stopApp();
     }
 
     private void startApp(ComponentName com, String param) {
@@ -152,6 +163,13 @@ public class LiveModule extends SyncModule {
 		Toast.makeText(mContext, "Unexpected error", Toast.LENGTH_SHORT).show();
 	    }
 	}
+    }
+
+    private void stopApp() {
+	    final Intent intent = new Intent(LIVE_QUIT, Uri.parse("file://LiveModule"));
+	    intent.setPackage(NEED_OPEN_PACKET_NAME);
+	    Log.e(TAG, "sendStorageIntent " + intent);
+	    mContext.sendBroadcastAsUser(intent, UserHandle.ALL);
     }
 
     class DelayTimer implements Runnable {
