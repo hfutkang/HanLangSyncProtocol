@@ -123,8 +123,27 @@ public class LiveModule extends SyncModule {
 	    	return;
 	    }
 
-	    ComponentName componentName = new ComponentName(NEED_OPEN_PACKET_NAME, NEED_OPEN_PACKET_CLASS_NAME);
-	    startApp(componentName, null);
+	    ActivityManager am = (ActivityManager)mContext.getSystemService(Context.ACTIVITY_SERVICE); 
+	    List<RunningTaskInfo> list = am.getRunningTasks(100); 
+	    boolean isAppRunning = false; 
+	    for (RunningTaskInfo info : list) { 
+	    	//if (DEBUG) Log.e(TAG, "info.topActivity = " + info.topActivity.getClassName());
+	    	//if (DEBUG) Log.e(TAG, "info.baseActivity = " + info.baseActivity.getClassName());
+	    	if (info.topActivity.getClassName().equals(NEED_OPEN_PACKET_CLASS_NAME) || info.baseActivity.getClassName().equals(NEED_OPEN_PACKET_CLASS_NAME)) { 
+	    	    isAppRunning = true; 
+	    	    break; 
+	    	} 
+	    } 
+
+	    if (!isAppRunning) {
+	    	ComponentName componentName = new ComponentName(NEED_OPEN_PACKET_NAME, NEED_OPEN_PACKET_CLASS_NAME);
+	    	startApp(componentName, null);
+	    }else{
+	    	if (DEBUG) Log.e(TAG, "Application is aleady running");
+		// is running or is finishing
+		stopApp();
+	    	sendCameraStatus(false);
+	    }
 	}
 
 	isLiveQuit = data.getBoolean(LIVE_QUIT_CMD, false);
