@@ -11,7 +11,6 @@ import android.os.UserHandle;
 import android.net.Uri;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningTaskInfo;
-import android.content.Context;
 import android.widget.Toast;
 import android.util.Log;
 import android.bluetooth.BluetoothAdapter;
@@ -21,6 +20,8 @@ import cn.ingenic.glasssync.services.SyncException;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.BroadcastReceiver;
 
 import android.net.wifi.WifiManager;
 import android.net.wifi.ScanResult;
@@ -54,7 +55,7 @@ public class LiveModule extends SyncModule {
 
     public static final String LIVE_CAMERA_OPENED = "live_camera_opened";
     public static final String LIVE_CAMERA_NOT_OPENED = "live_camera_not_opened";
-    
+    public static final String LIVE_CAMERA_NOT_OPENED_ERROR = "live_camera_not_opened_err";    
     
     public static final int TRANSPORT_WIFI_CONNECTED = 0;
     public static final int TRANSPORT_WIFI_UNCONNECTED = 1;
@@ -69,10 +70,22 @@ public class LiveModule extends SyncModule {
     private String mIPAddress = null;
     private Handler mDelayHandler;
 
+    private String ACTION_CAMERA_ERROR = "com.ingenic.glass.camera.ERROR";
+    private final IntentFilter mIntentFilter;
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+	@Override
+	public void onReceive(Context context, Intent intent) {
+		if (ACTION_CAMERA_ERROR.equals(intent.getAction()))
+			sendCameraStatus(false, intent.getStringExtra("error"));
+	}
+    };
 
     private LiveModule(Context context){
 	super(LIVE_NAME, context);
 	mContext = context;
+
+	mIntentFilter = new IntentFilter("com.ingenic.glass.camera.ERROR");
+	mContext.registerReceiver(mReceiver, mIntentFilter);
     }
 
     public static LiveModule getInstance(Context c) {
@@ -142,7 +155,7 @@ public class LiveModule extends SyncModule {
 	    	if (DEBUG) Log.e(TAG, "Application is aleady running");
 		// is running or is finishing
 		stopApp();
-	    	sendCameraStatus(false);
+	    	sendCameraStatus(false, null);
 	    }
 	}
 
@@ -194,7 +207,7 @@ public class LiveModule extends SyncModule {
     class DelayTimer implements Runnable {
 	public void run() {
 	    Log.e(TAG, "DelayTimer++");
-	    sendCameraStatus(true);
+	    sendCameraStatus(true, null);
 	}
     }
 
@@ -219,14 +232,16 @@ public class LiveModule extends SyncModule {
 
 
 
-    public void sendCameraStatus(boolean bool) {
-	if (DEBUG) Log.e(TAG, "sendCameraStatus bool = " + bool);
+    public void sendCameraStatus(boolean bool, String err) {
+	if (DEBUG) Log.e(TAG, "sendCameraStatus bool = " + bool + " err = " + err);
 	SyncData data = new SyncData();
 
 	if (bool) {
 	    data.putInt(LIVE_SHARE, TRANSPORT_CAMERA_OPENED);
 	}else{
 	    data.putInt(LIVE_SHARE, TRANSPORT_CAMERA_NOT_OPENED);
+	    if (err != null)
+		data.putString(LIVE_CAMERA_NOT_OPENED_ERROR, err);
 	}
 
 	try {
