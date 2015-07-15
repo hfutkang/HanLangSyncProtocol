@@ -13,7 +13,7 @@ sync_framework_res_dir := sync_framework/res
 res_dirs := $(sync_framework_res_dir) res
 LOCAL_SRC_FILES := $(call all-java-files-under, src)
 LOCAL_RESOURCE_DIR := $(addprefix $(LOCAL_PATH)/, $(res_dirs))
-LOCAL_PACKAGE_NAME := GlassSync
+LOCAL_PACKAGE_NAME := HanLangSync
 LOCAL_STATIC_JAVA_LIBRARIES := sync_framework \
 	com.android.vcard \
 	zxing VoiceRecognizerAPI
